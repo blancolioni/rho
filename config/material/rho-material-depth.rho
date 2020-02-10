@@ -1,0 +1,27 @@
+material Rho.Materials.Depth
+  (Near, Far : Float)
+is
+
+   function Vertex_Shader
+      (Position   : in Vector_4;   
+       Depth      : out Float;
+       Model_View : constant Matrix_4;
+       Projection : constant Matrix_4)
+	  return Vector_4
+   is
+       Out_Vertex : Vector_4 :=
+        Projection * Model_View * Position;
+   begin
+      Depth := 1.0 - (Out_Vertex.Z - Near) / (Far - Near);
+      return Out_Vertex;
+   end Vertex_Shader;
+
+   function Fragment_Shader 
+     (Depth : in Float)
+     return Vector_4 
+   is
+   begin
+     return Vector_4 (Depth, Depth, Depth, 1.0);
+   end Fragment_Shader;
+
+end Rho.Materials.Depth;

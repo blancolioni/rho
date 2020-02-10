@@ -1,0 +1,33 @@
+project_name = Rho
+source_dir = src
+source_dir = src/assets
+source_dir = src/camera
+source_dir = src/demos
+source_dir = src/driver
+source_dir = src/events
+source_dir = src/geometry
+source_dir = src/handles
+source_dir = src/handles/opengl
+source_dir = src/handles/simulation
+source_dir = src/lights
+source_dir = src/matrices
+source_dir = src/material
+source_dir = src/meshes
+source_dir = src/nodes
+source_dir = src/render
+source_dir = src/scenes
+source_dir = src/shaders
+source_dir = src/tau
+source_dir = src/windows
+depend = { project = wlib version = any }
+depend = { project = gcs version = any }
+main_unit = rho-driver
+exec_name = rho
+config_dir = config
+language = ada
+language = c
+path_unit = { unit = Rho.Paths
+              path = src/rho-paths.ads }
+linker_option = "-Llib"
+linker_option = "-lopengl32"
+linker_option = "-lfreeglut"
