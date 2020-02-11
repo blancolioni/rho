@@ -1,5 +1,3 @@
-with Ada.Text_IO;
-
 with WL.Guids;
 
 with Rho.Matrices.Logs;
@@ -52,8 +50,6 @@ package body Rho.Nodes is
    is
    begin
       if not Node.Is_Loaded then
-         Ada.Text_IO.Put_Line
-           ("load: " & Root_Node_Type'Class (Node).Show);
          Root_Node_Type'Class (Node).Load (Target);
       end if;
 

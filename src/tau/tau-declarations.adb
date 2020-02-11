@@ -2,6 +2,21 @@ with Ada.Strings.Unbounded;
 
 package body Tau.Declarations is
 
+   type Generic_Formal_Type is
+     new Root_Tau_Declaration with
+      record
+         Type_Name : Ada.Strings.Unbounded.Unbounded_String;
+      end record;
+
+   overriding procedure Elaborate
+     (Declaration : in out Generic_Formal_Type;
+      Environment : Tau.Environment.Tau_Environment);
+
+   overriding procedure Compile
+     (Declaration : Generic_Formal_Type;
+      Generator   : in out Tau.Generators.Root_Tau_Generator'Class)
+   is null;
+
    type Global_Variable_Type is
      new Root_Tau_Declaration with
       record
@@ -31,6 +46,29 @@ package body Tau.Declarations is
    overriding procedure Compile
      (Declaration : Local_Variable_Type;
       Generator   : in out Tau.Generators.Root_Tau_Generator'Class);
+
+   overriding function Children
+     (Declaration : Local_Variable_Type)
+      return Tau_Node_Array;
+
+   --------------
+   -- Children --
+   --------------
+
+   overriding function Children
+     (Declaration : Local_Variable_Type)
+      return Tau_Node_Array
+   is
+      use type Tau.Expressions.Tau_Expression;
+      Nodes : constant Tau_Node_Array :=
+        Root_Tau_Declaration (Declaration).Children;
+   begin
+      if Declaration.Initialization = null then
+         return Nodes;
+      else
+         return Nodes & (1 => Tau_Node (Declaration.Initialization));
+      end if;
+   end Children;
 
    -------------
    -- Compile --
@@ -83,17 +121,15 @@ package body Tau.Declarations is
       T_Entry   : Tau.Entries.Tau_Entry;
    begin
       if not Environment.Contains (Type_Name) then
-         Environment.Error
-           (Declaration.Defined_At,
-            "undefined: " & Type_Name);
+         Declaration.Error
+           ("undefined: " & Type_Name);
          T_Entry := Environment.Get ("integer");
       else
          T_Entry := Environment.Get (Type_Name);
 
          if not T_Entry.Is_Type_Entry then
-            Environment.Error
-              (Declaration.Defined_At,
-               "expected a type name but found "
+            Declaration.Error
+              ("expected a type name but found "
                & Type_Name);
             T_Entry := Environment.Get ("integer");
          end if;
@@ -117,6 +153,45 @@ package body Tau.Declarations is
    ---------------
 
    overriding procedure Elaborate
+     (Declaration : in out Generic_Formal_Type;
+      Environment : Tau.Environment.Tau_Environment)
+   is
+      Type_Name : constant String :=
+        Ada.Strings.Unbounded.To_String (Declaration.Type_Name);
+      T_Entry   : Tau.Entries.Tau_Entry;
+   begin
+      if not Environment.Contains (Type_Name) then
+         Declaration.Error
+           ("undefined: " & Type_Name);
+         T_Entry := Environment.Get ("integer");
+      else
+         T_Entry := Environment.Get (Type_Name);
+
+         if not T_Entry.Is_Type_Entry then
+            Declaration.Error
+              ("expected a type name but found "
+               & Type_Name);
+            T_Entry := Environment.Get ("integer");
+         end if;
+      end if;
+
+      Declaration.Dec_Type := T_Entry.Entry_Type;
+      Declaration.Dec_Entry :=
+        Tau.Entries.Formal_Argument_Entry
+          (Declaration => Declaration.Defined_At,
+           Name        => Declaration.Name,
+           Entry_Type  => T_Entry.Entry_Type);
+
+      Environment.Insert
+        (Declaration.Name, Declaration.Dec_Entry);
+
+   end Elaborate;
+
+   ---------------
+   -- Elaborate --
+   ---------------
+
+   overriding procedure Elaborate
      (Declaration : in out Local_Variable_Type;
       Environment : Tau.Environment.Tau_Environment)
    is
@@ -126,17 +201,15 @@ package body Tau.Declarations is
       T_Entry   : Tau.Entries.Tau_Entry;
    begin
       if not Environment.Contains (Type_Name) then
-         Environment.Error
-           (Declaration.Defined_At,
-            "undefined: " & Type_Name);
+         Declaration.Error
+           ("undefined: " & Type_Name);
          T_Entry := Environment.Get ("integer");
       else
          T_Entry := Environment.Get (Type_Name);
 
          if not T_Entry.Is_Type_Entry then
-            Environment.Error
-              (Declaration.Defined_At,
-               "expected a type name but found "
+            Declaration.Error
+              ("expected a type name but found "
                & Type_Name);
             T_Entry := Environment.Get ("integer");
          end if;
@@ -157,6 +230,25 @@ package body Tau.Declarations is
         (Declaration.Name, Declaration.Dec_Entry);
 
    end Elaborate;
+
+   --------------------------------
+   -- Generic_Formal_Declaration --
+   --------------------------------
+
+   function Generic_Formal_Declaration
+     (Position  : GCS.Positions.File_Position;
+      Name      : String;
+      Type_Name : String)
+      return Tau_Declaration
+   is
+      Declaration : Generic_Formal_Type := Generic_Formal_Type'
+        (Root_Tau_Declaration with
+         Type_Name        =>
+           Ada.Strings.Unbounded.To_Unbounded_String (Type_Name));
+   begin
+      Declaration.Initialize_Object (Position, Name);
+      return new Generic_Formal_Type'(Declaration);
+   end Generic_Formal_Declaration;
 
    ---------------------------------
    -- Global_Variable_Declaration --

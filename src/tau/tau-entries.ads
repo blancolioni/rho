@@ -27,8 +27,9 @@ package Tau.Entries is
      (Object : Root_Tau_Entry)
       return Boolean;
 
-   function To_Source
-     (Object : Root_Tau_Entry)
+   overriding function To_Source
+     (Object    : Root_Tau_Entry;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
       return String;
 
    function Type_Entry
@@ -84,8 +85,9 @@ private
       return Boolean
    is (False);
 
-   function To_Source
-     (Object : Root_Tau_Entry)
+   overriding function To_Source
+     (Object    : Root_Tau_Entry;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
       return String
    is (Object.Name);
 

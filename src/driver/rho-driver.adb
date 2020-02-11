@@ -13,6 +13,7 @@ with Rho.Windows;
 
 with Rho.Demos;
 
+with Rho.Logging;
 with Rho.Options;
 with Rho.Paths;
 
@@ -26,6 +27,8 @@ begin
    end if;
 
    WL.Command_Line.Load_Defaults (".rho-options");
+
+   Rho.Logging.Start_Logging;
 
    Tau.Library.Load_Library;
 
@@ -112,4 +115,11 @@ begin
       end;
    end;
 
+   Rho.Logging.Stop_Logging;
+
+exception
+
+   when others =>
+      Rho.Logging.Stop_Logging;
+      raise;
 end Rho.Driver;

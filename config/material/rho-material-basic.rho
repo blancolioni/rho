@@ -1,17 +1,14 @@
-material Rho.Materials.Basic
-  (Color      : Vector_4)
-is
+generic
+   Surface_Color : Vector_4;
+material Rho.Materials.Basic is	
 
    function Vertex_Shader
       (Position   : in Vector_4;   
        Model_View : constant Matrix_4;
        Projection : constant Matrix_4)
 	  return Vector_4 
-   is
-   begin
-      return Projection * Model_View * Position;
-   end Vertex_Shader;
+   is (Projection * Model_View * Position);
 
-   function Fragment_Shader return Vector_4 is (Color);
+   function Fragment_Shader return Vector_4 is (Surface_Color);
 
 end Rho.Materials.Basic;

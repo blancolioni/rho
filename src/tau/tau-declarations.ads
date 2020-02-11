@@ -36,6 +36,12 @@ package Tau.Declarations is
 
    type Tau_Declaration is access all Root_Tau_Declaration'Class;
 
+   function Generic_Formal_Declaration
+     (Position  : GCS.Positions.File_Position;
+      Name      : String;
+      Type_Name : String)
+      return Tau_Declaration;
+
    function Global_Variable_Declaration
      (Position  : GCS.Positions.File_Position;
       Name      : String;

@@ -1,0 +1,7 @@
+abstract material Rho.Materials.Simple_Color
+  (Color      : Vector_4)
+is
+
+   function Surface_Color return Vector_4 is (Color);
+
+end Rho.Materials.Simple_Color;

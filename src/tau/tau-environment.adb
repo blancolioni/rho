@@ -1,16 +1,6 @@
-with Ada.Text_IO;
-
 with Tau.Types.Standard;
 
 package body Tau.Environment is
-
-   use type GCS.Positions.File_Position;
-
-   function Before (Left, Right : Error_Record) return Boolean
-   is (Left.Position < Right.Position);
-
-   package Error_Sorting is
-     new Error_Lists.Generic_Sorting (Before);
 
    Local_Standard_Library   : Tau_Environment;
    Local_Global_Environment : Tau_Environment;
@@ -87,36 +77,6 @@ package body Tau.Environment is
 
    end Create_Standard_Library;
 
-   -----------
-   -- Error --
-   -----------
-
-   procedure Error
-     (Environment : in out Root_Tau_Environment;
-      Node        : Root_Tau_Node'Class;
-      Message     : String)
-   is
-   begin
-      Environment.Error (Node.Defined_At, Message);
-   end Error;
-
-   -----------
-   -- Error --
-   -----------
-
-   procedure Error
-     (Environment : in out Root_Tau_Environment;
-      Position    : GCS.Positions.File_Position;
-      Message     : String)
-   is
-   begin
-      Environment.Errors.Append
-        (Error_Record'
-           (Message_Length => Message'Length,
-            Position       => Position,
-            Message        => Message));
-   end Error;
-
    ------------------------
    -- Global_Environment --
    ------------------------
@@ -139,80 +99,58 @@ package body Tau.Environment is
       Environment.Map.Insert (Name, Tau.Entries.Tau_Entry (Item));
    end Insert;
 
-   --------------------
-   -- Iterate_Errors --
-   --------------------
+   ------------
+   -- Insert --
+   ------------
 
-   procedure Iterate_Errors
-     (Environment : Root_Tau_Environment;
-      Process     : not null access procedure
-        (Position : GCS.Positions.File_Position;
-         Message : String))
-   is
-      All_Errors : Error_Lists.List;
-
-      procedure Collect (Env : Root_Tau_Environment'Class);
-
-      -------------
-      -- Collect --
-      -------------
-
-      procedure Collect (Env : Root_Tau_Environment'Class) is
-      begin
-         for Error of Env.Errors loop
-            All_Errors.Append (Error);
-         end loop;
-         for Child of Env.Children loop
-            Collect (Child.all);
-         end loop;
-      end Collect;
-
-   begin
-      Collect (Environment);
-      Error_Sorting.Sort (All_Errors);
-      for Error of All_Errors loop
-         Process (Error.Position, Error.Message);
-      end loop;
-   end Iterate_Errors;
-
-   ----------------------
-   -- Keep_Error_State --
-   ----------------------
-
-   procedure Keep_Error_State
-     (Environment : in out Root_Tau_Environment'Class)
-   is
-      State : constant Error_Lists.List := Environment.Errors;
-   begin
-      Environment.Pop_Error_State;
-      for Error of State loop
-         Environment.Errors.Append (Error);
-      end loop;
-   end Keep_Error_State;
-
-   ---------------------
-   -- Pop_Error_State --
-   ---------------------
-
-   procedure Pop_Error_State
-     (Environment : in out Root_Tau_Environment'Class)
+   procedure Insert
+     (Environment : in out Root_Tau_Environment'Class;
+      Name        : String;
+      Value       : not null access
+        Tau.Values.Root_Tau_Value'Class)
    is
    begin
-      Environment.Errors := Environment.Error_Stack.Last_Element;
-      Environment.Error_Stack.Delete_Last;
-   end Pop_Error_State;
+      Environment.Insert
+        (Name,
+         Tau.Entries.Value_Entry
+           (Value.Defined_At, Name, Tau.Values.Tau_Value (Value)));
+   end Insert;
 
-   ----------------------
-   -- Push_Error_State --
-   ----------------------
-
-   procedure Push_Error_State
-     (Environment : in out Root_Tau_Environment'Class)
-   is
-   begin
-      Environment.Error_Stack.Append (Environment.Errors);
-      Environment.Errors.Clear;
-   end Push_Error_State;
+--     --------------------
+--     -- Iterate_Errors --
+--     --------------------
+--
+--     procedure Iterate_Errors
+--       (Environment : Root_Tau_Environment;
+--        Process     : not null access procedure
+--          (Position : GCS.Positions.File_Position;
+--           Message : String))
+--     is
+--        All_Errors : Error_Lists.List;
+--
+--        procedure Collect (Env : Root_Tau_Environment'Class);
+--
+--        -------------
+--        -- Collect --
+--        -------------
+--
+--        procedure Collect (Env : Root_Tau_Environment'Class) is
+--        begin
+--           for Error of Env.Errors loop
+--              All_Errors.Append (Error);
+--           end loop;
+--           for Child of Env.Children loop
+--              Collect (Child.all);
+--           end loop;
+--        end Collect;
+--
+--     begin
+--        Collect (Environment);
+--        Error_Sorting.Sort (All_Errors);
+--        for Error of All_Errors loop
+--           Process (Error.Position, Error.Message);
+--        end loop;
+--     end Iterate_Errors;
 
    ---------------------
    -- Set_Return_Type --
@@ -242,29 +180,29 @@ package body Tau.Environment is
    -- Write_Errors --
    ------------------
 
-   procedure Write_Errors
-     (Environment : Root_Tau_Environment)
-   is
-
-      procedure Put (Position : GCS.Positions.File_Position;
-                     Message  : String);
-
-      ---------
-      -- Put --
-      ---------
-
-      procedure Put (Position : GCS.Positions.File_Position;
-                     Message  : String)
-      is
-      begin
-         Ada.Text_IO.Put_Line
-           (Ada.Text_IO.Standard_Error,
-            GCS.Positions.Image (Position)
-            & ": " & Message);
-      end Put;
-
-   begin
-      Environment.Iterate_Errors (Put'Access);
-   end Write_Errors;
+--     procedure Write_Errors
+--       (Environment : Root_Tau_Environment)
+--     is
+--
+--        procedure Put (Position : GCS.Positions.File_Position;
+--                       Message  : String);
+--
+--        ---------
+--        -- Put --
+--        ---------
+--
+--        procedure Put (Position : GCS.Positions.File_Position;
+--                       Message  : String)
+--        is
+--        begin
+--           Ada.Text_IO.Put_Line
+--             (Ada.Text_IO.Standard_Error,
+--              GCS.Positions.Image (Position)
+--              & ": " & Message);
+--        end Put;
+--
+--     begin
+--        Environment.Iterate_Errors (Put'Access);
+--     end Write_Errors;
 
 end Tau.Environment;

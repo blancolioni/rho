@@ -9,7 +9,7 @@ package body Tau.Expressions.Literals is
       end record;
 
    overriding procedure Check_Names
-     (Expression  : Float_Literal_Type;
+     (Expression  : in out Float_Literal_Type;
       Environment : Tau.Environment.Tau_Environment)
    is null;
 
@@ -21,7 +21,7 @@ package body Tau.Expressions.Literals is
 
    overriding function To_String
      (Expression : Float_Literal_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String
    is (Generator.Float_Image (Expression.Float_Value));
 
@@ -32,7 +32,7 @@ package body Tau.Expressions.Literals is
       end record;
 
    overriding procedure Check_Names
-     (Expression  : Integer_Literal_Type;
+     (Expression  : in out Integer_Literal_Type;
       Environment : Tau.Environment.Tau_Environment)
    is null;
 
@@ -44,7 +44,7 @@ package body Tau.Expressions.Literals is
 
    overriding function To_String
      (Expression : Integer_Literal_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String
    is (Generator.Integer_Image (Expression.Integer_Value));
 
@@ -58,13 +58,13 @@ package body Tau.Expressions.Literals is
       Expected_Type : Tau.Types.Tau_Type;
       Found_Type    : out Tau.Types.Tau_Type)
    is
+      pragma Unreferenced (Environment);
    begin
       if not Expected_Type.Is_Convertible_From
         (Tau.Types.Scalar.Tau_Float)
       then
-         Environment.Error
-           (Expression.Defined_At,
-            "expected " & Expected_Type.Name
+         Expression.Error
+           ("expected " & Expected_Type.Name
             & " but found a floating point number");
       end if;
       Found_Type := Expected_Type;
@@ -80,13 +80,13 @@ package body Tau.Expressions.Literals is
       Expected_Type : Tau.Types.Tau_Type;
       Found_Type    : out Tau.Types.Tau_Type)
    is
+      pragma Unreferenced (Environment);
    begin
       if not Expected_Type.Is_Convertible_From
         (Tau.Types.Scalar.Tau_Integer)
       then
-         Environment.Error
-           (Expression.Defined_At,
-            "expected " & Expected_Type.Name
+         Expression.Error
+           ("expected " & Expected_Type.Name
             & " but found an integer");
       end if;
       Found_Type := Expected_Type;

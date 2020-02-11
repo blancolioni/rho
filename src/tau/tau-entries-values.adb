@@ -7,9 +7,9 @@ package body Tau.Entries.Values is
       end record;
 
    overriding function To_Source
-     (Object : Constant_Entry_Record)
-      return String
-   is (Object.Value.To_Source);
+     (Object    : Constant_Entry_Record;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
+      return String;
 
    type Formal_Argument_Record is
      new Value_Entry_Record with
@@ -60,6 +60,19 @@ package body Tau.Entries.Values is
       Result.Initialize_Object (Declaration, Name);
       return Result;
    end Global_Entry;
+
+   ---------------
+   -- To_Source --
+   ---------------
+
+   overriding function To_Source
+     (Object    : Constant_Entry_Record;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
+      return String
+   is
+   begin
+      return Object.Value.To_Source (Generator);
+   end To_Source;
 
    -----------------
    -- Value_Entry --

@@ -4,4 +4,10 @@
 # Ada Library Information
 *.ali
 
+.rho-options
 src/rho-paths.ads
+build/*
+rho.log
+rho.gpr
+src/driver/rho-options.adb
+src/driver/rho-options.ads

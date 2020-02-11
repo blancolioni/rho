@@ -59,14 +59,14 @@ package body Tau.Expressions is
       Expected_Type : Tau.Types.Tau_Type)
    is
       Found_Type : Tau.Types.Tau_Type with Unreferenced;
+      Expr_Class : Root_Tau_Expression'Class renames
+        Root_Tau_Expression'Class (Expression);
    begin
-      Environment.Push_Error_State;
-      Root_Tau_Expression'Class (Expression).Check_Names (Environment);
-      if not Environment.Has_Errors then
-         Root_Tau_Expression'Class (Expression).Check_Types
+      Expr_Class.Check_Names (Environment);
+      if not Expr_Class.Has_Errors then
+         Expr_Class.Check_Types
            (Environment, Expected_Type, Found_Type);
       end if;
-      Environment.Keep_Error_State;
    end Check;
 
    ------------

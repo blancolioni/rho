@@ -15,8 +15,9 @@ private package Tau.Parser.Lexical is
                  Tok_Character      => Tok_None,
                  Tok_Integer        => Tok_Integer_Constant,
                  Tok_Float          => Tok_Floating_Point_Constant,
-                 First_Keyword      => Tok_Begin,
-                 Keywords           => "begin constant end function in is "
+                 First_Keyword      => Tok_Abstract,
+                 Keywords           => "abstract begin constant end "
+                                     & "function generic in is "
                                      & "material out return",
                  First_Symbol       => Tok_Colon,
                  Symbols            => ": ; , = /= > >= < <= * / + - ( ) . :=",

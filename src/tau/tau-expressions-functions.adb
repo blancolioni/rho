@@ -13,8 +13,12 @@ package body Tau.Expressions.Functions is
          Values         : Expression_Array_Holders.Holder;
       end record;
 
+   overriding function Children
+     (Expression : Function_Expression_Type)
+      return Tau_Node_Array;
+
    overriding procedure Check_Names
-     (Expression    : Function_Expression_Type;
+     (Expression    : in out Function_Expression_Type;
       Environment   : Tau.Environment.Tau_Environment);
 
    overriding procedure Check_Types
@@ -25,7 +29,7 @@ package body Tau.Expressions.Functions is
 
    overriding function To_String
      (Expression : Function_Expression_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String;
 
    -----------
@@ -56,7 +60,7 @@ package body Tau.Expressions.Functions is
    -----------------
 
    overriding procedure Check_Names
-     (Expression    : Function_Expression_Type;
+     (Expression    : in out Function_Expression_Type;
       Environment   : Tau.Environment.Tau_Environment)
    is
       Function_Name : constant String :=
@@ -65,8 +69,8 @@ package body Tau.Expressions.Functions is
         Expression.Values.Element;
    begin
       if not Environment.Contains (Function_Name) then
-         Environment.Error (Expression.Defined_At,
-                            "undefined: " & Function_Name);
+         Expression.Error
+           ("undefined: " & Function_Name);
       end if;
 
       for Argument of Arguments loop
@@ -106,19 +110,19 @@ package body Tau.Expressions.Functions is
                if not Object.Entry_Type
                  .Is_Convertible_From_Vector (Types)
                then
-                  Environment.Error (Expression.Defined_At,
-                                     "invalid values for type "
-                                     & Object.Entry_Type.Name);
+                  Expression.Error
+                    ("invalid values for type "
+                     & Object.Entry_Type.Name);
                end if;
             end if;
 
             if not Expected_Type
               .Is_Convertible_From (Object.Entry_Type)
             then
-               Environment.Error (Expression.Defined_At,
-                                  "expected type " & Expected_Type.Name
-                                  & " but found "
-                                  & Object.Entry_Type.Name);
+               Expression.Error
+                 ("expected type " & Expected_Type.Name
+                  & " but found "
+                  & Object.Entry_Type.Name);
                Found_Type := Expected_Type;
             else
                Found_Type := Object.Entry_Type;
@@ -135,23 +139,23 @@ package body Tau.Expressions.Functions is
               Expression.Values.Element;
          begin
             if Supplied_Arguments'Length < Required_Count then
-               Environment.Error (Expression.Defined_At,
-                                  "insufficient arguments to function "
-                                  & Function_Name
-                                  & "; expected"
-                                  & Required_Count'Image
-                                  & " but found"
-                                  & Natural'Image
-                                    (Supplied_Arguments'Length));
+               Expression.Error
+                 ("insufficient arguments to function "
+                  & Function_Name
+                  & "; expected"
+                  & Required_Count'Image
+                  & " but found"
+                  & Natural'Image
+                    (Supplied_Arguments'Length));
             elsif Supplied_Arguments'Length > Required_Count then
-               Environment.Error (Expression.Defined_At,
-                                  "too many arguments to function "
-                                  & Function_Name
-                                  & "; expected"
-                                  & Required_Count'Image
-                                  & " but found"
-                                  & Natural'Image
-                                    (Supplied_Arguments'Length));
+               Expression.Error
+                 ("too many arguments to function "
+                  & Function_Name
+                  & "; expected"
+                  & Required_Count'Image
+                  & " but found"
+                  & Natural'Image
+                    (Supplied_Arguments'Length));
             else
                for I in Supplied_Arguments'Range loop
                   Supplied_Arguments (I).Check
@@ -161,19 +165,40 @@ package body Tau.Expressions.Functions is
 
             Found_Type := Result_Type;
             if not Expected_Type.Is_Convertible_From (Found_Type) then
-               Environment.Error
-                 (Expression.Defined_At,
-                  "expected type " & Expected_Type.Name
+               Expression.Error
+                 ("expected type " & Expected_Type.Name
                   & " but found " & Found_Type.Name);
             end if;
          end;
       else
-         Environment.Error
-           (Expression.Defined_At,
-            "expected a function or type but found " & Object.Name);
+         Expression.Error
+           ("expected a function or type but found " & Object.Name);
          Found_Type := Expected_Type;
       end if;
    end Check_Types;
+
+   --------------
+   -- Children --
+   --------------
+
+   overriding function Children
+     (Expression : Function_Expression_Type)
+      return Tau_Node_Array
+   is
+      Base_Children : constant Tau_Node_Array :=
+        Root_Tau_Expression (Expression).Children;
+      Arguments  : constant Tau.Expressions.Tau_Expression_Array :=
+        Expression.Values.Element;
+      Arg_Children  : Tau_Node_Array (Arguments'Range);
+
+   begin
+
+      for I in Arg_Children'Range loop
+         Arg_Children (I) := Tau_Node (Arguments (I));
+      end loop;
+
+      return Base_Children & Arg_Children;
+   end Children;
 
    ---------------
    -- To_String --
@@ -181,7 +206,7 @@ package body Tau.Expressions.Functions is
 
    overriding function To_String
      (Expression : Function_Expression_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
          return String
    is
       function Image (Agg : Tau_Expression_Array) return String

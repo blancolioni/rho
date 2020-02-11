@@ -1,13 +1,16 @@
+private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 private with Ada.Strings.Unbounded;
 
 with Rho;
 
 with Tau.Environment;
+with Tau.Objects;
 
 package Tau.Generators is
 
-   type Root_Tau_Generator is abstract tagged private;
+   type Root_Tau_Generator is
+     abstract new Tau.Objects.Generator_Interface with private;
 
    function Get_Source
      (Generator : Root_Tau_Generator)
@@ -25,6 +28,13 @@ package Tau.Generators is
 
    procedure End_Shader
      (Generator : in out Root_Tau_Generator);
+
+   procedure Push_Environment
+     (Generator   : in out Root_Tau_Generator;
+      Environment : Tau.Environment.Tau_Environment);
+
+   procedure Pop_Environment
+     (Generator   : in out Root_Tau_Generator);
 
    procedure Global_Declaration
      (Generator : in out Root_Tau_Generator;
@@ -80,9 +90,15 @@ private
    package Source_Line_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
-   type Root_Tau_Generator is abstract tagged
+   package Environment_Lists is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Tau.Environment.Tau_Environment, Tau.Environment."=");
+
+   type Root_Tau_Generator is
+     abstract new Tau.Objects.Generator_Interface with
       record
          Environment  : Tau.Environment.Tau_Environment;
+         Env_Stack    : Environment_Lists.List;
          Shader_Name  : Ada.Strings.Unbounded.Unbounded_String;
          Shader_Stage : Rho.Shader_Stage;
          Global_Lines : Source_Line_Lists.List;

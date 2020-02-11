@@ -10,6 +10,7 @@ source_dir = src/handles
 source_dir = src/handles/opengl
 source_dir = src/handles/simulation
 source_dir = src/lights
+source_dir = src/logging
 source_dir = src/matrices
 source_dir = src/material
 source_dir = src/meshes
@@ -18,6 +19,7 @@ source_dir = src/render
 source_dir = src/scenes
 source_dir = src/shaders
 source_dir = src/tau
+source_dir = src/textures
 source_dir = src/windows
 depend = { project = wlib version = any }
 depend = { project = gcs version = any }

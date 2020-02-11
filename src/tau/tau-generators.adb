@@ -1,3 +1,5 @@
+with Rho.Logging;
+
 package body Tau.Generators is
 
    ---------------------
@@ -49,13 +51,40 @@ package body Tau.Generators is
 
    function Get_Source (Generator : Root_Tau_Generator) return String is
       use Ada.Strings.Unbounded;
-      NL     : constant String := (1 => Character'Val (10));
-      Result : Unbounded_String := Null_Unbounded_String;
+      NL         : constant String := (1 => Character'Val (10));
+      Result     : Unbounded_String := Null_Unbounded_String;
+      Line_Count : Natural := 0;
+
+      procedure Log_Line (Line : String);
+
+      --------------
+      -- Log_Line --
+      --------------
+
+      procedure Log_Line (Line : String) is
+      begin
+         Line_Count := Line_Count + 1;
+
+         declare
+            Img : constant String := Line_Count'Image;
+            Spc : constant String (1 .. 4 - Img'Length) :=
+              (others => ' ');
+         begin
+            Rho.Logging.Log (Spc & Img & ": " & Line);
+         end;
+      end Log_Line;
+
    begin
+      Rho.Logging.Log
+        ("Generating shader: " &
+           Ada.Strings.Unbounded.To_String (Generator.Shader_Name));
+
       for Line of Generator.Global_Lines loop
+         Log_Line (Line);
          Result := Result & Line & NL;
       end loop;
       for Line of Generator.Main_Lines loop
+         Log_Line (Line);
          Result := Result & Line & NL;
       end loop;
       return To_String (Result);
@@ -72,6 +101,31 @@ package body Tau.Generators is
    begin
       return Value'Image;
    end Integer_Image;
+
+   ---------------------
+   -- Pop_Environment --
+   ---------------------
+
+   procedure Pop_Environment
+     (Generator   : in out Root_Tau_Generator)
+   is
+   begin
+      Generator.Environment := Generator.Env_Stack.Last_Element;
+      Generator.Env_Stack.Delete_Last;
+   end Pop_Environment;
+
+   ----------------------
+   -- Push_Environment --
+   ----------------------
+
+   procedure Push_Environment
+     (Generator   : in out Root_Tau_Generator;
+      Environment : Tau.Environment.Tau_Environment)
+   is
+   begin
+      Generator.Env_Stack.Append (Generator.Environment);
+      Generator.Environment := Environment;
+   end Push_Environment;
 
    ------------------
    -- Start_Shader --

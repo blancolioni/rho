@@ -31,4 +31,17 @@ package body Tau.Statements is
       return Tau.Statements.Return_Statements.Create (Position, Value);
    end Return_Statement;
 
+   ------------------
+   -- Return_Value --
+   ------------------
+
+   function Return_Value
+     (Statement : Root_Tau_Statement)
+      return Tau.Expressions.Tau_Expression
+   is
+      pragma Unreferenced (Statement);
+   begin
+      return null;
+   end Return_Value;
+
 end Tau.Statements;

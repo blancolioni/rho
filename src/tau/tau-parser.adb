@@ -22,7 +22,12 @@ package body Tau.Parser is
 
    function Parse_Top_Level_Declaration return Tau.Objects.Tau_Object;
 
-   function Parse_Material_Declaration return Tau.Material.Tau_Material;
+   function Parse_Material_Declaration
+     (Is_Generic  : Boolean := False;
+      Is_Abstract : Boolean := False;
+      Formals     : Tau.Declarations.Lists.List :=
+        Tau.Declarations.Lists.Empty_List)
+      return Tau.Material.Tau_Material;
 
    function Parse_Qualified_Name return String;
 
@@ -30,6 +35,7 @@ package body Tau.Parser is
 
    type Object_Declaration_Context is
      (Formal_Argument_Context,
+      Generic_Formal_Context,
       Local_Declaration_Context);
 
    function Parse_Object_Declarations
@@ -88,6 +94,10 @@ package body Tau.Parser is
          Close;
       end return;
    end Load_File;
+
+   ----------------------
+   -- Parse_Expression --
+   ----------------------
 
    function Parse_Expression return Tau.Expressions.Tau_Expression is
 
@@ -240,8 +250,15 @@ package body Tau.Parser is
    -- Parse_Material_Declaration --
    --------------------------------
 
-   function Parse_Material_Declaration return Tau.Material.Tau_Material is
+   function Parse_Material_Declaration
+     (Is_Generic  : Boolean := False;
+      Is_Abstract : Boolean := False;
+      Formals     : Tau.Declarations.Lists.List :=
+        Tau.Declarations.Lists.Empty_List)
+      return Tau.Material.Tau_Material
+   is
    begin
+
       if Tok /= Tok_Material then
          Error ("expected 'material'");
          return null;
@@ -296,10 +313,13 @@ package body Tau.Parser is
          end if;
 
          return Tau.Material.Create.New_Material
-           (Declaration => Position,
-            Name        => Name,
-            Arguments   => Arguments,
-            Shaders     => Shaders);
+           (Declaration     => Position,
+            Name            => Name,
+            Is_Generic      => Is_Generic,
+            Is_Abstract     => Is_Abstract,
+            Generic_Formals => Formals,
+            Arguments       => Arguments,
+            Shaders         => Shaders);
       end;
 
    end Parse_Material_Declaration;
@@ -389,6 +409,10 @@ package body Tau.Parser is
                               Dec :=
                                 Tau.Declarations.Global_Variable_Declaration
                                   (Position, Name, Qualifier, Type_Name);
+                           when Generic_Formal_Context =>
+                              Dec :=
+                                Tau.Declarations.Generic_Formal_Declaration
+                                  (Position, Name, Type_Name);
                            when Local_Declaration_Context =>
                               Dec :=
                                 Tau.Declarations.Local_Variable_Declaration
@@ -667,10 +691,28 @@ package body Tau.Parser is
    ---------------------------------
 
    function Parse_Top_Level_Declaration return Tau.Objects.Tau_Object is
+      Is_Abstract : Boolean := False;
+      Is_Generic  : Boolean := False;
+      Generic_Formals : Tau.Declarations.Lists.List;
    begin
+      if Tok = Tok_Abstract then
+         Is_Abstract := True;
+         Scan;
+      end if;
+
+      if Tok = Tok_Generic then
+         Is_Generic := True;
+         Scan;
+         Generic_Formals :=
+           Parse_Object_Declarations (Generic_Formal_Context);
+      end if;
+
       if Tok = Tok_Material then
          return Tau.Objects.Tau_Object
-           (Parse_Material_Declaration);
+           (Parse_Material_Declaration
+              (Is_Generic  => Is_Generic,
+               Is_Abstract => Is_Abstract,
+               Formals     => Generic_Formals));
       else
          Error ("expected a top level declaration");
          return null;

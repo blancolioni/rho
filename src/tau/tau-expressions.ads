@@ -15,7 +15,7 @@ package Tau.Expressions is
       Expected_Type : Tau.Types.Tau_Type);
 
    procedure Check_Names
-     (Expression  : Root_Tau_Expression;
+     (Expression  : in out Root_Tau_Expression;
       Environment : Tau.Environment.Tau_Environment)
    is abstract;
 
@@ -28,7 +28,7 @@ package Tau.Expressions is
 
    function To_String
      (Expression : Root_Tau_Expression;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String
       is abstract;
 

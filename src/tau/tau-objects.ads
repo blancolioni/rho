@@ -15,6 +15,13 @@ package Tau.Objects is
       Declaration : GCS.Positions.File_Position;
       Name        : String);
 
+   type Generator_Interface is interface;
+
+   function To_Source
+     (Object    : Root_Tau_Object;
+      Generator : in out Generator_Interface'Class)
+      return String;
+
    type Tau_Object is access all Root_Tau_Object'Class;
 
 private
@@ -28,5 +35,11 @@ private
      (Object : Root_Tau_Object)
       return String
    is (Ada.Strings.Unbounded.To_String (Object.Object_Name));
+
+   function To_Source
+     (Object    : Root_Tau_Object;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
+      return String
+   is (Root_Tau_Object'Class (Object).Name);
 
 end Tau.Objects;

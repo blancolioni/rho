@@ -3,6 +3,41 @@ with Tau.Entries;
 package body Tau.Material is
 
    -----------
+   -- Apply --
+   -----------
+
+   function Apply
+     (Material : Root_Tau_Material;
+      Values   : Tau.Values.Tau_Value_Array)
+      return Tau_Material
+   is
+      Result : constant Tau_Material :=
+        new Root_Tau_Material'
+          (Tau.Objects.Root_Tau_Object with
+           Is_Abstract       => Material.Is_Abstract,
+           Is_Generic        => False,
+           Generic_Arguments => <>,
+           Arguments         => Material.Arguments,
+           Bindings          =>
+             Tau.Environment.Standard_Library.Create_Child
+               (Material.Name),
+           Shaders           => Material.Shaders);
+   begin
+      Result.Initialize_Object
+        (Material.Defined_At, "#" & Material.Name);
+      for Value of Values loop
+         Result.Bindings.Insert
+           (Result.Arguments.First_Element.Name, Value);
+         Result.Arguments.Delete_First;
+      end loop;
+      for Shader of Result.Shaders loop
+         Shader := Shader.Bind (Result.Bindings);
+      end loop;
+
+      return Result;
+   end Apply;
+
+   -----------
    -- Check --
    -----------
 
@@ -14,6 +49,11 @@ package body Tau.Material is
                       Tau.Environment.Global_Environment.Create_Child
                         (Material.Name);
    begin
+
+      for Formal of Material.Generic_Arguments loop
+         Formal.Elaborate (Environment);
+      end loop;
+
       for Argument of Material.Arguments loop
          Argument.Elaborate (Environment);
       end loop;
@@ -27,12 +67,86 @@ package body Tau.Material is
          end;
       end loop;
 
-      if Environment.Has_Errors then
-         Environment.Write_Errors;
-      end if;
-
-      return not Environment.Has_Errors;
+      return not Material.Has_Errors;
    end Check;
+
+   --------------
+   -- Children --
+   --------------
+
+   overriding function Children
+     (Material : Root_Tau_Material)
+      return Tau_Node_Array
+   is
+      function Declaration_List_Children
+        (List : Tau.Declarations.Lists.List)
+         return Tau_Node_Array;
+
+      function Shader_List_Children
+        (List : Tau.Shaders.Lists.List)
+         return Tau_Node_Array;
+
+      -------------------------------
+      -- Declaration_List_Children --
+      -------------------------------
+
+      function Declaration_List_Children
+        (List : Tau.Declarations.Lists.List)
+         return Tau_Node_Array
+      is
+         Count  : constant Natural := Natural (List.Length);
+         Index  : Positive := 1;
+      begin
+         return Result : Tau_Node_Array (1 .. Count) do
+            for Child of List loop
+               Result (Index) := Tau_Node (Child);
+               Index := Index + 1;
+            end loop;
+         end return;
+      end Declaration_List_Children;
+
+      --------------------------
+      -- Shader_List_Children --
+      --------------------------
+
+      function Shader_List_Children
+        (List : Tau.Shaders.Lists.List)
+         return Tau_Node_Array
+      is
+         Count : constant Natural := Natural (List.Length);
+         Index  : Positive := 1;
+      begin
+         return Result : Tau_Node_Array (1 .. Count) do
+            for Child of List loop
+               Result (Index) := Tau_Node (Child);
+               Index := Index + 1;
+            end loop;
+         end return;
+      end Shader_List_Children;
+
+   begin
+      return Declaration_List_Children (Material.Generic_Arguments)
+        & Declaration_List_Children (Material.Arguments)
+        & Shader_List_Children (Material.Shaders);
+   end Children;
+
+   -----------------
+   -- Find_Shader --
+   -----------------
+
+   function Find_Shader
+     (Material : Root_Tau_Material'Class;
+      Name     : String)
+      return Tau.Shaders.Tau_Shader
+   is
+   begin
+      for Shader of Material.Shaders loop
+         if Shader.Name = Name then
+            return Shader;
+         end if;
+      end loop;
+      return null;
+   end Find_Shader;
 
    -----------------
    -- Instantiate --
@@ -69,7 +183,8 @@ package body Tau.Material is
       Arguments : Tau.Values.Tau_Value_Array)
       return Rho.Material.Material_Type
    is
-      Expected_Count : constant Natural := Natural (Material.Arguments.Length);
+      Expected_Count : constant Natural :=
+        Natural (Material.Generic_Arguments.Length);
    begin
       if Arguments'Length /= Expected_Count then
          raise Constraint_Error with
@@ -82,7 +197,7 @@ package body Tau.Material is
                         (Material.Name);
          Index    : Positive := Arguments'First;
       begin
-         for Formal of Material.Arguments loop
+         for Formal of Material.Generic_Arguments loop
             if not Formal.Get_Type.Is_Convertible_From
               (Arguments (Index).Value_Type)
             then
@@ -91,6 +206,7 @@ package body Tau.Material is
                  & Formal.Get_Type.Name & " but found "
                  & Arguments (Index).Value_Type.Name;
             end if;
+
             Bindings.Insert
               (Name => Formal.Name,
                Item =>

@@ -11,7 +11,7 @@ package body Tau.Expressions.References is
       end record;
 
    overriding procedure Check_Names
-     (Expression    : Reference_Expression_Type;
+     (Expression    : in out Reference_Expression_Type;
       Environment   : Tau.Environment.Tau_Environment);
 
    overriding procedure Check_Types
@@ -22,7 +22,7 @@ package body Tau.Expressions.References is
 
    overriding function To_String
      (Expression : Reference_Expression_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String;
 
    -----------------
@@ -30,15 +30,15 @@ package body Tau.Expressions.References is
    -----------------
 
    overriding procedure Check_Names
-     (Expression    : Reference_Expression_Type;
+     (Expression    : in out Reference_Expression_Type;
       Environment   : Tau.Environment.Tau_Environment)
    is
       Name : constant String :=
         Ada.Strings.Unbounded.To_String (Expression.Name);
    begin
       if not Environment.Contains (Name) then
-         Environment.Error (Expression,
-                            "undefined: " & Name);
+         Expression.Error
+           ("undefined: " & Name);
       end if;
    end Check_Names;
 
@@ -58,16 +58,14 @@ package body Tau.Expressions.References is
         Environment.Get (Name);
    begin
       if not Ref.Is_Value_Entry then
-         Environment.Error
-           (Expression,
-            "expected a value but found " & Ref.Name);
+         Expression.Error
+           ("expected a value but found " & Ref.Name);
          Found_Type := Expected_Type;
       else
          Found_Type := Ref.Entry_Type;
          if not Expected_Type.Is_Convertible_From (Found_Type) then
-            Environment.Error
-              (Expression,
-               "expected type " & Expected_Type.Name
+            Expression.Error
+              ("expected type " & Expected_Type.Name
                & " but found " & Found_Type.Name);
          end if;
       end if;
@@ -96,14 +94,19 @@ package body Tau.Expressions.References is
 
    overriding function To_String
      (Expression : Reference_Expression_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String
    is
       Name : constant String :=
                Ada.Strings.Unbounded.To_String (Expression.Name);
    begin
       if Generator.Environment.Contains (Name) then
-         return Generator.Environment.Get (Name).To_Source;
+         declare
+            Item : constant Tau.Entries.Tau_Entry :=
+              Generator.Environment.Get (Name);
+         begin
+            return Item.To_Source (Generator);
+         end;
       else
          return Name;
       end if;

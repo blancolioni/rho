@@ -1,7 +1,10 @@
 with Rho.Matrices;
 
 with Tau.Types.Scalar;
+with Tau.Types.Textures;
 with Tau.Types.Vectors;
+
+with Tau.Generators;
 
 package body Tau.Values is
 
@@ -12,9 +15,11 @@ package body Tau.Values is
       end record;
 
    overriding function To_Source
-     (Value : Real_Value_Record)
+     (Value     : Real_Value_Record;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
       return String
-   is (Value.Value'Image);
+   is (Tau.Generators.Root_Tau_Generator'Class (Generator)
+       .Float_Image (Float (Value.Value)));
 
    type Vector_4_Value_Record is
      new Root_Tau_Value with
@@ -22,10 +27,42 @@ package body Tau.Values is
          Value : Rho.Matrices.Vector_4;
       end record;
 
+   pragma Warnings (Off);  --  Generator unreferenced
+
    overriding function To_Source
-     (Value : Vector_4_Value_Record)
+     (Value     : Vector_4_Value_Record;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
       return String
    is ("vec4" & Rho.Matrices.Image (Value.Value));
+
+   pragma Warnings (On);
+
+   type Texture_Value_Record is
+     new Root_Tau_Value with
+      record
+         Texture : Rho.Textures.Texture_Type;
+      end record;
+
+   pragma Warnings (Off);
+
+   overriding function To_Source
+     (Value     : Texture_Value_Record;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
+      return String
+   is (Value.Texture.Name);
+
+   pragma Warnings (On);
+
+   type Object_Value_Record is
+     new Root_Tau_Value with
+      record
+         Object : Tau.Objects.Tau_Object;
+      end record;
+
+   overriding function To_Source
+     (Value     : Object_Value_Record;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
+      return String;
 
    -----------
    -- Color --
@@ -62,6 +99,24 @@ package body Tau.Values is
                     Rho_Color.B, Rho_Color.A);
    end Color;
 
+   ------------------
+   -- Object_Value --
+   ------------------
+
+   function Object_Value
+     (Object : not null access Tau.Objects.Root_Tau_Object'Class)
+      return Tau_Value
+   is
+      Result : Object_Value_Record :=
+        Object_Value_Record'
+          (Root_Tau_Node with
+           Value_Type => Tau.Types.Vectors.Vector (4),
+           Object     => Tau.Objects.Tau_Object (Object));
+   begin
+      Result.Initialize_Node (Object.Defined_At);
+      return new Object_Value_Record'(Result);
+   end Object_Value;
+
    ----------------
    -- Real_Value --
    ----------------
@@ -79,5 +134,37 @@ package body Tau.Values is
       Result.Initialize_Node (Position);
       return new Real_Value_Record'(Result);
    end Real_Value;
+
+   -------------
+   -- Texture --
+   -------------
+
+   function Texture
+     (Position    : GCS.Positions.File_Position;
+      Rho_Texture : Rho.Textures.Texture_Type)
+      return Tau_Value
+   is
+      Result : Texture_Value_Record := Texture_Value_Record'
+        (Root_Tau_Node with
+         Value_Type =>
+           Tau.Types.Textures.Texture (Rho_Texture.Dimension_Count),
+         Texture    => Rho_Texture);
+   begin
+      Result.Initialize_Node (Position);
+      return new Texture_Value_Record'(Result);
+   end Texture;
+
+   ---------------
+   -- To_Source --
+   ---------------
+
+   overriding function To_Source
+     (Value     : Object_Value_Record;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
+      return String
+   is
+   begin
+      return Value.Object.To_Source (Generator);
+   end To_Source;
 
 end Tau.Values;

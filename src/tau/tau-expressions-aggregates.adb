@@ -7,8 +7,12 @@ package body Tau.Expressions.Aggregates is
          Values         : Expression_Array_Holders.Holder;
       end record;
 
+   overriding function Children
+     (Expression : Aggregate_Expression_Type)
+      return Tau_Node_Array;
+
    overriding procedure Check_Names
-     (Expression  : Aggregate_Expression_Type;
+     (Expression  : in out Aggregate_Expression_Type;
       Environment : Tau.Environment.Tau_Environment);
 
    overriding procedure Check_Types
@@ -19,7 +23,7 @@ package body Tau.Expressions.Aggregates is
 
    overriding function To_String
      (Expression : Aggregate_Expression_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String;
 
    ---------------
@@ -47,7 +51,7 @@ package body Tau.Expressions.Aggregates is
    -----------------
 
    overriding procedure Check_Names
-     (Expression  : Aggregate_Expression_Type;
+     (Expression  : in out Aggregate_Expression_Type;
       Environment : Tau.Environment.Tau_Environment)
    is
       Values : constant Tau_Expression_Array := Expression.Values.Element;
@@ -78,24 +82,45 @@ package body Tau.Expressions.Aggregates is
          if not Expression.Aggregate_Type
            .Is_Convertible_From_Vector (Types)
          then
-            Environment.Error (Expression.Defined_At,
-                               "invalid values for type "
-                               & Expression.Aggregate_Type.Name);
+            Expression.Error
+              ("invalid values for type "
+               & Expression.Aggregate_Type.Name);
          end if;
       end if;
 
       if not Expected_Type
         .Is_Convertible_From (Expression.Aggregate_Type)
       then
-         Environment.Error (Expression.Defined_At,
-                            "expected type " & Expected_Type.Name
-                            & " but found "
-                            & Expression.Aggregate_Type.Name);
+         Expression.Error
+           ("expected type " & Expected_Type.Name
+            & " but found "
+            & Expression.Aggregate_Type.Name);
          Found_Type := Expected_Type;
       else
          Found_Type := Expression.Aggregate_Type;
       end if;
    end Check_Types;
+
+   --------------
+   -- Children --
+   --------------
+
+   overriding function Children
+     (Expression : Aggregate_Expression_Type)
+      return Tau_Node_Array
+   is
+      Base_Children : constant Tau_Node_Array :=
+        Root_Tau_Expression (Expression).Children;
+      Values        : constant Tau.Expressions.Tau_Expression_Array :=
+        Expression.Values.Element;
+      Agg_Children  : Tau_Node_Array (Values'Range);
+   begin
+      for I in Agg_Children'Range loop
+         Agg_Children (I) := Tau_Node (Values (I));
+      end loop;
+      return Base_Children & (1 => Tau_Node (Expression.Aggregate_Type))
+        & Agg_Children;
+   end Children;
 
    ---------------
    -- To_String --
@@ -103,7 +128,7 @@ package body Tau.Expressions.Aggregates is
 
    overriding function To_String
      (Expression : Aggregate_Expression_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String
    is
       function Image (Agg : Tau_Expression_Array) return String

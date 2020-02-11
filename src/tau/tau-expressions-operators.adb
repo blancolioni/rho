@@ -1,4 +1,3 @@
---  with Ada.Text_IO;
 with Ada.Containers.Doubly_Linked_Lists;
 
 with Tau.Types.Standard;
@@ -51,8 +50,14 @@ package body Tau.Expressions.Operators is
       Found       : in out Type_Lists.List;
       Depth       : Natural := 0);
 
+   overriding function Children
+     (Expression : Infix_Expression_Type)
+      return Tau_Node_Array
+   is (Root_Tau_Expression (Expression).Children
+       & (Tau_Node (Expression.Left), Tau_Node (Expression.Right)));
+
    overriding procedure Check_Names
-     (Expression    : Infix_Expression_Type;
+     (Expression    : in out Infix_Expression_Type;
       Environment   : Tau.Environment.Tau_Environment);
 
    overriding procedure Check_Types
@@ -63,7 +68,7 @@ package body Tau.Expressions.Operators is
 
    overriding function To_String
      (Expression : Infix_Expression_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String
    is ("("
        & Expression.Left.To_String (Generator)
@@ -78,7 +83,7 @@ package body Tau.Expressions.Operators is
    -----------------
 
    overriding procedure Check_Names
-     (Expression    : Infix_Expression_Type;
+     (Expression    : in out Infix_Expression_Type;
       Environment   : Tau.Environment.Tau_Environment)
    is
    begin
@@ -178,13 +183,12 @@ package body Tau.Expressions.Operators is
                    Environment, Expected, Possible);
 
       if Possible.Is_Empty then
-         Environment.Error
-           (Expression,
-            "invalid types for operator "
+         Expression.Error
+           ("invalid types for operator "
             & Operator_Name (Expression.Operator));
          Found_Type := Expected_Type;
       else
---           Ada.Text_IO.Put_Line
+--           Rho.Logging.Log
 --             ("infer: " & Expression.Operator'Image
 --              & ": result type " & Possible.First_Element.Name);
 
@@ -240,18 +244,15 @@ package body Tau.Expressions.Operators is
                   Depth       => Depth + 2);
             end;
          else
-            Environment.Push_Error_State;
-
             declare
                Found : Tau.Types.Tau_Type;
             begin
                Child.Check_Types (Environment, Expect, Found);
-               if not Environment.Has_Errors then
+               if not Child.Has_Errors then
                   Matches.Append (Found);
                end if;
+               Child.Clear_Errors;
             end;
-
-            Environment.Pop_Error_State;
          end if;
       end Infer_Child;
 
@@ -300,13 +301,14 @@ package body Tau.Expressions.Operators is
       Left, Right : Tau_Expression)
       return Tau_Expression
    is
-      Expression : constant Infix_Expression_Type :=
+      Expression : Infix_Expression_Type :=
         Infix_Expression_Type'
-          (File_Position => Left.Defined_At,
+          (Root_Tau_Expression with
            Operator    => Operator,
            Left        => Left,
            Right       => Right);
    begin
+      Expression.Initialize_Node (Left.Defined_At);
       return new Infix_Expression_Type'(Expression);
    end Operate;
 

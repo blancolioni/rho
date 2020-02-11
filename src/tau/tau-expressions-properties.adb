@@ -12,8 +12,14 @@ package body Tau.Expressions.Properties is
          Property : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 
+   overriding function Children
+     (Expression : Property_Expression_Type)
+      return Tau_Node_Array
+   is (Root_Tau_Expression (Expression).Children
+       & Tau_Node (Expression.Value));
+
    overriding procedure Check_Names
-     (Expression    : Property_Expression_Type;
+     (Expression    : in out Property_Expression_Type;
       Environment   : Tau.Environment.Tau_Environment);
 
    overriding procedure Check_Types
@@ -24,7 +30,7 @@ package body Tau.Expressions.Properties is
 
    overriding function To_String
      (Expression : Property_Expression_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String;
 
    -----------------
@@ -32,7 +38,7 @@ package body Tau.Expressions.Properties is
    -----------------
 
    overriding procedure Check_Names
-     (Expression    : Property_Expression_Type;
+     (Expression    : in out Property_Expression_Type;
       Environment   : Tau.Environment.Tau_Environment)
    is
    begin
@@ -62,16 +68,14 @@ package body Tau.Expressions.Properties is
             & ": property " & Name & " does not exist in type "
             & Value_Type.Name);
 
-         Environment.Error
-           (Expression,
-            "no property '" & Name & "' for type " & Value_Type.Name);
+         Expression.Error
+           ("no property '" & Name & "' for type " & Value_Type.Name);
          Found_Type := Expected_Type;
       elsif not Expected_Type.Is_Convertible_From
         (Value_Type.Property_Type (Name))
       then
-         Environment.Error
-           (Expression,
-            "expected type " & Expected_Type.Name
+         Expression.Error
+           ("expected type " & Expected_Type.Name
             & " but found " & Value_Type.Property_Type (Name).Name);
          Found_Type := Expected_Type;
       else
@@ -104,7 +108,7 @@ package body Tau.Expressions.Properties is
 
    overriding function To_String
      (Expression : Property_Expression_Type;
-      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
       return String
    is
       Name : constant String :=

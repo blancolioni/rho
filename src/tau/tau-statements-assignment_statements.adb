@@ -9,8 +9,14 @@ package body Tau.Statements.Assignment_Statements is
          Value : Tau.Expressions.Tau_Expression;
       end record;
 
+   overriding function Children
+     (Statement : Assignment_Statement_Type)
+      return Tau_Node_Array
+   is (Root_Tau_Statement (Statement).Children
+       & (1 => Tau_Node (Statement.Value)));
+
    overriding procedure Check
-     (Statement     : Assignment_Statement_Type;
+     (Statement     : in out Assignment_Statement_Type;
       Environment   : Tau.Environment.Tau_Environment);
 
    overriding procedure Compile
@@ -22,15 +28,14 @@ package body Tau.Statements.Assignment_Statements is
    -----------
 
    overriding procedure Check
-     (Statement     : Assignment_Statement_Type;
+     (Statement     : in out Assignment_Statement_Type;
       Environment   : Tau.Environment.Tau_Environment)
    is
       Name : constant String :=
         Ada.Strings.Unbounded.To_String (Statement.Name);
    begin
       if not Environment.Contains (Name) then
-         Environment.Error (Statement.Defined_At,
-                            "undefined: " & Name);
+         Statement.Error ("undefined: " & Name);
       else
          Statement.Value.Check
            (Environment,

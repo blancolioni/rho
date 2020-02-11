@@ -8,7 +8,7 @@ package Tau.Statements is
      abstract new Root_Tau_Node with private;
 
    procedure Check
-     (Statement     : Root_Tau_Statement;
+     (Statement     : in out Root_Tau_Statement;
       Environment   : Tau.Environment.Tau_Environment)
    is abstract;
 
@@ -16,6 +16,10 @@ package Tau.Statements is
      (Statement : Root_Tau_Statement;
       Generator : in out Tau.Generators.Root_Tau_Generator'Class)
    is abstract;
+
+   function Return_Value
+     (Statement : Root_Tau_Statement)
+      return Tau.Expressions.Tau_Expression;
 
    type Tau_Statement is access all Root_Tau_Statement'Class;
 
