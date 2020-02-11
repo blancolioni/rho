@@ -31,16 +31,16 @@ package Tau.Material is
       return Tau_Material;
 
    function Instantiate
-     (Material  : Root_Tau_Material'Class)
+     (Material  : in out Root_Tau_Material'Class)
       return Rho.Material.Material_Type;
 
    function Instantiate
-     (Material : Root_Tau_Material'Class;
+     (Material : in out Root_Tau_Material'Class;
       Argument : Tau.Values.Tau_Value)
       return Rho.Material.Material_Type;
 
    function Instantiate
-     (Material  : Root_Tau_Material;
+     (Material  : in out Root_Tau_Material;
       Arguments : Tau.Values.Tau_Value_Array)
       return Rho.Material.Material_Type;
 

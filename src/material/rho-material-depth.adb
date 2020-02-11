@@ -1,5 +1,4 @@
-with GCS.Positions;
-
+with Tau.Errors;
 with Tau.Objects;
 with Tau.Material;
 with Tau.Values;
@@ -18,22 +17,32 @@ package body Rho.Material.Depth is
      (Near, Far : Real)
       return Material_Type
    is
-      Object   : constant Tau.Objects.Tau_Object :=
-                   Tau.Parser.Load_File
-                     (Rho.Paths.Config_File
-                        ("material/rho-material-depth.rho"));
       Material : constant Tau.Material.Tau_Material :=
-                   Tau.Material.Tau_Material (Object);
-
+        Tau.Parser.Load_Material
+          (Rho.Paths.Config_File
+             ("material/rho-material-depth.rho"));
    begin
       if not Material.Check then
+         Tau.Errors.Write_Errors (Material);
          raise Constraint_Error with
            "depth material check failed";
       end if;
 
-      return Material.Instantiate
-        ((Tau.Values.Real_Value (GCS.Positions.Null_Position, Near),
-         Tau.Values.Real_Value (GCS.Positions.Null_Position, Far)));
+      declare
+         Depth_Material : constant Material_Type :=
+           Material.Instantiate
+             ((Tau.Values.Real_Value (Near),
+              Tau.Values.Real_Value (Far)));
+      begin
+         if Depth_Material = null then
+            Tau.Errors.Write_Errors (Material);
+            raise Constraint_Error with
+              "dept material instantiation failed";
+         end if;
+
+         return Depth_Material;
+      end;
+
    end Create_Depth_Material;
 
 end Rho.Material.Depth;

@@ -153,7 +153,7 @@ package body Tau.Material is
    -----------------
 
    function Instantiate
-     (Material : Root_Tau_Material'Class)
+     (Material  : in out Root_Tau_Material'Class)
       return Rho.Material.Material_Type
    is
       Arguments : Tau.Values.Tau_Value_Array (1 .. 0);
@@ -166,7 +166,7 @@ package body Tau.Material is
    -----------------
 
    function Instantiate
-     (Material : Root_Tau_Material'Class;
+     (Material : in out Root_Tau_Material'Class;
       Argument : Tau.Values.Tau_Value)
       return Rho.Material.Material_Type
    is
@@ -179,7 +179,7 @@ package body Tau.Material is
    -----------------
 
    function Instantiate
-     (Material  : Root_Tau_Material;
+     (Material  : in out Root_Tau_Material;
       Arguments : Tau.Values.Tau_Value_Array)
       return Rho.Material.Material_Type
    is
@@ -187,8 +187,23 @@ package body Tau.Material is
         Natural (Material.Generic_Arguments.Length);
    begin
       if Arguments'Length /= Expected_Count then
-         raise Constraint_Error with
-           "bad instantiation of " & Material.Name;
+         if Arguments'Length < Expected_Count then
+            Material.Error ("insufficient arguments in instantiation of "
+                            & Material.Name
+                            & ": expected"
+                            & Expected_Count'Image
+                            & " but found"
+                            & Arguments'Length'Image);
+         else
+            Material.Error ("too many arguments in instantiation of "
+                            & Material.Name
+                            & ": expected"
+                            & Expected_Count'Image
+                            & " but found"
+                            & Arguments'Length'Image);
+         end if;
+
+         return null;
       end if;
 
       declare
