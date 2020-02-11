@@ -1,6 +1,6 @@
-material Rho.Materials.Depth
-  (Near, Far : Float)
-is
+generic
+   Near, Far : Float;
+material Rho.Materials.Depth is
 
    function Vertex_Shader
       (Position   : in Vector_4;   
