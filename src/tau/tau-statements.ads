@@ -42,4 +42,9 @@ private
          null;
       end record;
 
+   overriding function Class_Name
+     (Item : Root_Tau_Statement)
+      return String
+   is ("statement");
+
 end Tau.Statements;

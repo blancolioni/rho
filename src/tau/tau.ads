@@ -1,10 +1,16 @@
 private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
+private with Ada.Strings.Unbounded;
 
 with GCS.Positions;
 
 package Tau is
 
    type Root_Tau_Node is abstract tagged private;
+
+   function Class_Name
+     (Node : Root_Tau_Node)
+      return String
+      is abstract;
 
    function Defined_At
      (Node : Root_Tau_Node'Class)
@@ -55,5 +61,13 @@ private
      (Node : Root_Tau_Node'Class)
       return GCS.Positions.File_Position
    is (Node.File_Position);
+
+   subtype Tau_String is Ada.Strings.Unbounded.Unbounded_String;
+
+   function "+" (X : String) return Tau_String
+   is (Ada.Strings.Unbounded.To_Unbounded_String (X));
+
+   function "-" (X : Tau_String) return String
+   is (Ada.Strings.Unbounded.To_String (X));
 
 end Tau;

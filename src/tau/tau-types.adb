@@ -122,11 +122,11 @@ package body Tau.Types is
    begin
       for I in From'Range loop
          if I > From'First then
-            Name := Name & "x";
+            Name := Name & " x ";
          end if;
          Name := Name & From (I).Name;
       end loop;
-      Name := Name & "->" & To.Name;
+      Name := Name & " -> " & To.Name;
       Result.Initialize_Object (Position, To_String (Name));
 
       return new Tau.Types.Maps.Map_Type'(Result);

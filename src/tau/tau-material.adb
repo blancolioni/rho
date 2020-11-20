@@ -11,30 +11,42 @@ package body Tau.Material is
       Values   : Tau.Values.Tau_Value_Array)
       return Tau_Material
    is
-      Result : constant Tau_Material :=
-        new Root_Tau_Material'
-          (Tau.Objects.Root_Tau_Object with
-           Is_Abstract       => Material.Is_Abstract,
-           Is_Generic        => False,
-           Generic_Arguments => <>,
-           Arguments         => Material.Arguments,
-           Bindings          =>
-             Tau.Environment.Standard_Library.Create_Child
-               (Material.Name),
-           Shaders           => Material.Shaders);
    begin
-      Result.Initialize_Object
-        (Material.Defined_At, "#" & Material.Name);
-      for Value of Values loop
-         Result.Bindings.Insert
-           (Result.Arguments.First_Element.Name, Value);
-         Result.Arguments.Delete_First;
-      end loop;
-      for Shader of Result.Shaders loop
-         Shader := Shader.Bind (Result.Bindings);
-      end loop;
+      if Values'Length /= Natural (Material.Arguments.Length) then
+         raise Constraint_Error with
+         Material.Name & ": expected"
+           & Material.Arguments.Length'Image
+           & " but found" & Values'Length'Image
+           & " arguments";
+      end if;
 
-      return Result;
+      declare
+         Result : constant Tau_Material :=
+           new Root_Tau_Material'
+             (Tau.Objects.Root_Tau_Object with
+              Is_Abstract       => Material.Is_Abstract,
+              Is_Generic        => False,
+              Generic_Arguments => <>,
+              Arguments         => Material.Arguments,
+              Bindings          =>
+                Tau.Environment.Standard_Library.Create_Child
+                  (Material.Name),
+              Shaders           => Material.Shaders);
+      begin
+         Result.Initialize_Object
+           (Material.Defined_At, "#" & Material.Name);
+         for Value of Values loop
+            Result.Bindings.Insert
+              (Result.Arguments.First_Element.Name, Value);
+            Result.Arguments.Delete_First;
+         end loop;
+         for Shader of Result.Shaders loop
+            Shader := Shader.Bind (Result.Bindings);
+         end loop;
+
+         return Result;
+      end;
+
    end Apply;
 
    -----------

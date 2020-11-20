@@ -65,6 +65,11 @@ private
          Bindings           : Tau.Environment.Tau_Environment;
       end record;
 
+   overriding function Class_Name
+     (Shader : Root_Tau_Shader)
+      return String
+   is ("shader");
+
    overriding function To_Source
      (Shader    : Root_Tau_Shader;
       Generator : in out Tau.Objects.Generator_Interface'Class)

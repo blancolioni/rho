@@ -18,7 +18,7 @@ private package Tau.Parser.Lexical is
                  First_Keyword      => Tok_Abstract,
                  Keywords           => "abstract begin constant end "
                                      & "function generic in is "
-                                     & "material out return",
+                                     & "material out return texture",
                  First_Symbol       => Tok_Colon,
                  Symbols            => ": ; , = /= > >= < <= * / + - ( ) . :=",
                  Identifier_Start   => "abcdefghijklmnopqrstuvwxyz" &

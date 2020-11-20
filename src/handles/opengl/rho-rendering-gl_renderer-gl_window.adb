@@ -169,6 +169,8 @@ package body Rho.Rendering.GL_Renderer.GL_Window is
 
       Local_Top_Window := Result;
 
+      GL.Debug_Enabled := True;
+
       return Result;
 
    end Create_Top_Level_Window;

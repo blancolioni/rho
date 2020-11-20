@@ -221,7 +221,9 @@ package body Tau.Expressions.Functions is
         (if Expression.Function_Entry.Is_Type_Entry
          then Generator.Shader_Type_Name
            (Expression.Function_Entry.Name)
-         else Expression.Function_Entry.Name);
+         else
+            Generator.Shader_Function_Name
+              (Expression.Function_Entry.Name));
    begin
       return Name & "(" & Image (Expression.Values.Element) & ")";
    end To_String;

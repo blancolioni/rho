@@ -53,6 +53,10 @@ package Tau.Types is
       return Tau_Type
      with Pre'Class => Item.Has_Property (Name);
 
+   function Has_Uniform_Binding
+     (Item : Root_Tau_Type)
+      return Boolean;
+
 private
 
    package Property_Maps is
@@ -63,6 +67,11 @@ private
       record
          Properties : Property_Maps.Map;
       end record;
+
+   overriding function Class_Name
+     (Typ : Root_Tau_Type)
+      return String
+   is ("type");
 
    function Has_Property
      (Item : Root_Tau_Type;
@@ -75,5 +84,10 @@ private
       Name : String)
       return Tau_Type
    is (Item.Properties.Element (Name));
+
+   function Has_Uniform_Binding
+     (Item : Root_Tau_Type)
+      return Boolean
+   is (False);
 
 end Tau.Types;

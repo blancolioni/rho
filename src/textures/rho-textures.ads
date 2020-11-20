@@ -1,3 +1,5 @@
+private with Ada.Strings.Unbounded;
+
 with Rho.Objects;
 
 package Rho.Textures is
@@ -11,12 +13,22 @@ package Rho.Textures is
      (Texture : Root_Texture_Type'Class)
       return Positive;
 
+   function Create_From_Image_Name
+     (Texture_Name : String;
+      Image_Name   : String;
+      Format       : String;
+      Order        : Positive)
+      return Texture_Type
+     with Pre => Order <= 3;
+
 private
 
    type Root_Texture_Type is
      new Rho.Objects.Root_Object_Type with
       record
-         Dimensions : Positive := 2;
+         Image_Name   : Ada.Strings.Unbounded.Unbounded_String;
+         Image_Format : Ada.Strings.Unbounded.Unbounded_String;
+         Dimensions   : Positive := 2;
       end record;
 
    overriding function Class_Name

@@ -65,6 +65,11 @@ private
          Dec_Type  : Tau.Types.Tau_Type;
       end record;
 
+   overriding function Class_Name
+     (Item : Root_Tau_Declaration)
+      return String
+   is ("declaration");
+
    function Get_Type
      (Declaration : Root_Tau_Declaration'Class)
       return Tau.Types.Tau_Type

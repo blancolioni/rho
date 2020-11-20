@@ -43,13 +43,19 @@ package body Tau.Values is
          Texture : Rho.Textures.Texture_Type;
       end record;
 
+   overriding function Has_Source_Text
+     (Value : Texture_Value_Record)
+      return Boolean
+   is (False);
+
    pragma Warnings (Off);
 
    overriding function To_Source
      (Value     : Texture_Value_Record;
       Generator : in out Tau.Objects.Generator_Interface'Class)
       return String
-   is (Value.Texture.Name);
+   is (raise Constraint_Error with
+         "no source representation for " & Value.Texture.Name);
 
    pragma Warnings (On);
 

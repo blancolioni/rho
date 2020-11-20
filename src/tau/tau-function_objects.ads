@@ -33,6 +33,11 @@ private package Tau.Function_Objects is
 
 private
 
+   overriding function Class_Name
+     (Item : Root_Tau_Function_Object)
+      return String
+   is ("function");
+
    type Function_Argument is
       record
          Name     : Ada.Strings.Unbounded.Unbounded_String;

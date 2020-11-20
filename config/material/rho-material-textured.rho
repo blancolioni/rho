@@ -1,0 +1,10 @@
+abstract material Rho.Materials.Textured
+   (Material_Texture : Texture_2D)
+is
+
+   function Surface_Color
+     (Texture_Coordinate : in Vector_2)
+	 return Vector_4
+   is (Sample (Material_Texture, Texture_Coordinate));
+
+end Rho.Materials.Textured;

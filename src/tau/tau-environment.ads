@@ -54,6 +54,11 @@ package Tau.Environment is
       return Tau.Types.Tau_Type
      with Pre'Class => Environment.Has_Return_Type;
 
+   procedure Iterate
+     (Environment : Root_Tau_Environment;
+      Process     : not null access
+        procedure (Item : Tau.Entries.Tau_Entry));
+
    function Standard_Library return Tau_Environment;
 
    function Global_Environment return Tau_Environment;
@@ -82,6 +87,11 @@ private
          Error_Stack : Error_Stacks.List;
          Children    : Environment_Lists.List;
       end record;
+
+   overriding function Class_Name
+     (Environment : Root_Tau_Environment)
+      return String
+   is ("environment");
 
    function Contains
      (Environment : Root_Tau_Environment;

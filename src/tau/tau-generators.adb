@@ -1,5 +1,7 @@
 with Rho.Logging;
 
+with Tau.Entries;
+
 package body Tau.Generators is
 
    ---------------------
@@ -10,7 +12,7 @@ package body Tau.Generators is
      (Generator : in out Root_Tau_Generator; Line : String)
    is
    begin
-      Generator.Global_Lines.Append (Line);
+      Generator.Shaders (Generator.Current_Stage).Global_Lines.Append (Line);
    end Add_Global_Line;
 
    -------------------
@@ -21,7 +23,7 @@ package body Tau.Generators is
      (Generator : in out Root_Tau_Generator; Line : String)
    is
    begin
-      Generator.Main_Lines.Append (Line);
+      Generator.Shaders (Generator.Current_Stage).Main_Lines.Append (Line);
    end Add_Main_Line;
 
    ----------------
@@ -45,11 +47,24 @@ package body Tau.Generators is
       return Value'Image;
    end Float_Image;
 
+   ------------
+   -- Freeze --
+   ------------
+
+   procedure Freeze (Generator : in out Root_Tau_Generator) is
+   begin
+      null;
+   end Freeze;
+
    ----------------
    -- Get_Source --
    ----------------
 
-   function Get_Source (Generator : Root_Tau_Generator) return String is
+   function Get_Source
+     (Generator : Root_Tau_Generator;
+      Stage     : Rho.Shader_Stage)
+      return String
+   is
       use Ada.Strings.Unbounded;
       NL         : constant String := (1 => Character'Val (10));
       Result     : Unbounded_String := Null_Unbounded_String;
@@ -77,13 +92,14 @@ package body Tau.Generators is
    begin
       Rho.Logging.Log
         ("Generating shader: " &
-           Ada.Strings.Unbounded.To_String (Generator.Shader_Name));
+           Ada.Strings.Unbounded.To_String
+           (Generator.Shaders (Stage).Shader_Name));
 
-      for Line of Generator.Global_Lines loop
+      for Line of Generator.Shaders (Stage).Global_Lines loop
          Log_Line (Line);
          Result := Result & Line & NL;
       end loop;
-      for Line of Generator.Main_Lines loop
+      for Line of Generator.Shaders (Stage).Main_Lines loop
          Log_Line (Line);
          Result := Result & Line & NL;
       end loop;
@@ -122,10 +138,48 @@ package body Tau.Generators is
      (Generator   : in out Root_Tau_Generator;
       Environment : Tau.Environment.Tau_Environment)
    is
+      G : Root_Tau_Generator'Class renames
+            Root_Tau_Generator'Class (Generator);
+
+      procedure Reference_Entry
+        (Item : Tau.Entries.Tau_Entry);
+
+      ---------------------
+      -- Reference_Entry --
+      ---------------------
+
+      procedure Reference_Entry
+        (Item : Tau.Entries.Tau_Entry)
+      is
+      begin
+         if Item.Entry_Type.Has_Uniform_Binding then
+            G.Global_Declaration
+              (Item.Name, Rho.Uniform,
+               G.Shader_Type_Name (Item.Entry_Type.Name));
+         end if;
+      end Reference_Entry;
+
    begin
+
       Generator.Env_Stack.Append (Generator.Environment);
       Generator.Environment := Environment;
+
+      Environment.Iterate (Reference_Entry'Access);
+
    end Push_Environment;
+
+   -----------------------
+   -- Set_Current_Stage --
+   -----------------------
+
+   procedure Set_Current_Stage
+     (Generator : in out Root_Tau_Generator'Class;
+      Stage    : Rho.Shader_Stage)
+   is
+   begin
+      pragma Assert (Generator.Shaders (Stage).Started);
+      Generator.Current_Stage := Stage;
+   end Set_Current_Stage;
 
    ------------------
    -- Start_Shader --
@@ -139,9 +193,10 @@ package body Tau.Generators is
    is
    begin
       Generator.Environment := Environment;
-      Generator.Shader_Name :=
+      Generator.Shaders (Stage).Shader_Name :=
         Ada.Strings.Unbounded.To_Unbounded_String (Name);
-      Generator.Shader_Stage := Stage;
+      Generator.Shaders (Stage).Started := True;
+      Generator.Current_Stage := Stage;
    end Start_Shader;
 
 end Tau.Generators;

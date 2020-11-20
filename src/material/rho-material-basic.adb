@@ -73,6 +73,7 @@ package body Rho.Material.Basic is
 
    begin
       if not Basic_Material.Check then
+         Tau.Errors.Write_Errors (Basic_Material);
          raise Constraint_Error with
            "basic material check failed";
       end if;
@@ -80,6 +81,7 @@ package body Rho.Material.Basic is
       Linker.Append (Basic_Material);
 
       if not Texture_Material.Check then
+         Tau.Errors.Write_Errors (Texture_Material);
          raise Constraint_Error with
            "texture material check failed";
       end if;
@@ -88,6 +90,8 @@ package body Rho.Material.Basic is
         (Texture_Material.Apply
            (Tau.Values.Texture
                 (GCS.Positions.Null_Position, Texture)));
+
+      Linker.Link;
 
       return Linker.Instantiate;
 

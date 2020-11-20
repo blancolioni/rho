@@ -57,6 +57,11 @@ private
          Shaders           : Tau.Shaders.Lists.List;
       end record;
 
+   overriding function Class_Name
+     (Material : Root_Tau_Material)
+      return String
+   is ("material");
+
    overriding function Children
      (Material : Root_Tau_Material)
       return Tau_Node_Array;

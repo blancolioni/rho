@@ -7,6 +7,13 @@ package body Tau.Entries is
    overriding function Is_Type_Entry (Item : Type_Entry_Record) return Boolean
    is (True);
 
+   type Function_Entry_Record is new Root_Tau_Entry with null record;
+
+   overriding function Is_Function_Entry
+     (Item : Function_Entry_Record)
+      return Boolean
+   is (True);
+
    ---------------------------
    -- Formal_Argument_Entry --
    ---------------------------
@@ -22,6 +29,27 @@ package body Tau.Entries is
         (Values.Formal_Argument_Entry
            (Declaration, Name, Entry_Type));
    end Formal_Argument_Entry;
+
+   --------------------
+   -- Function_Entry --
+   --------------------
+
+   function Function_Entry
+     (Declaration : GCS.Positions.File_Position;
+      Name        : String;
+      Arguments   : Tau.Types.Tau_Type_Array;
+      Result      : Tau.Types.Tau_Type)
+      return Tau_Entry
+   is
+      Map : constant Tau.Types.Tau_Type :=
+        Tau.Types.Map (Declaration, Arguments, Result);
+      Fn  : Function_Entry_Record := Function_Entry_Record'
+        (Tau.Objects.Root_Tau_Object with
+         Typ => Map);
+   begin
+      Fn.Initialize_Object (Declaration, Name);
+      return new Function_Entry_Record'(Fn);
+   end Function_Entry;
 
    ------------------
    -- Global_Entry --

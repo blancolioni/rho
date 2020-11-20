@@ -5,7 +5,8 @@ package body Tau.Generators.GLSL is
    package Type_Name_Maps is
      new WL.String_Maps (String);
 
-   Type_Name_Map : Type_Name_Maps.Map;
+   Type_Name_Map     : Type_Name_Maps.Map;
+   Function_Name_Map : Type_Name_Maps.Map;
 
    type GLSL_Generator_Type is
      new Root_Tau_Generator with
@@ -22,6 +23,9 @@ package body Tau.Generators.GLSL is
    overriding procedure End_Shader
      (Generator : in out GLSL_Generator_Type);
 
+   overriding procedure Freeze
+     (Generator : in out GLSL_Generator_Type);
+
    overriding procedure Global_Declaration
      (Generator : in out GLSL_Generator_Type;
       Name      : String;
@@ -35,6 +39,11 @@ package body Tau.Generators.GLSL is
       Initialization : String);
 
    overriding function Shader_Type_Name
+     (Generator : GLSL_Generator_Type;
+      Tau_Name  : String)
+      return String;
+
+   overriding function Shader_Function_Name
      (Generator : GLSL_Generator_Type;
       Tau_Name  : String)
       return String;
@@ -60,28 +69,52 @@ package body Tau.Generators.GLSL is
 
    procedure Check_Type_Names is
 
-      procedure Map (Tau_Name, GLSL_Name : String);
-
-      ---------
-      -- Map --
-      ---------
-
-      procedure Map (Tau_Name, GLSL_Name : String) is
-      begin
-         Type_Name_Map.Insert (Tau_Name, GLSL_Name);
-      end Map;
-
    begin
       if Type_Name_Map.Is_Empty then
-         Map ("float", "float");
-         Map ("integer", "int");
+         declare
 
-         Map ("vector_2", "vec2");
-         Map ("vector_3", "vec3");
-         Map ("vector_4", "vec4");
+            procedure Map (Tau_Name, GLSL_Name : String);
 
-         Map ("matrix_3", "mat3");
-         Map ("matrix_4", "mat4");
+            ---------
+            -- Map --
+            ---------
+
+            procedure Map (Tau_Name, GLSL_Name : String) is
+            begin
+               Type_Name_Map.Insert (Tau_Name, GLSL_Name);
+            end Map;
+
+         begin
+            Map ("float", "float");
+            Map ("integer", "int");
+
+            Map ("vector_2", "vec2");
+            Map ("vector_3", "vec3");
+            Map ("vector_4", "vec4");
+
+            Map ("matrix_3", "mat3");
+            Map ("matrix_4", "mat4");
+
+            Map ("texture_2d", "sampler2D");
+         end;
+
+         declare
+
+            procedure Map (Tau_Name, GLSL_Name : String);
+
+            ---------
+            -- Map --
+            ---------
+
+            procedure Map (Tau_Name, GLSL_Name : String) is
+            begin
+               Function_Name_Map.Insert (Tau_Name, GLSL_Name);
+            end Map;
+
+         begin
+            Map ("sample", "texture");
+         end;
+
       end if;
    end Check_Type_Names;
 
@@ -93,8 +126,24 @@ package body Tau.Generators.GLSL is
      (Generator : in out GLSL_Generator_Type)
    is
    begin
-      Generator.Add_Main_Line ("}");
+      null;
    end End_Shader;
+
+   ------------
+   -- Freeze --
+   ------------
+
+   overriding procedure Freeze
+     (Generator : in out GLSL_Generator_Type)
+   is
+   begin
+      for Stage in Rho.Shader_Stage loop
+         if Generator.Shaders (Stage).Started then
+            Generator.Set_Current_Stage (Stage);
+            Generator.Add_Main_Line ("}");
+         end if;
+      end loop;
+   end Freeze;
 
    ------------------------
    -- Global_Declaration --
@@ -106,6 +155,7 @@ package body Tau.Generators.GLSL is
       Qualifier : Rho.Storage_Qualifier;
       Type_Name : String)
    is
+      use all type Rho.Shader_Stage;
       use all type Rho.Storage_Qualifier;
       Qualifier_Name : constant String :=
                          (case Qualifier is
@@ -113,9 +163,26 @@ package body Tau.Generators.GLSL is
                              when Output => "out",
                              when Uniform => "uniform");
 
+      Stage : constant Rho.Shader_Stage := Generator.Current_Stage;
+
    begin
-      Generator.Add_Global_Line
-        (Qualifier_Name & " " & Type_Name & " " & Name & ";");
+      if Stage = Rho.Vertex_Shader
+        or else Qualifier /= Input
+      then
+         Generator.Add_Global_Line
+           (Qualifier_Name & " " & Type_Name & " " & Name & ";");
+      else
+         Generator.Set_Current_Stage (Rho.Vertex_Shader);
+         Generator.Add_Global_Line
+           (Qualifier_Name & " " & Type_Name & " " & Name & ";");
+         Generator.Add_Global_Line
+           ("out " & Type_Name & " " & Stage_Name (Stage) & "_" & Name & ";");
+         Generator.Add_Main_Line
+           (Stage_Name (Stage) & "_" & Name & " = " & Name & ";");
+         Generator.Set_Current_Stage (Stage);
+         Generator.Add_Global_Line
+           ("in " & Type_Name & " " & Stage_Name (Stage) & "_" & Name & ";");
+      end if;
    end Global_Declaration;
 
    --------------------
@@ -165,7 +232,7 @@ package body Tau.Generators.GLSL is
       Value     : String)
    is
    begin
-      case Generator.Shader_Stage is
+      case Generator.Current_Stage is
          when Rho.Fragment_Shader =>
             Generator.Main_Statement ("gl_FragColor = " & Value);
          when Rho.Vertex_Shader =>
@@ -186,6 +253,25 @@ package body Tau.Generators.GLSL is
       Generator.Main_Statement
         (To_Name & " = " & Value);
    end Set_Value;
+
+   --------------------------
+   -- Shader_Function_Name --
+   --------------------------
+
+   overriding function Shader_Function_Name
+     (Generator : GLSL_Generator_Type;
+      Tau_Name  : String)
+      return String
+   is
+      pragma Unreferenced (Generator);
+   begin
+      Check_Type_Names;
+      if Function_Name_Map.Contains (Tau_Name) then
+         return Function_Name_Map.Element (Tau_Name);
+      else
+         return Tau_Name;
+      end if;
+   end Shader_Function_Name;
 
    ----------------------
    -- Shader_Type_Name --

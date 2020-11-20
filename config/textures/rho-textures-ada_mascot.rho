@@ -1,0 +1,3 @@
+texture Rho.Textures.Ada_Mascot is
+   Image = "ada-mascot";
+end Rho.Textures.Ada_Mascot;

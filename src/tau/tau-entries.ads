@@ -44,6 +44,13 @@ package Tau.Entries is
       Entry_Value : Tau.Values.Tau_Value)
       return Tau_Entry;
 
+   function Function_Entry
+     (Declaration : GCS.Positions.File_Position;
+      Name        : String;
+      Arguments   : Tau.Types.Tau_Type_Array;
+      Result      : Tau.Types.Tau_Type)
+      return Tau_Entry;
+
    function Formal_Argument_Entry
      (Declaration : GCS.Positions.File_Position;
       Name        : String;
@@ -64,6 +71,11 @@ private
       record
          Typ : Tau.Types.Tau_Type;
       end record;
+
+   overriding function Class_Name
+     (Item : Root_Tau_Entry)
+      return String
+   is ("entry");
 
    function Entry_Type
      (Object : Root_Tau_Entry)

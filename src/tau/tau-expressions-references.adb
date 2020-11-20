@@ -1,5 +1,7 @@
 with Ada.Strings.Unbounded;
 
+with Rho.Logging;
+
 with Tau.Entries;
 
 package body Tau.Expressions.References is
@@ -100,6 +102,11 @@ package body Tau.Expressions.References is
       Name : constant String :=
                Ada.Strings.Unbounded.To_String (Expression.Name);
    begin
+      if Name = "texture_coordinate" then
+         Rho.Logging.Log
+           (Rho.Stage_Name (Generator.Current_Stage)
+            & ":  To_String : Reference : " & Name);
+      end if;
       if Generator.Environment.Contains (Name) then
          declare
             Item : constant Tau.Entries.Tau_Entry :=
@@ -108,7 +115,15 @@ package body Tau.Expressions.References is
             return Item.To_Source (Generator);
          end;
       else
-         return Name;
+         declare
+            use all type Rho.Shader_Stage;
+         begin
+            return
+              (if Generator.Current_Stage = Vertex_Shader
+               then ""
+               else Stage_Name (Generator.Current_Stage) & "_")
+              & Name;
+         end;
       end if;
    end To_String;
 

@@ -1,4 +1,5 @@
 with Tau.Types.Standard;
+with Tau.Types.Textures;
 
 package body Tau.Environment is
 
@@ -38,6 +39,7 @@ package body Tau.Environment is
       Env : Tau_Environment renames Local_Standard_Library;
 
       procedure Insert (T : Tau.Types.Tau_Type);
+      procedure Insert (E : Tau.Entries.Tau_Entry);
 
       ------------
       -- Insert --
@@ -49,6 +51,15 @@ package body Tau.Environment is
            (T.Name,
             Tau.Entries.Type_Entry
               (GCS.Positions.Null_Position, T.Name, T));
+      end Insert;
+
+      ------------
+      -- Insert --
+      ------------
+
+      procedure Insert (E : Tau.Entries.Tau_Entry) is
+      begin
+         Env.Insert (E.Name, E);
       end Insert;
 
    begin
@@ -72,6 +83,15 @@ package body Tau.Environment is
       Insert (Tau.Types.Standard.Tau_Matrix (2, 2));
       Insert (Tau.Types.Standard.Tau_Matrix (3, 3));
       Insert (Tau.Types.Standard.Tau_Matrix (4, 4));
+      Insert (Tau.Types.Textures.Texture (1));
+      Insert (Tau.Types.Textures.Texture (2));
+      Insert (Tau.Types.Textures.Texture (3));
+
+      Insert (Tau.Entries.Function_Entry
+              (GCS.Positions.Null_Position, "sample",
+                 (Tau.Types.Textures.Texture (2),
+                  Tau.Types.Standard.Tau_Vector (2)),
+                 Tau.Types.Standard.Tau_Vector (4)));
 
       Local_Global_Environment := Env.Create_Child ("tau");
 
@@ -116,41 +136,20 @@ package body Tau.Environment is
            (Value.Defined_At, Name, Tau.Values.Tau_Value (Value)));
    end Insert;
 
---     --------------------
---     -- Iterate_Errors --
---     --------------------
---
---     procedure Iterate_Errors
---       (Environment : Root_Tau_Environment;
---        Process     : not null access procedure
---          (Position : GCS.Positions.File_Position;
---           Message : String))
---     is
---        All_Errors : Error_Lists.List;
---
---        procedure Collect (Env : Root_Tau_Environment'Class);
---
---        -------------
---        -- Collect --
---        -------------
---
---        procedure Collect (Env : Root_Tau_Environment'Class) is
---        begin
---           for Error of Env.Errors loop
---              All_Errors.Append (Error);
---           end loop;
---           for Child of Env.Children loop
---              Collect (Child.all);
---           end loop;
---        end Collect;
---
---     begin
---        Collect (Environment);
---        Error_Sorting.Sort (All_Errors);
---        for Error of All_Errors loop
---           Process (Error.Position, Error.Message);
---        end loop;
---     end Iterate_Errors;
+   -------------
+   -- Iterate --
+   -------------
+
+   procedure Iterate
+     (Environment : Root_Tau_Environment;
+      Process     : not null access
+        procedure (Item : Tau.Entries.Tau_Entry))
+   is
+   begin
+      for Item of Environment.Map loop
+         Process (Item);
+      end loop;
+   end Iterate;
 
    ---------------------
    -- Set_Return_Type --

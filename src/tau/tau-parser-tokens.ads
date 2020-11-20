@@ -7,7 +7,7 @@ private package Tau.Parser.Tokens is
 
        Tok_Abstract, Tok_Begin, Tok_Constant, Tok_End,
        Tok_Function, Tok_Generic, Tok_In, Tok_Is,
-       Tok_Material, Tok_Out, Tok_Return,
+       Tok_Material, Tok_Out, Tok_Return, Tok_Texture,
 
        Tok_Colon, Tok_Semicolon, Tok_Comma,
 

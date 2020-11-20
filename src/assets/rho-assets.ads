@@ -1,8 +1,8 @@
 with Tau.Environment;
-with Tau.Shaders;
 
 with Rho.Objects;
 with Rho.Shaders;
+with Rho.Textures;
 
 package Rho.Assets is
 
@@ -25,16 +25,10 @@ package Rho.Assets is
       return String
       is abstract;
 
-   function Shader
-     (Container : in out Root_Asset_Container_Type;
-      Name      : String)
-      return Rho.Shaders.Shader_Type;
-
-   function Shader
-     (Container  : in out Root_Asset_Container_Type;
-      Tau_Shader : Tau.Shaders.Tau_Shader;
-      Bindings   : Tau.Environment.Tau_Environment)
-      return Rho.Shaders.Shader_Type;
+--     function Shader
+--       (Container : in out Root_Asset_Container_Type;
+--        Name      : String)
+--        return Rho.Shaders.Shader_Type;
 
    procedure Compile_Shader
      (Container : in out Root_Asset_Container_Type;
@@ -47,6 +41,11 @@ package Rho.Assets is
       Shaders   : Rho.Shaders.Shader_Array)
       return Rho.Shaders.Program_Type
       is abstract;
+
+   function Texture
+     (Container : in out Root_Asset_Container_Type;
+      Name      : String)
+      return Rho.Textures.Texture_Type;
 
    type Asset_Container_Type is access all Root_Asset_Container_Type'Class;
 

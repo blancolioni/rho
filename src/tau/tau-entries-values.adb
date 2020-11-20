@@ -23,6 +23,11 @@ package body Tau.Entries.Values is
          Qualifier : Rho.Storage_Qualifier;
       end record;
 
+   overriding function To_Source
+     (Object    : Global_Entry_Record;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
+      return String;
+
    ---------------------------
    -- Formal_Argument_Entry --
    ---------------------------
@@ -71,7 +76,29 @@ package body Tau.Entries.Values is
       return String
    is
    begin
-      return Object.Value.To_Source (Generator);
+      if Object.Value.Has_Source_Text then
+         return Object.Value.To_Source (Generator);
+      else
+         return Object.Name;
+      end if;
+   end To_Source;
+
+   ---------------
+   -- To_Source --
+   ---------------
+
+   overriding function To_Source
+     (Object    : Global_Entry_Record;
+      Generator : in out Tau.Objects.Generator_Interface'Class)
+      return String
+   is
+      use all type Rho.Shader_Stage;
+   begin
+      return
+        (if Generator.Current_Stage = Vertex_Shader
+         then ""
+         else Stage_Name (Generator.Current_Stage) & "_")
+        & Object.Name;
    end To_Source;
 
    -----------------

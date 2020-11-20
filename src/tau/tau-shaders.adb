@@ -183,6 +183,7 @@ package body Tau.Shaders is
    is
    begin
       Generator.Push_Environment (Bindings);
+
       Shader.Compile_Support (Generator);
 
       return S : constant String :=

@@ -63,6 +63,7 @@ package body Tau.Material.Create is
                     (Main_Material.Name
                      & ": " & Gen.Name & " => "
                      & Mat.Name & "." & Shader.Name);
+
                   exit;
                end if;
             end;

@@ -23,4 +23,11 @@ package Rho is
 
    type Shader_Stage is (Vertex_Shader, Fragment_Shader);
 
+   function Stage_Name
+     (Stage : Rho.Shader_Stage)
+      return String
+   is (case Stage is
+          when Rho.Vertex_Shader   => "vertex",
+          when Rho.Fragment_Shader => "fragment");
+
 end Rho;

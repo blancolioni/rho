@@ -84,4 +84,9 @@ private
          null;
       end record;
 
+   overriding function Class_Name
+     (Item : Root_Tau_Expression)
+      return String
+   is ("expression");
+
 end Tau.Expressions;

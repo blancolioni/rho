@@ -16,6 +16,10 @@ package Tau.Values is
      (Value : Root_Tau_Value)
       return Tau.Types.Tau_Type;
 
+   function Has_Source_Text
+     (Value : Root_Tau_Value)
+      return Boolean;
+
    function To_Source
      (Value     : Root_Tau_Value;
       Generator : in out Tau.Objects.Generator_Interface'Class)
@@ -71,10 +75,20 @@ private
          Value_Type : Tau.Types.Tau_Type;
       end record;
 
+   overriding function Class_Name
+     (Item : Root_Tau_Value)
+      return String
+   is ("value");
+
    function Value_Type
      (Value : Root_Tau_Value)
       return Tau.Types.Tau_Type
    is (Value.Value_Type);
+
+   function Has_Source_Text
+     (Value : Root_Tau_Value)
+      return Boolean
+   is (True);
 
    function Real_Value
      (Value    : Rho.Real)

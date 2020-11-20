@@ -15,6 +15,8 @@ with Tau.Statements.Lists;
 with Tau.Shaders.Create;
 with Tau.Shaders.Lists;
 
+with Tau.Textures.Create;
+
 package body Tau.Parser is
 
    package String_Lists is
@@ -28,6 +30,9 @@ package body Tau.Parser is
       Formals     : Tau.Declarations.Lists.List :=
         Tau.Declarations.Lists.Empty_List)
       return Tau.Material.Tau_Material;
+
+   function Parse_Texture_Declaration
+     return Tau.Textures.Tau_Texture;
 
    function Parse_Qualified_Name return String;
 
@@ -54,6 +59,9 @@ package body Tau.Parser is
 
    function At_Statement return Boolean
    is (Tok = Tok_Identifier or else Tok = Tok_Return);
+
+   procedure Parse_Property_List
+     (Object : not null access Tau.Objects.Root_Tau_Object'Class);
 
    type Operator_Precedence is range 1 .. 9;
 
@@ -442,6 +450,53 @@ package body Tau.Parser is
 
    end Parse_Object_Declarations;
 
+   procedure Parse_Property_List
+     (Object : not null access Tau.Objects.Root_Tau_Object'Class)
+   is
+   begin
+      while Tok = Tok_Identifier loop
+         declare
+            Position : constant GCS.Positions.File_Position :=
+              Get_Current_Position;
+            Property_Name : constant String := Tok_Text;
+         begin
+            Scan;
+            if Tok = Tok_Equal then
+               Scan;
+            else
+               Error ("missing '='");
+            end if;
+
+            if Tok = Tok_String_Constant then
+               declare
+                  Value : constant String := Tok_Text;
+               begin
+                  Scan;
+
+                  if Object.Is_Valid_Property (Property_Name) then
+                     Object.Set_Property (Property_Name, Value);
+                  else
+                     Error (Position,
+                            "invalid property for "
+                            & Object.Class_Name
+                            & " "
+                            & Object.Name
+                            & ": "
+                            & Property_Name);
+                  end if;
+               end;
+            else
+               Error ("only string properties are currently supported");
+               Scan;
+            end if;
+
+            if Tok = Tok_Semicolon then
+               Scan;
+            end if;
+         end;
+      end loop;
+   end Parse_Property_List;
+
    --------------------------
    -- Parse_Qualified_Name --
    --------------------------
@@ -686,6 +741,47 @@ package body Tau.Parser is
       return List;
    end Parse_Statement_List;
 
+   function Parse_Texture_Declaration
+     return Tau.Textures.Tau_Texture
+   is
+   begin
+      pragma Assert (Tok = Tok_Texture);
+      Scan;
+
+      declare
+         Position : constant GCS.Positions.File_Position :=
+           GCS.Positions.Get_Current_Position;
+         Name     : constant String := Parse_Qualified_Name;
+         Texture  : Tau.Textures.Tau_Texture;
+      begin
+         if Tok = Tok_Is then
+            Scan;
+         else
+            Error ("missing 'is'");
+         end if;
+
+         Texture :=
+           Tau.Textures.Create.New_Texture (Position, Name);
+
+         Parse_Property_List (Texture);
+
+         if Tok = Tok_End then
+            Scan;
+            Scan_Matching_Qualified_Name (Name);
+         else
+            Error ("missing 'end " & Name & "'");
+         end if;
+
+         if Tok = Tok_Semicolon then
+            Scan;
+         else
+            Error ("missing ';'");
+         end if;
+
+         return Texture;
+      end;
+   end Parse_Texture_Declaration;
+
    ---------------------------------
    -- Parse_Top_Level_Declaration --
    ---------------------------------
@@ -713,6 +809,9 @@ package body Tau.Parser is
               (Is_Generic  => Is_Generic,
                Is_Abstract => Is_Abstract,
                Formals     => Generic_Formals));
+      elsif Tok = Tok_Texture then
+         return Tau.Objects.Tau_Object
+           (Parse_Texture_Declaration);
       else
          Error ("expected a top level declaration");
          return null;

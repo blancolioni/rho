@@ -307,8 +307,8 @@ package body Rho.Handles.OpenGL is
             Status     : constant Int := GL.Get_Compile_Status (Id);
             Log_Length : aliased Int;
          begin
-            if Status = 0 then
-               GL.Get_Shader (Id, GL_INFO_LOG_LENGTH, Log_Length'Access);
+            GL.Get_Shader (Id, GL_INFO_LOG_LENGTH, Log_Length'Access);
+            if Log_Length > 0 then
                declare
                   Log : constant Interfaces.C.Strings.char_array_access :=
                           new Interfaces.C.char_array
@@ -319,6 +319,9 @@ package body Rho.Handles.OpenGL is
                      Interfaces.C.Strings.To_Chars_Ptr (Log));
                   Ada.Text_IO.Put_Line (Interfaces.C.To_Ada (Log.all));
                end;
+            end if;
+
+            if Status = 0 then
                raise Constraint_Error with
                Shader.Name & " failed to compile";
             end if;
@@ -455,7 +458,7 @@ package body Rho.Handles.OpenGL is
 --           GL.Depth_Function (GL_Constants.GL_LEQUAL);
 --           GL.Clear_Depth (1.0);
 --
---           GL.Enable_Debug;
+         GL.Enable_Debug;
 
       end return;
 
@@ -483,6 +486,8 @@ package body Rho.Handles.OpenGL is
       GLUT.Init;
       GLUT.Init_Display_Mode
         (Mode => GLUT.DOUBLE or GLUT.RGB or GLUT.DEPTH);
+
+      Local_Handle.Assets := new OpenGL_Asset_Container;
 
       return Local_Handle'Access;
    end Get_Handle;

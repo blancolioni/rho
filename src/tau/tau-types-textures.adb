@@ -6,6 +6,11 @@ package body Tau.Types.Textures is
          Order : Positive;
       end record;
 
+   overriding function Has_Uniform_Binding
+     (Item : Tau_Texture_Type)
+      return Boolean
+   is (True);
+
    Local_Textures : array (1 .. 3) of Tau_Type;
    Have_Local_Textures : Boolean := False;
 
