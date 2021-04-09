@@ -15,6 +15,8 @@ with Rho.Shaders.Slices;
 with Rho.Shaders.Stages;
 with Rho.Shaders.Variables;
 
+with Rho.Values;
+
 with Rho.Matrices.Logs;
 
 with Rho.Version;
@@ -61,6 +63,12 @@ package body Rho.Handles.Simulation is
    overriding procedure Activate_Shader
      (Target : in out Simulation_Render_Target;
       Shader : Rho.Shaders.Programs.Program_Type);
+
+   overriding procedure Add_Uniform
+     (Target  : in out Simulation_Render_Target;
+      Name    : String;
+      Value   : Rho.Values.Rho_Value)
+   is null;
 
    overriding procedure Bind_Shader
      (Target : in out Simulation_Render_Target;

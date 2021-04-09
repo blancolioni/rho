@@ -26,6 +26,18 @@ package body Rho.Nodes is
       Node.Children.Append (Node_Type (Child));
    end Add;
 
+   ---------------
+   -- Add_Slice --
+   ---------------
+
+   overriding procedure Add_Slice
+     (Node  : in out Root_Node_Type;
+      Slice : Rho.Shaders.Slices.Slice_Type)
+   is
+   begin
+      Node.Slices.Add_Slice (Slice);
+   end Add_Slice;
+
    ------------------
    -- After_Render --
    ------------------
@@ -298,18 +310,6 @@ package body Rho.Nodes is
       Node.M_World := Matrix;
       Node.World_Out_Of_Date := False;
    end Set_World_Matrix;
-
-   ----------------------
-   -- Shader_Slices --
-   ----------------------
-
-   function Shader_Slices
-     (Node : Root_Node_Type)
-      return Rho.Shaders.Slices.Slice_Array
-   is
-   begin
-      return Result : Rho.Shaders.Slices.Slice_Array (1 .. 0);
-   end Shader_Slices;
 
    ----------
    -- Show --

@@ -46,7 +46,7 @@ package body Rho.Demos.Rotating_Cube is
       Scene.Set_Name ("scene");
       Camera.Set_Name ("camera");
       Mesh.Set_Name ("mesh");
-      Camera.Set_Position (0.0, 0.0, 6.0);
+      Camera.Set_Position (0.0, 0.0, 4.0);
       Scene.Add (Mesh);
 
       Demo.Handle := Handle;

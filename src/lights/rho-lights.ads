@@ -20,6 +20,10 @@ package Rho.Lights is
       Color     : Rho.Color.Color_Type;
       Intensity : Unit_Real := 1.0);
 
+   overriding procedure Load
+     (Light : in out Root_Light_Type;
+      Target : not null access Rho.Render.Render_Target'Class);
+
 private
 
    type Root_Light_Type is
@@ -28,9 +32,5 @@ private
          Color     : Rho.Color.Color_Type;
          Intensity : Unit_Real := 1.0;
       end record;
-
-   overriding procedure Load
-     (Light : in out Root_Light_Type;
-      Target : not null access Rho.Render.Render_Target'Class);
 
 end Rho.Lights;

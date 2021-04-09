@@ -5,6 +5,7 @@ package Rho.Matrices is
 
    type Matrix_4 is private;
 
+   function Zero return Matrix_4;
    function Unit return Matrix_4;
 
    function Perspective_Matrix
@@ -25,6 +26,7 @@ package Rho.Matrices is
 
    type Matrix_3 is private;
 
+   function Zero return Matrix_3;
    function Unit return Matrix_3;
 
    function "*" (Left, Right : Matrix_3) return Matrix_3;
@@ -66,6 +68,7 @@ package Rho.Matrices is
 
    subtype Normal_Vector_3 is Vector_3;
 
+   function Zero return Vector_2;
    function Zero return Vector_3;
    function Zero return Vector_4;
 
@@ -130,6 +133,9 @@ private
            Real_Arrays.Unit_Matrix (4);
       end record;
 
+   function Zero return Matrix_4
+   is (Matrix => (others => (others => 0.0)));
+
    function Unit return Matrix_4
    is (Matrix => Unit_Matrix (4));
 
@@ -146,6 +152,9 @@ private
          Matrix : Real_Arrays.Real_Matrix (1 .. 3, 1 .. 3) :=
            Real_Arrays.Unit_Matrix (3);
       end record;
+
+   function Zero return Matrix_3
+   is (Matrix => (others => (others => 0.0)));
 
    function Unit return Matrix_3
    is (Matrix => Unit_Matrix (3));
@@ -190,6 +199,7 @@ private
          Vector : Real_Arrays.Real_Vector (1 .. 2) := (0.0, 0.0);
       end record;
 
+   function Zero return Vector_2 is (Vector => (0.0, 0.0));
    function Zero return Vector_3 is (Vector => (0.0, 0.0, 0.0));
    function Zero return Vector_4 is (Vector => (0.0, 0.0, 0.0, 1.0));
 

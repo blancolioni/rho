@@ -14,6 +14,7 @@ package Rho.Nodes is
    type Root_Node_Type is
      new Rho.Objects.Root_Object_Type
      and Rho.Renderable.Renderable_Interface
+     and Rho.Shaders.Slices.Slice_Container_Interface
    with private;
 
    type Node_Type is access all Root_Node_Type'Class;
@@ -83,9 +84,13 @@ package Rho.Nodes is
 
    function Show (Node : Root_Node_Type) return String;
 
-   function Shader_Slices
+   overriding function Shader_Slices
      (Node : Root_Node_Type)
       return Rho.Shaders.Slices.Slice_Array;
+
+   overriding procedure Add_Slice
+     (Node  : in out Root_Node_Type;
+      Slice : Rho.Shaders.Slices.Slice_Type);
 
    type Shader_Component_Array is
      array (Positive range <>) of Tau.Shaders.Tau_Shader;
@@ -103,10 +108,12 @@ private
 
    type Root_Node_Type is
      new Rho.Objects.Root_Object_Type
-     and Rho.Renderable.Renderable_Interface with
+     and Rho.Renderable.Renderable_Interface
+       and Rho.Shaders.Slices.Slice_Container_Interface with
       record
          Parent            : Node_Type;
          Children          : Node_Lists.List;
+         Slices            : Rho.Shaders.Slices.Slice_Container;
          Position          : Rho.Matrices.Vector_3;
          Quaternion        : Rho.Matrices.Quaternion;
          Scale             : Rho.Matrices.Vector_3 :=
@@ -151,5 +158,10 @@ private
      (Node : Root_Node_Type)
       return Shader_Component_Array
    is (No_Components);
+
+   overriding function Shader_Slices
+     (Node : Root_Node_Type)
+      return Rho.Shaders.Slices.Slice_Array
+   is (Node.Slices.Shader_Slices);
 
 end Rho.Nodes;

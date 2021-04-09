@@ -23,6 +23,7 @@ package body Rho.Lights is
       Target : not null access Rho.Render.Render_Target'Class)
    is
    begin
+      Rho.Nodes.Root_Node_Type (Light).Load (Target);
       for Slice of Root_Light_Type'Class (Light).Shader_Slices loop
          Target.Add_Shader_Fragment (Slice);
       end loop;

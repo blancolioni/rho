@@ -1,5 +1,3 @@
-private with Rho.Shaders.Slices.Uniforms;
-
 package Rho.Lights.Ambient is
 
    type Root_Ambient_Light is
@@ -20,10 +18,8 @@ private
          null;
       end record;
 
-   overriding function Shader_Slices
-     (Light : Root_Ambient_Light)
-      return Rho.Shaders.Slices.Slice_Array
-   is ((1 => Rho.Shaders.Slices.Uniforms.Uniform_Fragment
-          (Fragment_Shader, "ambientLightColor", "vec3")));
+   overriding procedure Load
+     (Light : in out Root_Ambient_Light;
+      Target : not null access Rho.Render.Render_Target'Class);
 
 end Rho.Lights.Ambient;

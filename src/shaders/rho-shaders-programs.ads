@@ -1,4 +1,5 @@
 private with Ada.Containers.Doubly_Linked_Lists;
+private with WL.String_Maps;
 
 with Rho.Objects;
 
@@ -35,6 +36,23 @@ package Rho.Shaders.Programs is
      (Program : Root_Program_Type'Class)
       return Variables.Variable_Type;
 
+   function Has_Variable
+     (Program : Root_Program_Type'Class;
+      Name    : String)
+      return Boolean;
+
+   function Get_Variable
+     (Program : Root_Program_Type'Class;
+      Name    : String)
+      return Variables.Variable_Type
+     with Pre => Has_Variable (Program, Name);
+
+   procedure Add_Variable
+     (Program  : in out Root_Program_Type'Class;
+      Variable : Variables.Variable_Type)
+     with Pre => not Has_Variable (Program, Variable.Name),
+     Post => Has_Variable (Program, Variable.Name);
+
    type Program_Type is access all Root_Program_Type'Class;
 
    function Create_Program
@@ -47,9 +65,14 @@ private
      new Ada.Containers.Doubly_Linked_Lists
        (Variables.Variable_Type, Variables."=");
 
+   package Shader_Variable_Maps is
+     new WL.String_Maps (Rho.Shaders.Variables.Variable_Type,
+                         Rho.Shaders.Variables."=");
+
    type Root_Program_Type is new Rho.Objects.Root_Object_Type with
       record
          Shader_Variables : Shader_Variable_Lists.List;
+         Variable_Map     : Shader_Variable_Maps.Map;
          Vertex_Position  : Variables.Variable_Type;
          Vertex_Color     : Variables.Variable_Type;
          Vertex_Texture   : Variables.Variable_Type;
@@ -98,5 +121,17 @@ private
      (Program : Root_Program_Type'Class)
       return Variables.Variable_Type
    is (Program.Model_View);
+
+   function Has_Variable
+     (Program : Root_Program_Type'Class;
+      Name    : String)
+      return Boolean
+   is (Program.Variable_Map.Contains (Name));
+
+   function Get_Variable
+     (Program : Root_Program_Type'Class;
+      Name    : String)
+      return Variables.Variable_Type
+   is (Program.Variable_Map.Element (Name));
 
 end Rho.Shaders.Programs;

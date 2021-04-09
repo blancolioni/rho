@@ -8,6 +8,7 @@ with Rho.Signals;
 --  with Rho.Demos.Ambient_Light;
 with Rho.Demos.Cube_Demo;
 with Rho.Demos.Depth_Demo;
+with Rho.Demos.Spotlight_Demo;
 with Rho.Demos.Texture_Demo;
 with Rho.Demos.White_Square_Demo;
 
@@ -87,6 +88,7 @@ package body Rho.Demos is
 --        Load (Ambient_Light.Load);
       Load (Cube_Demo.Load);
       Load (Depth_Demo.Load);
+      Load (Spotlight_Demo.Load);
       Load (Texture_Demo.Load);
    end Load_Demos;
 

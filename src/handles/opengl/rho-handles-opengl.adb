@@ -19,6 +19,8 @@ with GL;
 with GL_Constants;
 with GL_Types;
 
+with WL.String_Maps;
+
 with Tau.Environment;
 
 with Rho.Buffers;
@@ -34,6 +36,7 @@ with Rho.Shaders.Stages;
 with Rho.Shaders.Variables;
 with Rho.Signals;
 with Rho.Textures;
+with Rho.Values;
 
 with Rho.Real_Arrays;
 
@@ -54,6 +57,13 @@ package body Rho.Handles.OpenGL is
        (Aliased_Ubyte_Array, Aliased_Ubyte_Array_Access);
 
    function Read_File (Path : String) return String with Unreferenced;
+
+   package Uniform_Value_Maps is
+     new WL.String_Maps (Rho.Values.Rho_Value, Rho.Values."=");
+
+   package Shader_Variable_Maps is
+     new WL.String_Maps (Rho.Shaders.Variables.Variable_Type,
+                         Rho.Shaders.Variables."=");
 
    type OpenGL_Asset_Container is
      new Rho.Assets.Root_Asset_Container_Type with
@@ -85,6 +95,8 @@ package body Rho.Handles.OpenGL is
          Active_Projection : Rho.Matrices.Matrix_4;
          Active_Model_View : Rho.Matrices.Matrix_4;
          Active_Fragments  : Shader_Slices.Vector;
+         Active_Uniforms   : Uniform_Value_Maps.Map;
+         Active_Variables  : Shader_Variable_Maps.Map;
          Active_Texture_Id : Natural := 0;
          Current_Count     : Natural := 0;
          Id_Map            : Rho.Handles.OpenGL.Maps.Id_Map;
@@ -105,6 +117,11 @@ package body Rho.Handles.OpenGL is
    overriding procedure Add_Shader_Fragment
      (Target   : in out OpenGL_Render_Target;
       Slice : Rho.Shaders.Slices.Slice_Type);
+
+   overriding procedure Add_Uniform
+     (Target  : in out OpenGL_Render_Target;
+      Name    : String;
+      Value   : Rho.Values.Rho_Value);
 
    overriding procedure Activate_Shader
      (Target : in out OpenGL_Render_Target;
@@ -149,6 +166,11 @@ package body Rho.Handles.OpenGL is
       Buffer   : Rho.Buffers.Buffer_Type;
       Argument : not null access
         Rho.Shaders.Variables.Root_Variable_Type'Class);
+
+   procedure Bind_Uniform
+     (Target   : in out OpenGL_Render_Target'Class;
+      Variable : Rho.Shaders.Variables.Variable_Type;
+      Value    : Rho.Values.Rho_Value);
 
    procedure Load_Texture_Data
      (Target     : not null access OpenGL_Render_Target'Class;
@@ -331,6 +353,21 @@ package body Rho.Handles.OpenGL is
       Target.Active_Fragments.Append (Slice);
    end Add_Shader_Fragment;
 
+   -----------------
+   -- Add_Uniform --
+   -----------------
+
+   overriding procedure Add_Uniform
+     (Target  : in out OpenGL_Render_Target;
+      Name    : String;
+      Value   : Rho.Values.Rho_Value)
+   is
+   begin
+      Rho.Logging.Log
+        ("new active uniform: " & Name);
+      Target.Active_Uniforms.Insert (Name, Value);
+   end Add_Uniform;
+
    ------------------
    -- After_Render --
    ------------------
@@ -386,7 +423,63 @@ package body Rho.Handles.OpenGL is
          Count     => 1,
          Transpose => GL_Constants.GL_FALSE,
          Matrix    => To_GL_Float_Array (Target.Active_Model_View));
+
+      for Position in Target.Active_Uniforms.Iterate loop
+         declare
+            Name     : constant String := Uniform_Value_Maps.Key (Position);
+            Value    : constant Rho.Values.Rho_Value :=
+                         Uniform_Value_Maps.Element (Position);
+            Variable : constant Rho.Shaders.Variables.Variable_Type :=
+                         Shader.Get_Variable (Name);
+         begin
+            Target.Bind_Uniform (Variable, Value);
+         end;
+      end loop;
    end Bind_Shader;
+
+   ------------------
+   -- Bind_Uniform --
+   ------------------
+
+   procedure Bind_Uniform
+     (Target   : in out OpenGL_Render_Target'Class;
+      Variable : Rho.Shaders.Variables.Variable_Type;
+      Value    : Rho.Values.Rho_Value)
+   is
+      use all type Rho.Values.Value_Type;
+      Id : constant GL_Types.Uint :=
+             Target.Id_Map.Variable_Id (Variable);
+   begin
+      case Value.Of_Type is
+         when Real_Value =>
+            GL.Uniform (Id, GL_Types.GLfloat (Rho.Values.To_Real (Value)));
+         when Vector_2_Value =>
+            declare
+               Vec_2 : constant Rho.Matrices.Vector_2 :=
+                         Rho.Values.To_Vector_2 (Value);
+            begin
+               GL.Uniform
+                 (Id,
+                  (GL_Types.GLfloat (Rho.Matrices.X (Vec_2)),
+                   GL_Types.GLfloat (Rho.Matrices.Y (Vec_2))));
+            end;
+
+         when Vector_3_Value =>
+            declare
+               Vec_3 : constant Rho.Matrices.Vector_3 :=
+                         Rho.Values.To_Vector_3 (Value);
+            begin
+               GL.Uniform
+                 (Id,
+                  (GL_Types.GLfloat (Rho.Matrices.X (Vec_3)),
+                   GL_Types.GLfloat (Rho.Matrices.Y (Vec_3)),
+                   GL_Types.GLfloat (Rho.Matrices.Z (Vec_3))));
+            end;
+         when others =>
+            raise Constraint_Error with
+            Value.Of_Type'Image & " uniform not supported";
+      end case;
+   end Bind_Uniform;
 
    --------------------
    -- Compile_Shader --
@@ -454,7 +547,6 @@ package body Rho.Handles.OpenGL is
       Shaders   : Rho.Shaders.Stages.Shader_Array)
       return Rho.Shaders.Programs.Program_Type
    is
-      pragma Unreferenced (Target);
       Id : constant GL_Types.Uint :=
         GL.Create_Program;
    begin
@@ -500,6 +592,19 @@ package body Rho.Handles.OpenGL is
 
          begin
             Program.Iterate_Variables (Bind_Variable'Access);
+
+            for Position in Target.Active_Uniforms.Iterate loop
+               declare
+                  Name : constant String := Uniform_Value_Maps.Key (Position);
+                  Variable : constant Rho.Shaders.Variables.Variable_Type :=
+                               Rho.Shaders.Variables.New_Uniform_Binding
+                                 (Program       => Program,
+                                  Name          => Name);
+               begin
+                  Program.Add_Variable (Variable);
+                  Bind_Variable (Variable);
+               end;
+            end loop;
          end;
 
          Local_Render_Target.Id_Map.Define_Program (Program, Id);

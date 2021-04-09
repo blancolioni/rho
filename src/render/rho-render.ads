@@ -5,6 +5,7 @@ with Rho.Shaders.Slices;
 with Rho.Shaders.Programs;
 with Rho.Shaders.Stages;
 with Rho.Signals;
+with Rho.Values;
 
 package Rho.Render is
 
@@ -20,6 +21,12 @@ package Rho.Render is
    procedure Add_Shader_Fragment
      (Target   : in out Render_Target;
       Slice : Rho.Shaders.Slices.Slice_Type)
+   is abstract;
+
+   procedure Add_Uniform
+     (Target  : in out Render_Target;
+      Name    : String;
+      Value   : Rho.Values.Rho_Value)
    is abstract;
 
    procedure Set_Projection_Matrix

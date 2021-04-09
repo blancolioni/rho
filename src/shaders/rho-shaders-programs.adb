@@ -1,4 +1,20 @@
+with Rho.Logging;
+
 package body Rho.Shaders.Programs is
+
+   ------------------
+   -- Add_Variable --
+   ------------------
+
+   procedure Add_Variable
+     (Program  : in out Root_Program_Type'Class;
+      Variable : Variables.Variable_Type)
+   is
+   begin
+      Rho.Logging.Log
+        ("adding " & Variable.Name & " to program " & Program.Name);
+      Program.Variable_Map.Insert (Variable.Name, Variable);
+   end Add_Variable;
 
    ------------------------------
    -- Create_Attribute_Binding --
