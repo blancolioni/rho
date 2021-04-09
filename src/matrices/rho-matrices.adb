@@ -1,5 +1,3 @@
-with Rho.Elementary_Functions;
-
 package body Rho.Matrices is
 
    ---------
@@ -156,6 +154,19 @@ package body Rho.Matrices is
                  (0.0, 0.0, -1.0, 0.0)));
    end Perspective_Matrix;
 
+   ---------------------
+   -- Rotation_Matrix --
+   ---------------------
+
+   function Rotation_Matrix
+     (Axis  : Normal_Vector_3;
+      Angle : Real)
+      return Matrix_4
+   is
+   begin
+      return To_Matrix_4 (Axis_Angle_Quaternion (Axis, Angle));
+   end Rotation_Matrix;
+
    ------------------
    -- Set_Position --
    ------------------
@@ -228,5 +239,19 @@ package body Rho.Matrices is
                 )
              );
    end To_Matrix_4;
+
+   ------------------------
+   -- Translation_Matrix --
+   ------------------------
+
+   function Translation_Matrix
+     (Translation : Vector_3)
+      return Matrix_4
+   is
+   begin
+      return M : Matrix_4 := Unit do
+         Set_Position (M, Translation);
+      end return;
+   end Translation_Matrix;
 
 end Rho.Matrices;

@@ -2,7 +2,7 @@ private with Ada.Containers.Vectors;
 
 with Rho.Objects;
 with Rho.Matrices;
-with Rho.Shaders;
+with Rho.Shaders.Variables;
 
 package Rho.Buffers is
 
@@ -59,7 +59,8 @@ package Rho.Buffers is
    procedure Activate_Buffer
      (Handler  : in out Buffer_Handler_Interface;
       Buffer   : Buffer_Type;
-      Argument : not null access Rho.Shaders.Root_Shader_Variable_Type'Class)
+      Argument : not null access
+        Rho.Shaders.Variables.Root_Variable_Type'Class)
    is abstract;
 
    procedure Iterate

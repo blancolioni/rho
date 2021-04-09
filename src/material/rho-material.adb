@@ -1,6 +1,18 @@
-with Tau.Generators.Loader;
+with Rho.Shaders.Stages;
 
 package body Rho.Material is
+
+   ---------------
+   -- Add_Slice --
+   ---------------
+
+   overriding procedure Add_Slice
+     (Material : in out Root_Material_Type;
+      Slice    : Rho.Shaders.Slices.Slice_Type)
+   is
+   begin
+      Material.Slices.Add_Slice (Slice);
+   end Add_Slice;
 
    -------------------
    -- Before_Render --
@@ -12,28 +24,44 @@ package body Rho.Material is
    is
    begin
       Target.Activate_Shader (Material.Program);
+      for Texture of Material.Textures loop
+         Texture.Activate (Target);
+      end loop;
    end Before_Render;
 
-   ---------------------
-   -- Create_Material --
-   ---------------------
+   -------------
+   -- Compile --
+   -------------
 
-   function Create_Material
-     (Name     : String;
-      Bindings : Tau.Environment.Tau_Environment;
-      Shaders  : Tau.Shaders.Lists.List)
-      return Material_Type
+   overriding procedure Compile
+     (Material : in out Root_Material_Type;
+      Target   : not null access Rho.Render.Render_Target'Class)
    is
+      Shaders : array (Shader_Stage) of Rho.Shaders.Stages.Shader_Type;
    begin
-      return Result : constant Material_Type := new Root_Material_Type'
-        (Rho.Objects.Root_Object_Type with
-         Bindings => Bindings,
-         Shaders => Shaders,
-         Program => <>)
-      do
-         Result.Set_Name (Name);
-      end return;
-   end Create_Material;
+      for Stage in Shaders'Range loop
+         declare
+            Shader : Rho.Shaders.Stages.Shader_Type renames
+                       Shaders (Stage);
+         begin
+            Shader :=
+              Rho.Shaders.Stages.Create
+                (Name  => Material.Name & "-" & Stage_Name (Stage),
+                 Stage => Stage);
+            Shader.Add_Slices (Target.Active_Shader_Slices);
+            Shader.Add_Slices
+              (Root_Material_Type'Class (Material).Shader_Slices);
+            Shader.Build;
+            Target.Compile_Shader (Shader);
+         end;
+      end loop;
+
+      Material.Program :=
+        Target.Create_Program
+          (Name    => Material.Name,
+           Shaders => (Shaders (Vertex_Shader), Shaders (Fragment_Shader)));
+
+   end Compile;
 
    --------------------
    -- Execute_Render --
@@ -55,42 +83,11 @@ package body Rho.Material is
      (Material : in out Root_Material_Type;
       Target   : not null access Rho.Render.Render_Target'Class)
    is
-      Count   : constant Natural := Natural (Material.Shaders.Length);
-      Index   : Positive := 1;
-      Shaders : Rho.Shaders.Shader_Array (1 .. Count);
-      Generator   : Tau.Generators.Root_Tau_Generator'Class :=
-                      Tau.Generators.Loader.Load_Generator
-                        (Target.Assets.Generator_Name);
    begin
-      for Tau_Shader of Material.Shaders loop
-         if not Tau_Shader.Compile (Material.Bindings, Generator) then
-            raise Constraint_Error with
-              "shader " & Tau_Shader.Name & " failed to compile";
-         end if;
+      for Texture of Material.Textures loop
+         Texture.Load (Target);
+         Rho.Shaders.Slices.Add_Slices (Material, Texture);
       end loop;
-
-      Generator.Freeze;
-
-      for Tau_Shader of Material.Shaders loop
-
-         Shaders (Index) :=
-           Rho.Shaders.Create
-             (Name   => Tau_Shader.Name,
-              Stage  => Tau_Shader.Stage,
-              Source => Generator.Get_Source (Tau_Shader.Stage));
-
-         if not Shaders (Index).Is_Loaded then
-            Target.Assets.Compile_Shader (Shaders (Index));
-         end if;
-
-         Index := Index + 1;
-      end loop;
-
-      Material.Program :=
-        Target.Assets.Create_Program
-          (Name    => Material.Name,
-           Shaders => Shaders);
-      Material.Set_Loaded;
    end Load;
 
 end Rho.Material;

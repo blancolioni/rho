@@ -54,6 +54,8 @@ private
          Loaded : Boolean       := False;
       end record;
 
+   overriding procedure Initialize (Object : in out Root_Object_Type);
+
    overriding function Guid
      (Object : Root_Object_Type)
       return WL.Guids.Guid

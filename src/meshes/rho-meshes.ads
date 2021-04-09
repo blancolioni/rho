@@ -13,6 +13,10 @@ package Rho.Meshes is
      (Mesh       : in out Root_Mesh_Type;
       Target     : not null access Rho.Render.Render_Target'Class);
 
+   overriding procedure Compile
+     (Mesh       : in out Root_Mesh_Type;
+      Target     : not null access Rho.Render.Render_Target'Class);
+
    overriding procedure Before_Render
      (Mesh       : in out Root_Mesh_Type;
       Target     : not null access Rho.Render.Render_Target'Class);

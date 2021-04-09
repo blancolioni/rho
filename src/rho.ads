@@ -1,4 +1,4 @@
-package Rho is
+package Rho with Pure is
 
    subtype Real is Long_Float range Long_Float'First .. Long_Float'Last;
 

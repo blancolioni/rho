@@ -1,4 +1,5 @@
 with Rho.Nodes;
+with Rho.Render;
 
 package Rho.Scenes is
 
@@ -21,6 +22,10 @@ private
      (Scene : Root_Scene_Type)
       return String
    is ("scene");
+
+   overriding procedure Load
+     (Scene  : in out Root_Scene_Type;
+      Target : not null access Rho.Render.Render_Target'Class);
 
    function Create_Scene return Scene_Type
    is (new Root_Scene_Type);

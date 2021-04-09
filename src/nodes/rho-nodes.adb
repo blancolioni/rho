@@ -107,6 +107,38 @@ package body Rho.Nodes is
       end loop;
    end Invalidate_World_Matrix;
 
+   -------------
+   -- Iterate --
+   -------------
+
+   procedure Iterate
+     (Root : in out Root_Node_Type'Class;
+      Process : not null access
+        procedure (Node : in out Root_Node_Type'Class))
+   is
+   begin
+      Process (Root);
+      for Child of Root.Children loop
+         Child.Iterate (Process);
+      end loop;
+   end Iterate;
+
+   ----------------------
+   -- Iterate_Children --
+   ----------------------
+
+   procedure Iterate_Children
+     (Root : in out Root_Node_Type'Class;
+      Process : not null access
+        procedure (Node : not null access Root_Node_Type'Class))
+   is
+   begin
+      for Child of Root.Children loop
+         Process (Child);
+         Child.Iterate_Children (Process);
+      end loop;
+   end Iterate_Children;
+
    ----------
    -- Load --
    ----------
@@ -266,6 +298,18 @@ package body Rho.Nodes is
       Node.M_World := Matrix;
       Node.World_Out_Of_Date := False;
    end Set_World_Matrix;
+
+   ----------------------
+   -- Shader_Slices --
+   ----------------------
+
+   function Shader_Slices
+     (Node : Root_Node_Type)
+      return Rho.Shaders.Slices.Slice_Array
+   is
+   begin
+      return Result : Rho.Shaders.Slices.Slice_Array (1 .. 0);
+   end Shader_Slices;
 
    ----------
    -- Show --

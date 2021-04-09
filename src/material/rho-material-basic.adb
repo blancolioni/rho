@@ -1,12 +1,6 @@
-with GCS.Positions;
-
-with Tau.Material.Create;
-with Tau.Values;
-
-with Tau.Errors;
-with Tau.Parser;
-
-with Rho.Paths;
+with Rho.Shaders.Slices.Attributes;
+with Rho.Shaders.Slices.Main;
+--  with Rho.Shaders.Slices.Uniforms;
 
 package body Rho.Material.Basic is
 
@@ -18,39 +12,40 @@ package body Rho.Material.Basic is
      (Color : Rho.Color.Color_Type)
       return Material_Type
    is
-      Basic_Material : constant Tau.Material.Tau_Material :=
-          Tau.Parser.Load_Material
-            (Rho.Paths.Config_File
-               ("material/rho-material-basic.rho"));
-      Color_Material : constant Tau.Material.Tau_Material :=
-        Tau.Parser.Load_Material
-          (Rho.Paths.Config_File
-             ("material/rho-material-simple_color.rho"));
-
-      Linker         : Tau.Material.Create.Material_Linker;
-
    begin
-      if not Basic_Material.Check then
-         Tau.Errors.Write_Errors (Basic_Material);
-         raise Constraint_Error with
-           "basic material check failed";
-      end if;
+      return Material : constant Material_Type :=
+        new Root_Material_Type'
+          (Rho.Objects.Root_Object_Type with
+             Slices => <>,
+           Program   => <>,
+           Textures => <>)
+      do
+         Material.Add_Slice
+           (Rho.Shaders.Slices.Attributes.Out_Attribute_Fragment
+              (Vertex_Shader, "fragmentColor", "vec4"));
+         Material.Add_Slice
+           (Rho.Shaders.Slices.Main.Shader_Line
+              (Stage    => Vertex_Shader,
+               Priority => 1,
+               Name     => "pass color to fragment shader",
+               Line     =>
+                 "fragmentColor = "
+               & Rho.Color.To_Shader_Value (Color) & ";"));
 
-      Linker.Append (Basic_Material);
+         Material.Add_Slice
+           (Rho.Shaders.Slices.Attributes.In_Attribute_Fragment
+              (Fragment_Shader, "fragmentColor", "vec4"));
+         Material.Add_Slice
+           (Rho.Shaders.Slices.Attributes.Out_Attribute_Fragment
+              (Fragment_Shader, "finalColor", "vec4"));
+         Material.Add_Slice
+           (Rho.Shaders.Slices.Main.Shader_Line
+              (Stage    => Fragment_Shader,
+               Priority => 1,
+               Name     => "set final color",
+               Line     => "finalColor = fragmentColor"));
 
-      if not Color_Material.Check then
-         raise Constraint_Error with
-           "color material check failed";
-      end if;
-
-      Linker.Append
-        (Color_Material.Apply
-           (Tau.Values.Color (Color)));
-
-      Linker.Link;
-
-      return Linker.Instantiate;
-
+      end return;
    end Create_Basic_Material;
 
    ---------------------------
@@ -61,40 +56,25 @@ package body Rho.Material.Basic is
      (Texture : Rho.Textures.Texture_Type)
       return Material_Type
    is
-      Basic_Material : constant Tau.Material.Tau_Material :=
-        Tau.Parser.Load_Material
-          (Rho.Paths.Config_File
-             ("material/rho-material-basic.rho"));
-      Texture_Material : constant Tau.Material.Tau_Material :=
-        Tau.Parser.Load_Material
-          (Rho.Paths.Config_File
-             ("material/rho-material-textured.rho"));
-      Linker         : Tau.Material.Create.Material_Linker;
-
    begin
-      if not Basic_Material.Check then
-         Tau.Errors.Write_Errors (Basic_Material);
-         raise Constraint_Error with
-           "basic material check failed";
-      end if;
-
-      Linker.Append (Basic_Material);
-
-      if not Texture_Material.Check then
-         Tau.Errors.Write_Errors (Texture_Material);
-         raise Constraint_Error with
-           "texture material check failed";
-      end if;
-
-      Linker.Append
-        (Texture_Material.Apply
-           (Tau.Values.Texture
-                (GCS.Positions.Null_Position, Texture)));
-
-      Linker.Link;
-
-      return Linker.Instantiate;
-
+      return Material : constant Material_Type :=
+        new Root_Material_Type'
+          (Rho.Objects.Root_Object_Type with
+             Slices => <>,
+           Program   => <>,
+           Textures => <>)
+      do
+         Material.Add_Slice
+           (Rho.Shaders.Slices.Attributes.Out_Attribute_Fragment
+              (Fragment_Shader, "finalColor", "vec4"));
+         Material.Add_Slice
+           (Rho.Shaders.Slices.Main.Shader_Line
+              (Stage    => Fragment_Shader,
+               Priority => Rho.Shaders.Slices.Shader_Source_Priority'Last,
+               Name     => "set final color",
+               Line     => "finalColor = fragmentColor"));
+         Material.Textures.Append (Texture);
+      end return;
    end Create_Basic_Material;
 
 end Rho.Material.Basic;

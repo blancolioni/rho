@@ -10,6 +10,9 @@ package Rho.Color is
 
    function To_Shader_Value (Color : Color_Type) return String;
 
+   type Rho_Color_Array is
+     array (Positive range <>) of Color_Type;
+
 private
 
    function To_Shader_Value (Color : Color_Type) return String

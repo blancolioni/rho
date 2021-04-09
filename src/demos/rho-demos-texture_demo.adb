@@ -40,9 +40,9 @@ package body Rho.Demos.Texture_Demo is
       Window : Rho.Windows.Window_Type)
    is
       Material : constant Rho.Material.Material_Type :=
-        Rho.Material.Basic.Create_Basic_Material
-          (Handle.Assets.Texture
-             ("rho-textures-ada_mascot"));
+                   Rho.Material.Basic.Create_Basic_Material
+                     (Handle.Assets.Create_Texture_From_Image
+                        ("config/images/ada-mascot"));
    begin
       Demo.Initialize (Handle, Window, Material);
       Demo.Start;

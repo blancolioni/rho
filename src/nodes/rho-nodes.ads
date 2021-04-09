@@ -7,9 +7,9 @@ with Rho.Matrices;
 with Rho.Renderable;
 with Rho.Render;
 
-package Rho.Nodes is
+with Rho.Shaders.Slices;
 
-   type Node_Id is private;
+package Rho.Nodes is
 
    type Root_Node_Type is
      new Rho.Objects.Root_Object_Type
@@ -71,7 +71,21 @@ package Rho.Nodes is
      (Node  : not null access Root_Node_Type;
       Child : not null access Root_Node_Type'Class);
 
+   procedure Iterate
+     (Root : in out Root_Node_Type'Class;
+      Process : not null access
+        procedure (Node : in out Root_Node_Type'Class));
+
+   procedure Iterate_Children
+     (Root : in out Root_Node_Type'Class;
+      Process : not null access
+        procedure (Node : not null access Root_Node_Type'Class));
+
    function Show (Node : Root_Node_Type) return String;
+
+   function Shader_Slices
+     (Node : Root_Node_Type)
+      return Rho.Shaders.Slices.Slice_Array;
 
    type Shader_Component_Array is
      array (Positive range <>) of Tau.Shaders.Tau_Shader;
@@ -84,8 +98,6 @@ package Rho.Nodes is
 
 private
 
-   type Node_Id is new Natural;
-
    package Node_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Node_Type);
 
@@ -93,7 +105,6 @@ private
      new Rho.Objects.Root_Object_Type
      and Rho.Renderable.Renderable_Interface with
       record
-         Id                : Node_Id;
          Parent            : Node_Type;
          Children          : Node_Lists.List;
          Position          : Rho.Matrices.Vector_3;

@@ -14,6 +14,21 @@ package body Rho.Meshes is
       Mesh.Material.Before_Render (Target);
    end Before_Render;
 
+   -------------
+   -- Compile --
+   -------------
+
+   overriding procedure Compile
+     (Mesh       : in out Root_Mesh_Type;
+      Target     : not null access Rho.Render.Render_Target'Class)
+   is
+   begin
+
+      Rho.Nodes.Root_Node_Type (Mesh).Compile (Target);
+
+      Mesh.Material.Compile (Target);
+   end Compile;
+
    --------------------
    -- Execute_Render --
    --------------------

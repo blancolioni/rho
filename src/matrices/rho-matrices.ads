@@ -1,3 +1,4 @@
+private with Rho.Elementary_Functions;
 with Rho.Real_Arrays;
 
 package Rho.Matrices is
@@ -52,10 +53,14 @@ package Rho.Matrices is
    function Y (Vector : Vector_3) return Real;
    function Z (Vector : Vector_3) return Real;
 
+   function "abs" (Vector : Vector_3) return Non_Negative_Real;
+
    function X (Vector : Vector_4) return Real;
    function Y (Vector : Vector_4) return Real;
    function Z (Vector : Vector_4) return Real;
    function W (Vector : Vector_4) return Real;
+
+   function "abs" (Vector : Vector_4) return Non_Negative_Real;
 
    function XYZ (Vector : Vector_4) return Vector_3;
 
@@ -64,11 +69,21 @@ package Rho.Matrices is
    function Zero return Vector_3;
    function Zero return Vector_4;
 
-   function Normalize (Vector : Vector_3) return Vector_3;
+   function Normalize (Vector : Vector_3) return Normal_Vector_3;
 
    function To_Vector (X, Y : Real) return Vector_2;
    function To_Vector (X, Y, Z : Real) return Vector_3;
    function To_Vector (X, Y, Z, W : Real) return Vector_4;
+   function To_Vector (V : Vector_3; W : Real) return Vector_4;
+
+   function Rotation_Matrix
+     (Axis  : Normal_Vector_3;
+      Angle : Real)
+      return Matrix_4;
+
+   function Translation_Matrix
+     (Translation : Vector_3)
+      return Matrix_4;
 
    type Quaternion is private;
 
@@ -152,10 +167,23 @@ private
    function "/" (Left : Vector_4; Right : Real) return Vector_4
    is (Vector => Left.Vector / Right);
 
+   function "abs" (Vector : Vector_4) return Non_Negative_Real
+   is (Rho.Elementary_Functions.Sqrt
+       (Vector.Vector (1) ** 2
+        + Vector.Vector (2) ** 2
+        + Vector.Vector (3) ** 2
+        + Vector.Vector (4) ** 2));
+
    type Vector_3 is
       record
          Vector : Real_Arrays.Real_Vector (1 .. 3) := (0.0, 0.0, 0.0);
       end record;
+
+   function "abs" (Vector : Vector_3) return Non_Negative_Real
+   is (Rho.Elementary_Functions.Sqrt
+       (Vector.Vector (1) ** 2
+        + Vector.Vector (2) ** 2
+        + Vector.Vector (3) ** 2));
 
    type Vector_2 is
       record
@@ -181,6 +209,9 @@ private
 
    function To_Vector (X, Y, Z, W : Real) return Vector_4
    is (Vector => (X, Y, Z, W));
+
+   function To_Vector (V : Vector_3; W : Real) return Vector_4
+   is (Vector => (V.Vector (1), V.Vector (2), V.Vector (3), W));
 
    function X (Vector : Vector_4) return Real is (Vector.Vector (1));
    function Y (Vector : Vector_4) return Real is (Vector.Vector (2));

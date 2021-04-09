@@ -13,7 +13,12 @@ package Rho.Renderable is
    procedure Load
      (Renderable : in out Renderable_Interface;
       Target     : not null access Rho.Render.Render_Target'Class)
-   is abstract;
+   is null;
+
+   procedure Compile
+     (Renderable : in out Renderable_Interface;
+      Target     : not null access Rho.Render.Render_Target'Class)
+   is null;
 
    procedure Unload
      (Renderable : in out Renderable_Interface;

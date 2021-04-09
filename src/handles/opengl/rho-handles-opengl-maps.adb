@@ -37,8 +37,8 @@ package body Rho.Handles.OpenGL.Maps is
 
    procedure Define_Program
      (Map     : in out Id_Map'Class;
-      Program : not null access Rho.Shaders.Root_Program_Type'Class;
-      Id      :        GL_Types.Uint)
+      Program : not null access Rho.Shaders.Programs.Root_Program_Type'Class;
+      Id      : GL_Types.Uint)
    is
    begin
       Define_Id (Map.Program_Map, Program.Guid, Id);
@@ -49,9 +49,9 @@ package body Rho.Handles.OpenGL.Maps is
    -------------------
 
    procedure Define_Shader
-     (Map    : in out Id_Map'Class;
-      Shader :    not null access Rho.Shaders.Root_Shader_Type'Class;
-      Id     :        GL_Types.Uint)
+     (Map     : in out Id_Map'Class;
+      Shader  : not null access Rho.Shaders.Stages.Root_Shader_Type'Class;
+      Id      : GL_Types.Uint)
    is
    begin
       Define_Id (Map.Shader_Map, Shader.Guid, Id);
@@ -63,10 +63,9 @@ package body Rho.Handles.OpenGL.Maps is
 
    procedure Define_Variable
      (Map      : in out Id_Map'Class;
-      Variable :        not null access Rho.Shaders
-        .Root_Shader_Variable_Type'
-        Class;
-      Id : GL_Types.Int)
+      Variable : not null access
+        Rho.Shaders.Variables.Root_Variable_Type'Class;
+      Id       : GL_Types.Int)
    is
    begin
       Define_Id (Map.Variable_Map, Variable.Guid, GL_Types.Uint (Id));

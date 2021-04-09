@@ -3,7 +3,7 @@ package body Tau.Types.Textures is
    type Tau_Texture_Type is
      new Root_Tau_Type with
       record
-         Order : Positive;
+         Order : Rho.Textures.Texture_Dimension_Index;
       end record;
 
    overriding function Has_Uniform_Binding
@@ -11,7 +11,7 @@ package body Tau.Types.Textures is
       return Boolean
    is (True);
 
-   Local_Textures : array (1 .. 3) of Tau_Type;
+   Local_Textures : array (Rho.Textures.Texture_Dimension_Index) of Tau_Type;
    Have_Local_Textures : Boolean := False;
 
    procedure Check_Local_Textures;
@@ -25,6 +25,7 @@ package body Tau.Types.Textures is
       if not Have_Local_Textures then
          for I in Local_Textures'Range loop
             declare
+               use Rho.Textures;
                T : Tau_Texture_Type :=
                  Tau_Texture_Type'
                    (Root_Tau_Type with
@@ -44,7 +45,9 @@ package body Tau.Types.Textures is
    -- Texture --
    -------------
 
-   function Texture (Order : Positive) return Tau_Type is
+   function Texture
+     (Order : Rho.Textures.Texture_Dimension_Count)
+      return Tau_Type is
    begin
       Check_Local_Textures;
       return Local_Textures (Order);

@@ -8,6 +8,12 @@ with Rho.Buffers;
 with Rho.Matrices;
 with Rho.Shaders;
 with Rho.Signals;
+with Rho.Textures;
+
+with Rho.Shaders.Programs;
+with Rho.Shaders.Slices;
+with Rho.Shaders.Stages;
+with Rho.Shaders.Variables;
 
 with Rho.Matrices.Logs;
 
@@ -29,23 +35,17 @@ package body Rho.Handles.Simulation is
       return String
    is ("glsl");
 
-   overriding procedure Compile_Shader
+   overriding function Create_Texture_From_Image
      (Container : in out Simulation_Asset_Container;
-      Shader    : Rho.Shaders.Shader_Type)
-   is null;
-
-   overriding function Create_Program
-     (Container : in out Simulation_Asset_Container;
-      Name      : String;
-      Shaders   : Rho.Shaders.Shader_Array)
-      return Rho.Shaders.Program_Type;
+      Identifier : String)
+      return Rho.Textures.Texture_Type;
 
    type Simulation_Render_Target is
      new Rho.Signals.Signal_Dispatcher
      and Rho.Render.Render_Target with
       record
          Assets            : Rho.Assets.Asset_Container_Type;
-         Active_Program    : Rho.Shaders.Program_Type;
+         Active_Program    : Rho.Shaders.Programs.Program_Type;
          Active_Int_Buffer : Rho.Buffers.Buffer_Type;
          Bound_Variables   : Buffer_Maps.Map;
          Active_Projection : Rho.Matrices.Matrix_4;
@@ -53,22 +53,33 @@ package body Rho.Handles.Simulation is
          Current_Count     : Natural := 0;
       end record;
 
-   overriding function Assets
-     (Target : Simulation_Render_Target)
-      return Rho.Assets.Asset_Container_Type
-   is (Target.Assets);
+   --  overriding function Assets
+   --    (Target : Simulation_Render_Target)
+   --     return Rho.Assets.Asset_Container_Type
+   --  is (Target.Assets);
 
    overriding procedure Activate_Shader
      (Target : in out Simulation_Render_Target;
-      Shader : Rho.Shaders.Program_Type);
+      Shader : Rho.Shaders.Programs.Program_Type);
 
    overriding procedure Bind_Shader
      (Target : in out Simulation_Render_Target;
-      Shader : Rho.Shaders.Program_Type);
+      Shader : Rho.Shaders.Programs.Program_Type);
+
+   overriding procedure Compile_Shader
+     (Target : in out Simulation_Render_Target;
+      Shader    : Rho.Shaders.Stages.Shader_Type)
+   is null;
+
+   overriding function Create_Program
+     (Target : in out Simulation_Render_Target;
+      Name      : String;
+      Shaders   : Rho.Shaders.Stages.Shader_Array)
+      return Rho.Shaders.Programs.Program_Type;
 
    overriding function Current_Shader
      (Target : Simulation_Render_Target)
-      return Rho.Shaders.Program_Type
+      return Rho.Shaders.Programs.Program_Type
    is (Target.Active_Program);
 
    overriding procedure Set_Projection_Matrix
@@ -89,7 +100,20 @@ package body Rho.Handles.Simulation is
    overriding procedure Activate_Buffer
      (Target   : in out Simulation_Render_Target;
       Buffer   : Rho.Buffers.Buffer_Type;
-      Argument : not null access Rho.Shaders.Root_Shader_Variable_Type'Class);
+      Argument : not null access
+        Rho.Shaders.Variables.Root_Variable_Type'Class);
+
+   overriding procedure Add_Shader_Fragment
+     (Target   : in out Simulation_Render_Target;
+      Slice    : Rho.Shaders.Slices.Slice_Type)
+   is null;
+
+   No_Fragments : Rho.Shaders.Slices.Slice_Array (1 .. 0);
+
+   overriding function Active_Shader_Slices
+     (Target   : Simulation_Render_Target)
+      return Rho.Shaders.Slices.Slice_Array
+   is (No_Fragments);
 
    Local_Render_Target : aliased Simulation_Render_Target :=
      Simulation_Render_Target'
@@ -146,7 +170,8 @@ package body Rho.Handles.Simulation is
    overriding procedure Activate_Buffer
      (Target   : in out Simulation_Render_Target;
       Buffer   : Rho.Buffers.Buffer_Type;
-      Argument : not null access Rho.Shaders.Root_Shader_Variable_Type'Class)
+      Argument : not null access
+        Rho.Shaders.Variables.Root_Variable_Type'Class)
    is
    begin
       case Buffer.Contents is
@@ -168,7 +193,7 @@ package body Rho.Handles.Simulation is
 
    overriding procedure Activate_Shader
      (Target : in out Simulation_Render_Target;
-      Shader : Rho.Shaders.Program_Type)
+      Shader : Rho.Shaders.Programs.Program_Type)
    is
    begin
       Target.Active_Program := Shader;
@@ -200,7 +225,7 @@ package body Rho.Handles.Simulation is
 
    overriding procedure Bind_Shader
      (Target : in out Simulation_Render_Target;
-      Shader : Rho.Shaders.Program_Type)
+      Shader : Rho.Shaders.Programs.Program_Type)
    is
    begin
       Target.Activate_Shader (Shader);
@@ -211,16 +236,29 @@ package body Rho.Handles.Simulation is
    --------------------
 
    overriding function Create_Program
-     (Container : in out Simulation_Asset_Container;
+     (Target : in out Simulation_Render_Target;
       Name      : String;
-      Shaders   : Rho.Shaders.Shader_Array)
-      return Rho.Shaders.Program_Type
+      Shaders   : Rho.Shaders.Stages.Shader_Array)
+      return Rho.Shaders.Programs.Program_Type
    is
-      pragma Unreferenced (Container, Shaders);
+      pragma Unreferenced (Target, Shaders);
    begin
-      return Program : constant Rho.Shaders.Program_Type :=
-        Rho.Shaders.Create_Program (Name);
+      return Program : constant Rho.Shaders.Programs.Program_Type :=
+        Rho.Shaders.Programs.Create_Program (Name);
    end Create_Program;
+
+   -------------------------------
+   -- Create_Texture_From_Image --
+   -------------------------------
+
+   overriding function Create_Texture_From_Image
+     (Container : in out Simulation_Asset_Container;
+      Identifier : String)
+      return Rho.Textures.Texture_Type
+   is
+   begin
+      return null;
+   end Create_Texture_From_Image;
 
    -------------------
    -- Create_Window --

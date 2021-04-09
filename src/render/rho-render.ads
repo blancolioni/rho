@@ -1,7 +1,9 @@
-with Rho.Assets;
+--  with Rho.Assets;
 with Rho.Buffers;
 with Rho.Matrices;
-with Rho.Shaders;
+with Rho.Shaders.Slices;
+with Rho.Shaders.Programs;
+with Rho.Shaders.Stages;
 with Rho.Signals;
 
 package Rho.Render is
@@ -9,6 +11,16 @@ package Rho.Render is
    type Render_Target is interface
      and Rho.Buffers.Buffer_Handler_Interface
      and Rho.Signals.Signal_Dispatch_Interface;
+
+   function Active_Shader_Slices
+     (Target : Render_Target)
+      return Rho.Shaders.Slices.Slice_Array
+      is abstract;
+
+   procedure Add_Shader_Fragment
+     (Target   : in out Render_Target;
+      Slice : Rho.Shaders.Slices.Slice_Type)
+   is abstract;
 
    procedure Set_Projection_Matrix
      (Render : in out Render_Target;
@@ -24,24 +36,36 @@ package Rho.Render is
      (Render : in out Render_Target)
    is abstract;
 
+   procedure Compile_Shader
+     (Render : in out Render_Target;
+      Shader : Rho.Shaders.Stages.Shader_Type)
+   is abstract;
+
+   function Create_Program
+     (Render    : in out Render_Target;
+      Name      : String;
+      Shaders   : Rho.Shaders.Stages.Shader_Array)
+      return Rho.Shaders.Programs.Program_Type
+      is abstract;
+
    procedure Activate_Shader
      (Render : in out Render_Target;
-      Shader : Rho.Shaders.Program_Type)
+      Shader : Rho.Shaders.Programs.Program_Type)
    is abstract;
 
    procedure Bind_Shader
      (Render : in out Render_Target;
-      Shader : Rho.Shaders.Program_Type)
+      Shader : Rho.Shaders.Programs.Program_Type)
    is abstract;
 
    function Current_Shader
      (Render : Render_Target)
-      return Rho.Shaders.Program_Type
+      return Rho.Shaders.Programs.Program_Type
       is abstract;
 
-   function Assets
-     (Render : Render_Target)
-      return Rho.Assets.Asset_Container_Type
-      is abstract;
+   --  function Assets
+   --    (Render : Render_Target)
+   --     return Rho.Assets.Asset_Container_Type
+   --     is abstract;
 
 end Rho.Render;

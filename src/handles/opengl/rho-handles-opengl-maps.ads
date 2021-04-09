@@ -4,7 +4,9 @@ private with Rho.Objects;
 with GL_Types;
 
 with Rho.Buffers;
-with Rho.Shaders;
+with Rho.Shaders.Programs;
+with Rho.Shaders.Stages;
+with Rho.Shaders.Variables;
 
 private package Rho.Handles.OpenGL.Maps is
 
@@ -18,19 +20,19 @@ private package Rho.Handles.OpenGL.Maps is
    function Program_Id
      (Map      : Id_Map'Class;
       Program  : not null access
-        Rho.Shaders.Root_Program_Type'Class)
+        Rho.Shaders.Programs.Root_Program_Type'Class)
       return GL_Types.Uint;
 
    function Shader_Id
      (Map      : Id_Map'Class;
       Shader   : not null access
-        Rho.Shaders.Root_Shader_Type'Class)
+        Rho.Shaders.Stages.Root_Shader_Type'Class)
       return GL_Types.Uint;
 
    function Variable_Id
      (Map      : Id_Map'Class;
       Variable : not null access
-        Rho.Shaders.Root_Shader_Variable_Type'Class)
+        Rho.Shaders.Variables.Root_Variable_Type'Class)
       return GL_Types.Uint;
 
    procedure Define_Buffer
@@ -40,18 +42,18 @@ private package Rho.Handles.OpenGL.Maps is
 
    procedure Define_Program
      (Map     : in out Id_Map'Class;
-      Program : not null access Rho.Shaders.Root_Program_Type'Class;
+      Program : not null access Rho.Shaders.Programs.Root_Program_Type'Class;
       Id      : GL_Types.Uint);
 
    procedure Define_Shader
      (Map     : in out Id_Map'Class;
-      Shader  : not null access Rho.Shaders.Root_Shader_Type'Class;
+      Shader  : not null access Rho.Shaders.Stages.Root_Shader_Type'Class;
       Id      : GL_Types.Uint);
 
    procedure Define_Variable
      (Map      : in out Id_Map'Class;
       Variable : not null access
-        Rho.Shaders.Root_Shader_Variable_Type'Class;
+        Rho.Shaders.Variables.Root_Variable_Type'Class;
       Id       : GL_Types.Int);
 
 private
@@ -82,21 +84,21 @@ private
    function Program_Id
      (Map      : Id_Map'Class;
       Program  : not null access
-        Rho.Shaders.Root_Program_Type'Class)
+        Rho.Shaders.Programs.Root_Program_Type'Class)
       return GL_Types.Uint
    is (Get_Id (Map.Program_Map, Program));
 
    function Shader_Id
      (Map      : Id_Map'Class;
       Shader   : not null access
-        Rho.Shaders.Root_Shader_Type'Class)
+        Rho.Shaders.Stages.Root_Shader_Type'Class)
       return GL_Types.Uint
    is (Get_Id (Map.Shader_Map, Shader));
 
    function Variable_Id
      (Map      : Id_Map'Class;
       Variable : not null access
-        Rho.Shaders.Root_Shader_Variable_Type'Class)
+        Rho.Shaders.Variables.Root_Variable_Type'Class)
       return GL_Types.Uint
    is (Get_Id (Map.Variable_Map, Variable));
 

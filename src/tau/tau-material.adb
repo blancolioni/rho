@@ -243,10 +243,12 @@ package body Tau.Material is
             Index := Index + 1;
          end loop;
 
-         return Rho.Material.Create_Material
-           (Name     => Material.Name,
-            Bindings => Bindings,
-            Shaders  => Material.Shaders);
+         return new Rho.Material.Root_Material_Type;
+
+         --  return Rho.Material.Create_Material
+         --    (Name     => Material.Name,
+         --     Bindings => Bindings,
+         --     Shaders  => Material.Shaders);
       end;
 
    end Instantiate;

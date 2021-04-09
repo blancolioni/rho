@@ -1,10 +1,17 @@
 with Ada.Characters.Latin_1;
+with Ada.Containers.Vectors;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
 with System;
 with Interfaces.C;
 with Interfaces.C.Strings;
+
+with Glib;
+
+with Cairo.Png;
+with Cairo.Surface;
+with Cairo.Image_Surface;
 
 with GLUT;
 
@@ -17,16 +24,36 @@ with Tau.Environment;
 with Rho.Buffers;
 with Rho.Color;
 with Rho.Matrices;
-with Rho.Shaders;
+with Rho.Rectangles;
+with Rho.Shaders.Slices.Attributes;
+with Rho.Shaders.Slices.Main;
+with Rho.Shaders.Slices.Preamble;
+with Rho.Shaders.Slices.Uniforms;
+with Rho.Shaders.Programs;
+with Rho.Shaders.Stages;
+with Rho.Shaders.Variables;
 with Rho.Signals;
+with Rho.Textures;
 
 with Rho.Real_Arrays;
 
 with Rho.Handles.OpenGL.Maps;
 
+with Rho.Logging;
+
 package body Rho.Handles.OpenGL is
 
-   function Read_File (Path : String) return String;
+   type Aliased_Ubyte_Array is
+     array (GL_Types.Int range <>) of aliased GL_Types.Ubyte;
+
+   type Aliased_Ubyte_Array_Access is
+     access all Aliased_Ubyte_Array;
+
+   procedure Free is
+     new Ada.Unchecked_Deallocation
+       (Aliased_Ubyte_Array, Aliased_Ubyte_Array_Access);
+
+   function Read_File (Path : String) return String with Unreferenced;
 
    type OpenGL_Asset_Container is
      new Rho.Assets.Root_Asset_Container_Type with
@@ -39,44 +66,67 @@ package body Rho.Handles.OpenGL is
       return String
    is ("glsl");
 
-   overriding procedure Compile_Shader
+   overriding function Create_Texture_From_Image
      (Container : in out OpenGL_Asset_Container;
-      Shader    : Rho.Shaders.Shader_Type);
+      Path      : String)
+      return Rho.Textures.Texture_Type;
 
-   overriding function Create_Program
-     (Container : in out OpenGL_Asset_Container;
-      Name      : String;
-      Shaders   : Rho.Shaders.Shader_Array)
-      return Rho.Shaders.Program_Type;
+   package Shader_Slices is
+     new Ada.Containers.Vectors
+       (Positive, Rho.Shaders.Slices.Slice_Type,
+        Rho.Shaders.Slices."=");
 
    type OpenGL_Render_Target is
      new Rho.Signals.Signal_Dispatcher
      and Rho.Render.Render_Target with
       record
          Assets            : Rho.Assets.Asset_Container_Type;
-         Active_Program    : Rho.Shaders.Program_Type;
+         Active_Program    : Rho.Shaders.Programs.Program_Type;
          Active_Projection : Rho.Matrices.Matrix_4;
          Active_Model_View : Rho.Matrices.Matrix_4;
+         Active_Fragments  : Shader_Slices.Vector;
+         Active_Texture_Id : Natural := 0;
          Current_Count     : Natural := 0;
          Id_Map            : Rho.Handles.OpenGL.Maps.Id_Map;
       end record;
 
-   overriding function Assets
+   type OpenGL_Render_Target_Access is
+     access all OpenGL_Render_Target'Class;
+
+   --  overriding function Assets
+   --    (Target : OpenGL_Render_Target)
+   --     return Rho.Assets.Asset_Container_Type
+   --  is (Target.Assets);
+
+   overriding function Active_Shader_Slices
      (Target : OpenGL_Render_Target)
-      return Rho.Assets.Asset_Container_Type
-   is (Target.Assets);
+      return Rho.Shaders.Slices.Slice_Array;
+
+   overriding procedure Add_Shader_Fragment
+     (Target   : in out OpenGL_Render_Target;
+      Slice : Rho.Shaders.Slices.Slice_Type);
 
    overriding procedure Activate_Shader
      (Target : in out OpenGL_Render_Target;
-      Shader : Rho.Shaders.Program_Type);
+      Shader : Rho.Shaders.Programs.Program_Type);
 
    overriding procedure Bind_Shader
      (Target : in out OpenGL_Render_Target;
-      Shader : Rho.Shaders.Program_Type);
+      Shader : Rho.Shaders.Programs.Program_Type);
+
+   overriding procedure Compile_Shader
+     (Target : in out OpenGL_Render_Target;
+      Shader    : Rho.Shaders.Stages.Shader_Type);
+
+   overriding function Create_Program
+     (Target : in out OpenGL_Render_Target;
+      Name      : String;
+      Shaders   : Rho.Shaders.Stages.Shader_Array)
+      return Rho.Shaders.Programs.Program_Type;
 
    overriding function Current_Shader
      (Target : OpenGL_Render_Target)
-      return Rho.Shaders.Program_Type
+      return Rho.Shaders.Programs.Program_Type
    is (Target.Active_Program);
 
    overriding procedure Set_Projection_Matrix
@@ -97,13 +147,43 @@ package body Rho.Handles.OpenGL is
    overriding procedure Activate_Buffer
      (Target   : in out OpenGL_Render_Target;
       Buffer   : Rho.Buffers.Buffer_Type;
-      Argument : not null access Rho.Shaders.Root_Shader_Variable_Type'Class);
+      Argument : not null access
+        Rho.Shaders.Variables.Root_Variable_Type'Class);
+
+   procedure Load_Texture_Data
+     (Target     : not null access OpenGL_Render_Target'Class;
+      Texture_Id : Natural;
+      Width      : Positive;
+      Height     : Positive;
+      Data       : Aliased_Ubyte_Array_Access);
 
    Local_Render_Target : aliased OpenGL_Render_Target :=
      OpenGL_Render_Target'
        (Rho.Signals.Signal_Dispatcher with
         Assets            => new OpenGL_Asset_Container,
         others            => <>);
+
+   type OpenGL_Texture_Type is
+     new Rho.Textures.Root_Texture_Type with
+      record
+         Id           : Natural;
+         Surface      : Cairo.Cairo_Surface;
+      end record;
+
+   type Texture_Access is access all OpenGL_Texture_Type'Class;
+
+   overriding procedure Load
+     (Texture : in out OpenGL_Texture_Type;
+      Target   : not null access Rho.Render.Render_Target'Class);
+
+   overriding procedure Unload
+     (Texture : in out OpenGL_Texture_Type;
+      Target   : not null access Rho.Render.Render_Target'Class)
+   is null;
+
+   overriding procedure Activate
+     (Texture : OpenGL_Texture_Type;
+      Target  : not null access Rho.Render.Render_Target'Class);
 
    type OpenGL_Handle is
      new Root_Handle_Type with
@@ -158,6 +238,22 @@ package body Rho.Handles.OpenGL is
      (Matrix : Rho.Matrices.Matrix_4)
       return GL_Types.Float_Matrix_4x4;
 
+   function To_Color_Array
+     (From_Surface : Cairo.Cairo_Surface)
+      return Aliased_Ubyte_Array_Access;
+
+   --------------
+   -- Activate --
+   --------------
+
+   overriding procedure Activate
+     (Texture : OpenGL_Texture_Type;
+      Target  : not null access Rho.Render.Render_Target'Class)
+   is
+   begin
+      GL.Bind_Texture (GL_Constants.GL_TEXTURE_2D, GL_Types.Uint (Texture.Id));
+   end Activate;
+
    ---------------------
    -- Activate_Buffer --
    ---------------------
@@ -165,7 +261,8 @@ package body Rho.Handles.OpenGL is
    overriding procedure Activate_Buffer
      (Target   : in out OpenGL_Render_Target;
       Buffer   : Rho.Buffers.Buffer_Type;
-      Argument : not null access Rho.Shaders.Root_Shader_Variable_Type'Class)
+      Argument : not null access
+        Rho.Shaders.Variables.Root_Variable_Type'Class)
    is
       Buffer_Id : constant GL_Types.Uint := Target.Id_Map.Buffer_Id (Buffer);
    begin
@@ -193,9 +290,9 @@ package body Rho.Handles.OpenGL is
 
    overriding procedure Activate_Shader
      (Target : in out OpenGL_Render_Target;
-      Shader : Rho.Shaders.Program_Type)
+      Shader : Rho.Shaders.Programs.Program_Type)
    is
-      use type Rho.Shaders.Program_Type;
+      use type Rho.Shaders.Programs.Program_Type;
    begin
       if Target.Active_Program /= Shader then
          GL.Use_Program
@@ -203,6 +300,36 @@ package body Rho.Handles.OpenGL is
          Target.Active_Program := Shader;
       end if;
    end Activate_Shader;
+
+   -----------------------------
+   -- Active_Shader_Slices --
+   -----------------------------
+
+   overriding function Active_Shader_Slices
+     (Target : OpenGL_Render_Target)
+      return Rho.Shaders.Slices.Slice_Array
+   is
+   begin
+      return Arr : Rho.Shaders.Slices.Slice_Array
+        (1 .. Target.Active_Fragments.Last_Index)
+      do
+         for I in Arr'Range loop
+            Arr (I) := Target.Active_Fragments (I);
+         end loop;
+      end return;
+   end Active_Shader_Slices;
+
+   -------------------------
+   -- Add_Shader_Fragment --
+   -------------------------
+
+   overriding procedure Add_Shader_Fragment
+     (Target   : in out OpenGL_Render_Target;
+      Slice : Rho.Shaders.Slices.Slice_Type)
+   is
+   begin
+      Target.Active_Fragments.Append (Slice);
+   end Add_Shader_Fragment;
 
    ------------------
    -- After_Render --
@@ -230,6 +357,13 @@ package body Rho.Handles.OpenGL is
       GL.Clear_Color (GLfloat (Clear.R), GLfloat (Clear.G),
                       GLfloat (Clear.B), GLfloat (Clear.A));
       GL.Clear (GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+
+      if Window.Wireframe then
+         GL.Polygon_Mode (GL_FRONT_AND_BACK, GL_LINE);
+      else
+         GL.Polygon_Mode (GL_FRONT_AND_BACK, GL_FILL);
+      end if;
+
    end Before_Render;
 
    -----------------
@@ -238,7 +372,7 @@ package body Rho.Handles.OpenGL is
 
    overriding procedure Bind_Shader
      (Target : in out OpenGL_Render_Target;
-      Shader : Rho.Shaders.Program_Type)
+      Shader : Rho.Shaders.Programs.Program_Type)
    is
    begin
       Target.Activate_Shader (Shader);
@@ -259,8 +393,8 @@ package body Rho.Handles.OpenGL is
    --------------------
 
    overriding procedure Compile_Shader
-     (Container : in out OpenGL_Asset_Container;
-      Shader    : Rho.Shaders.Shader_Type)
+     (Target : in out OpenGL_Render_Target;
+      Shader    : Rho.Shaders.Stages.Shader_Type)
    is
       GL_Stage : constant GL_Types.GLenum :=
                    (case Shader.Stage is
@@ -268,68 +402,45 @@ package body Rho.Handles.OpenGL is
                          GL_Constants.GL_VERTEX_SHADER,
                        when Fragment_Shader =>
                          GL_Constants.GL_FRAGMENT_SHADER);
-   begin
-      if not Shader.Has_Source then
-         declare
-            Extension : constant String :=
-                          (case Shader.Stage is
-                              when Vertex_Shader   => "vert",
-                              when Fragment_Shader => "frag");
-            Path      : constant String :=
-                          Container.Find_File (Shader.Name, Extension);
-         begin
-            if Path = "" then
-               raise Constraint_Error with
-                 "unabled to locate shader: " & Shader.Name;
-            end if;
+      pragma Assert (Shader.Has_Source);
 
-            declare
-               Source : constant String := Read_File (Path);
-            begin
-               Shader.Set_Source (Source);
-            end;
-         end;
-      end if;
+      Source   : constant String := Shader.Shader_Source;
+      Id       : constant GL_Types.Uint :=
+                   GL.Create_Shader (GL_Stage);
+   begin
+      GL.Shader_Source
+        (Shader => Id,
+         Count  => 1,
+         Source => Source);
+      GL.Compile_Shader (Id);
 
       declare
-         Source : constant String := Shader.Shader_Source;
-         Id     : constant GL_Types.Uint :=
-                    GL.Create_Shader (GL_Stage);
+         use GL_Constants, GL_Types;
+         Status     : constant Int := GL.Get_Compile_Status (Id);
+         Log_Length : aliased Int;
       begin
-         GL.Shader_Source
-           (Shader => Id,
-            Count  => 1,
-            Source => Source);
-         GL.Compile_Shader (Id);
+         GL.Get_Shader (Id, GL_INFO_LOG_LENGTH, Log_Length'Access);
+         if Log_Length > 0 then
+            declare
+               Log : constant Interfaces.C.Strings.char_array_access :=
+                       new Interfaces.C.char_array
+                         (1 .. Interfaces.C.size_t (Log_Length));
+            begin
+               GL.Get_Shader_Info_Log
+                 (Id, Sizei (Log_Length), null,
+                  Interfaces.C.Strings.To_Chars_Ptr (Log));
+               Ada.Text_IO.Put_Line (Interfaces.C.To_Ada (Log.all));
+            end;
+         end if;
 
-         declare
-            use GL_Constants, GL_Types;
-            Status     : constant Int := GL.Get_Compile_Status (Id);
-            Log_Length : aliased Int;
-         begin
-            GL.Get_Shader (Id, GL_INFO_LOG_LENGTH, Log_Length'Access);
-            if Log_Length > 0 then
-               declare
-                  Log : constant Interfaces.C.Strings.char_array_access :=
-                          new Interfaces.C.char_array
-                            (1 .. Interfaces.C.size_t (Log_Length));
-               begin
-                  GL.Get_Shader_Info_Log
-                    (Id, Sizei (Log_Length), null,
-                     Interfaces.C.Strings.To_Chars_Ptr (Log));
-                  Ada.Text_IO.Put_Line (Interfaces.C.To_Ada (Log.all));
-               end;
-            end if;
-
-            if Status = 0 then
-               raise Constraint_Error with
-               Shader.Name & " failed to compile";
-            end if;
-         end;
-
-         Local_Render_Target.Id_Map.Define_Shader (Shader, Id);
-         Shader.Set_Loaded;
+         if Status = 0 then
+            raise Constraint_Error with
+            Shader.Name & " failed to compile";
+         end if;
       end;
+
+      Local_Render_Target.Id_Map.Define_Shader (Shader, Id);
+      Shader.Set_Loaded;
 
    end Compile_Shader;
 
@@ -338,12 +449,12 @@ package body Rho.Handles.OpenGL is
    --------------------
 
    overriding function Create_Program
-     (Container : in out OpenGL_Asset_Container;
+     (Target : in out OpenGL_Render_Target;
       Name      : String;
-      Shaders   : Rho.Shaders.Shader_Array)
-      return Rho.Shaders.Program_Type
+      Shaders   : Rho.Shaders.Stages.Shader_Array)
+      return Rho.Shaders.Programs.Program_Type
    is
-      pragma Unreferenced (Container);
+      pragma Unreferenced (Target);
       Id : constant GL_Types.Uint :=
         GL.Create_Program;
    begin
@@ -353,13 +464,13 @@ package body Rho.Handles.OpenGL is
       end loop;
       GL.Link_Program (Id);
 
-      return Program : constant Rho.Shaders.Program_Type :=
-        Rho.Shaders.Create_Program (Name)
+      return Program : constant Rho.Shaders.Programs.Program_Type :=
+        Rho.Shaders.Programs.Create_Program (Name)
       do
          declare
             procedure Bind_Variable
               (Variable : not null access
-                 Rho.Shaders.Root_Shader_Variable_Type'Class);
+                 Rho.Shaders.Variables.Root_Variable_Type'Class);
 
             -------------------
             -- Bind_Variable --
@@ -367,18 +478,20 @@ package body Rho.Handles.OpenGL is
 
             procedure Bind_Variable
               (Variable : not null access
-                 Rho.Shaders.Root_Shader_Variable_Type'Class)
+                 Rho.Shaders.Variables.Root_Variable_Type'Class)
             is
                use GL_Types;
+               use all type Rho.Shaders.Binding_Type;
                Variable_Id : Int := 0;
             begin
-               if Variable.Is_Attribute then
-                  Variable_Id :=
-                    GL.Get_Attribute_Location (Id, Variable.Name);
-               elsif Variable.Is_Uniform then
-                  Variable_Id :=
-                    GL.Get_Uniform_Location (Id, Variable.Name);
-               end if;
+               case Variable.Binding is
+                  when Attribute_Binding =>
+                     Variable_Id :=
+                       GL.Get_Attribute_Location (Id, Variable.Name);
+                  when Uniform_Binding =>
+                     Variable_Id :=
+                       GL.Get_Uniform_Location (Id, Variable.Name);
+               end case;
                if Variable_Id >= 0 then
                   Local_Render_Target.Id_Map.Define_Variable
                     (Variable, Variable_Id);
@@ -392,6 +505,58 @@ package body Rho.Handles.OpenGL is
          Local_Render_Target.Id_Map.Define_Program (Program, Id);
       end return;
    end Create_Program;
+
+   -------------------------------
+   -- Create_Texture_From_Image --
+   -------------------------------
+
+   overriding function Create_Texture_From_Image
+     (Container : in out OpenGL_Asset_Container;
+      Path      : String)
+      return Rho.Textures.Texture_Type
+   is
+      Surface : Cairo.Cairo_Surface;
+   begin
+      Surface :=
+        Cairo.Png.Create_From_Png
+          (Path & ".png");
+      case Cairo.Surface.Status (Surface) is
+         when Cairo.Cairo_Status_Success =>
+            declare
+               Width : constant Glib.Gint :=
+                         Cairo.Image_Surface.Get_Width (Surface);
+               Height : constant Glib.Gint :=
+                         Cairo.Image_Surface.Get_Height (Surface);
+               Texture : constant Texture_Access := new OpenGL_Texture_Type;
+            begin
+               Texture.Initialize
+                 (Identifier => Path,
+                  Order      => 2,
+                  Width      => Natural (Width),
+                  Height     => Natural (Height));
+               Texture.Surface := Surface;
+               return Rho.Textures.Texture_Type (Texture);
+            end;
+
+         when Cairo.Cairo_Status_File_Not_Found =>
+            Ada.Text_IO.Put_Line
+              (Ada.Text_IO.Standard_Error,
+               "texture not found: " & Path);
+            return null;
+
+         when others =>
+            Ada.Text_IO.Put_Line
+              (Ada.Text_IO.Standard_Error,
+               "Texture: " & Path);
+            Ada.Text_IO.Put_Line
+              (Ada.Text_IO.Standard_Error,
+               "unknown error "
+               & Cairo.Cairo_Status'Image
+                 (Cairo.Surface.Status (Surface)));
+            return null;
+      end case;
+
+   end Create_Texture_From_Image;
 
    -------------------
    -- Create_Window --
@@ -458,7 +623,7 @@ package body Rho.Handles.OpenGL is
 --           GL.Depth_Function (GL_Constants.GL_LEQUAL);
 --           GL.Clear_Depth (1.0);
 --
-         GL.Enable_Debug;
+         --  GL.Enable_Debug;
 
       end return;
 
@@ -488,6 +653,25 @@ package body Rho.Handles.OpenGL is
         (Mode => GLUT.DOUBLE or GLUT.RGB or GLUT.DEPTH);
 
       Local_Handle.Assets := new OpenGL_Asset_Container;
+      Local_Render_Target.Add_Shader_Fragment
+        (Rho.Shaders.Slices.Preamble.Shader_Preamble (Vertex_Shader));
+      Local_Render_Target.Add_Shader_Fragment
+        (Rho.Shaders.Slices.Preamble.Shader_Preamble (Fragment_Shader));
+      Local_Render_Target.Add_Shader_Fragment
+        (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
+           (Vertex_Shader, "camera", "mat4"));
+      Local_Render_Target.Add_Shader_Fragment
+        (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
+           (Vertex_Shader, "model", "mat4"));
+      Local_Render_Target.Add_Shader_Fragment
+        (Rho.Shaders.Slices.Attributes.In_Attribute_Fragment
+           (Vertex_Shader, "position", "vec3"));
+      Local_Render_Target.Add_Shader_Fragment
+        (Rho.Shaders.Slices.Main.Shader_Line
+           (Stage    => Vertex_Shader,
+            Priority => Rho.Shaders.Slices.Shader_Source_Priority'Last,
+            Name     => "Apply all matrix transformations to position",
+            Line     => "gl_Position = camera * model * vec4(position, 1)"));
 
       return Local_Handle'Access;
    end Get_Handle;
@@ -500,6 +684,66 @@ package body Rho.Handles.OpenGL is
    begin
       GLUT.Post_Redisplay;
    end Idle_Handler;
+
+   ----------
+   -- Load --
+   ----------
+
+   overriding procedure Load
+     (Texture : in out OpenGL_Texture_Type;
+      Target   : not null access Rho.Render.Render_Target'Class)
+   is
+      use GL_Constants;
+      use GL_Types;
+      use Rho.Textures;
+
+      Id           : array (1 .. 1) of aliased Uint;
+      To_GL_Wrap   : constant array (Texture_Address_Mode) of GLenum :=
+                       (Border => GL_REPEAT, Clamp => GL_CLAMP,
+                        Mirror => GL_CLAMP, Wrap => GL_REPEAT);
+      To_GL_Filter : constant array (Texture_Filter_Type) of GLenum :=
+                       (Nearest => GL_NEAREST, Linear => GL_LINEAR);
+
+      GL_S_Wrap     : constant GLenum :=
+                        To_GL_Wrap (Texture.S_Border);
+      GL_T_Wrap     : constant GLenum :=
+                        To_GL_Wrap (Texture.T_Border);
+      GL_Mag_Filter : constant GLenum :=
+                        To_GL_Filter (Texture.Mag_Filter);
+   begin
+      Rho.Logging.Log ("loading texture: " & Texture.Name);
+      GL.Gen_Textures (1, Id (Id'First)'Access);
+      GL.Bind_Texture (GL_TEXTURE_2D, Id (1));
+
+      GL.Tex_Parameter (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_S_Wrap);
+      GL.Tex_Parameter (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_T_Wrap);
+      GL.Tex_Parameter (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_Mag_Filter);
+      GL.Tex_Parameter (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_Mag_Filter);
+      Texture.Id := Natural (Id (1));
+
+      declare
+         use Glib;
+         Width  : constant Gint :=
+                    Cairo.Image_Surface.Get_Width (Texture.Surface);
+         Height : constant Gint :=
+                     Cairo.Image_Surface.Get_Height (Texture.Surface);
+         Data : Aliased_Ubyte_Array_Access :=
+                  To_Color_Array (Texture.Surface);
+      begin
+         if Width > 0 and then Height > 0 and then Data /= null then
+            OpenGL_Render_Target_Access (Target).Load_Texture_Data
+              (Texture_Id => Texture.Id,
+               Width      => Positive (Width),
+               Height     => Positive (Height),
+               Data       => Data);
+            Free (Data);
+         end if;
+
+      end;
+
+      OpenGL_Render_Target_Access (Target).Active_Texture_Id := Texture.Id;
+
+   end Load;
 
    -----------------
    -- Load_Buffer --
@@ -627,6 +871,42 @@ package body Rho.Handles.OpenGL is
 
    end Load_Buffer;
 
+   -----------------------
+   -- Load_Texture_Data --
+   -----------------------
+
+   procedure Load_Texture_Data
+     (Target     : not null access OpenGL_Render_Target'Class;
+      Texture_Id : Natural;
+      Width      : Positive;
+      Height     : Positive;
+      Data       : Aliased_Ubyte_Array_Access)
+   is
+      use GL_Constants;
+      use GL_Types;
+   begin
+      if Target.Active_Texture_Id /= Texture_Id then
+         GL.Bind_Texture (GL_TEXTURE_2D, Uint (Texture_Id));
+         Target.Active_Texture_Id := Texture_Id;
+      end if;
+
+      Rho.Logging.Log
+        ("load texture data: id" & Texture_Id'Image
+         & " size" & Width'Image & " x" & Height'Image);
+
+      GL.Tex_Image_2D
+        (Target          => GL_TEXTURE_2D,
+         Level           => 0,
+         Internal_Format => GL_RGBA,
+         Width           => Sizei (Width),
+         Height          => Sizei (Height),
+         Border          => 0,
+         Format          => GL_RGBA,
+         Ptype           => GL_UNSIGNED_BYTE,
+         Pixels          => Data (0)'Address);
+
+   end Load_Texture_Data;
+
    ---------------
    -- Main_Loop --
    ---------------
@@ -729,6 +1009,91 @@ package body Rho.Handles.OpenGL is
    begin
       Target.Active_Projection := Matrix;
    end Set_Projection_Matrix;
+
+   --------------------
+   -- To_Color_Array --
+   --------------------
+
+   function To_Color_Array
+     (From_Surface : Cairo.Cairo_Surface)
+      return Aliased_Ubyte_Array_Access
+   is
+      use Glib;
+      use GL_Types;
+      Data       : constant System.Address :=
+                     Cairo.Image_Surface.Get_Data_Generic (From_Surface);
+      Stride     : constant Glib.Gint :=
+                     Cairo.Image_Surface.Get_Stride (From_Surface);
+      Src_Width  : constant Gint :=
+                     Cairo.Image_Surface.Get_Width (From_Surface);
+      Src_Height : constant Gint :=
+                     Cairo.Image_Surface.Get_Height (From_Surface);
+      Start_X    : constant Gint := 0;
+      Start_Y    : constant Gint := 0;
+      Width      : constant Int := Int (Src_Width);
+      Height     : constant Int := Int (Src_Height);
+
+      type Source_Data_Array is array (Gint range <>) of aliased Ubyte;
+      Source_Data : Source_Data_Array (0 .. Stride * Src_Height - 1);
+      for Source_Data'Address use Data;
+      Dest_Data : Aliased_Ubyte_Array_Access;
+
+      procedure Set_Dest (Source_Index : Gint;
+                          X, Y         : Int);
+
+      --------------
+      -- Set_Dest --
+      --------------
+
+      procedure Set_Dest (Source_Index : Gint;
+                          X, Y         : Int)
+      is
+         Dest_Index : constant Int :=
+                        4 * X + (Height - Y - 1) * Width * 4;
+      begin
+         if Source_Index < 0 then
+            Dest_Data (Dest_Index .. Dest_Index + 3) := (others => 0);
+         else
+            declare
+               Red   : constant Ubyte := Source_Data (Source_Index + 2);
+               Green : constant Ubyte := Source_Data (Source_Index + 1);
+               Blue  : constant Ubyte := Source_Data (Source_Index + 0);
+               Alpha : constant Ubyte := Source_Data (Source_Index + 3);
+            begin
+               Dest_Data (Dest_Index) := Red;
+               Dest_Data (Dest_Index + 1) := Green;
+               Dest_Data (Dest_Index + 2) := Blue;
+               Dest_Data (Dest_Index + 3) := Alpha;
+            end;
+         end if;
+      end Set_Dest;
+
+   begin
+      Cairo.Surface.Flush (From_Surface);
+
+      if Height = 0 or else Width = 0 then
+         return null;
+      end if;
+
+      Dest_Data := new Aliased_Ubyte_Array (0 .. 4 * Width * Height - 1);
+
+      for Y in 0 .. Height - 1 loop
+         for X in 0 .. Width - 1 loop
+            declare
+               Src_X        : constant Gint := Gint (X) + Start_X;
+               Src_Y        : constant Gint := Gint (Y) + Start_Y;
+               Source_Index : constant Gint :=
+                                (if Src_X < Src_Width
+                                 and then Src_Y < Src_Height
+                                 then 4 * Src_X + Src_Y * Stride
+                                 else -1);
+            begin
+               Set_Dest (Source_Index, X, Y);
+            end;
+         end loop;
+      end loop;
+      return Dest_Data;
+   end To_Color_Array;
 
    -----------------------
    -- To_GL_Float_Array --

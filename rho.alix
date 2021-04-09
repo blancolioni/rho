@@ -23,6 +23,7 @@ source_dir = src/textures
 source_dir = src/windows
 depend = { project = wlib version = any }
 depend = { project = gcs version = any }
+depend = { project = gtkada external = yes }
 main_unit = rho-driver
 exec_name = rho
 config_dir = config
