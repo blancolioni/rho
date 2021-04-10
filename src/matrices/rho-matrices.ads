@@ -107,6 +107,10 @@ package Rho.Matrices is
       Scale       : Vector_3)
       return Matrix_4;
 
+   function Get_Position
+     (Matrix : Matrix_4)
+      return Vector_3;
+
    procedure Set_Position
      (Matrix   : in out Matrix_4;
       Position : Vector_3);
@@ -237,6 +241,13 @@ private
 
    function X (Vector : Vector_2) return Real is (Vector.Vector (1));
    function Y (Vector : Vector_2) return Real is (Vector.Vector (2));
+
+   function Get_Position
+     (Matrix : Matrix_4)
+      return Vector_3
+   is (Vector => (Matrix.Matrix (1, 4),
+                  Matrix.Matrix (2, 4),
+                  Matrix.Matrix (3, 4)));
 
    type Quaternion is
       record

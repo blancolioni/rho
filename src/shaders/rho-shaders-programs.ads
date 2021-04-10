@@ -24,7 +24,15 @@ package Rho.Shaders.Programs is
      (Program : Root_Program_Type'Class)
       return Variables.Variable_Type;
 
+   function Camera_Position_Uniform
+     (Program : Root_Program_Type'Class)
+      return Variables.Variable_Type;
+
    function Vertex_Position_Attribute
+     (Program : Root_Program_Type'Class)
+      return Variables.Variable_Type;
+
+   function Vertex_Normal_Attribute
      (Program : Root_Program_Type'Class)
       return Variables.Variable_Type;
 
@@ -74,10 +82,12 @@ private
          Shader_Variables : Shader_Variable_Lists.List;
          Variable_Map     : Shader_Variable_Maps.Map;
          Vertex_Position  : Variables.Variable_Type;
+         Vertex_Normal    : Variables.Variable_Type;
          Vertex_Color     : Variables.Variable_Type;
          Vertex_Texture   : Variables.Variable_Type;
          Model_View       : Variables.Variable_Type;
          Projection       : Variables.Variable_Type;
+         Camera_Position  : Variables.Variable_Type;
       end record;
 
    overriding function Class_Name
@@ -102,6 +112,11 @@ private
       return Variables.Variable_Type
    is (Program.Vertex_Position);
 
+   function Vertex_Normal_Attribute
+     (Program : Root_Program_Type'Class)
+      return Variables.Variable_Type
+   is (Program.Vertex_Normal);
+
    function Vertex_Texture_Attribute
      (Program : Root_Program_Type'Class)
       return Variables.Variable_Type
@@ -121,6 +136,11 @@ private
      (Program : Root_Program_Type'Class)
       return Variables.Variable_Type
    is (Program.Model_View);
+
+   function Camera_Position_Uniform
+     (Program : Root_Program_Type'Class)
+      return Variables.Variable_Type
+   is (Program.Camera_Position);
 
    function Has_Variable
      (Program : Root_Program_Type'Class;

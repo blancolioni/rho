@@ -1,5 +1,6 @@
 with Ada.Characters.Latin_1;
 with Ada.Containers.Vectors;
+with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
@@ -94,6 +95,7 @@ package body Rho.Handles.OpenGL is
          Active_Program    : Rho.Shaders.Programs.Program_Type;
          Active_Projection : Rho.Matrices.Matrix_4;
          Active_Model_View : Rho.Matrices.Matrix_4;
+         Active_Camera_Pos : Rho.Matrices.Vector_3;
          Active_Fragments  : Shader_Slices.Vector;
          Active_Uniforms   : Uniform_Value_Maps.Map;
          Active_Variables  : Shader_Variable_Maps.Map;
@@ -153,6 +155,10 @@ package body Rho.Handles.OpenGL is
    overriding procedure Set_Model_View_Matrix
      (Target : in out OpenGL_Render_Target;
       Matrix : Rho.Matrices.Matrix_4);
+
+   overriding procedure Set_Camera_Position
+     (Target : in out OpenGL_Render_Target;
+      Position : Rho.Matrices.Vector_3);
 
    overriding procedure Render_Current_Buffers
      (Target : in out OpenGL_Render_Target);
@@ -424,6 +430,21 @@ package body Rho.Handles.OpenGL is
          Transpose => GL_Constants.GL_FALSE,
          Matrix    => To_GL_Float_Array (Target.Active_Model_View));
 
+      if False then
+         declare
+            Pos : constant Rho.Matrices.Vector_3 :=
+                    Target.Active_Camera_Pos;
+         begin
+            GL.Uniform
+              (Location  =>
+                 Target.Id_Map.Variable_Id (Shader.Camera_Position_Uniform),
+               Value     =>
+                 (GL_Types.GLfloat (Rho.Matrices.X (Pos)),
+                  GL_Types.GLfloat (Rho.Matrices.Y (Pos)),
+                  GL_Types.GLfloat (Rho.Matrices.Z (Pos))));
+         end;
+      end if;
+
       for Position in Target.Active_Uniforms.Iterate loop
          declare
             Name     : constant String := Uniform_Value_Maps.Key (Position);
@@ -591,6 +612,8 @@ package body Rho.Handles.OpenGL is
             end Bind_Variable;
 
          begin
+            Rho.Logging.Log (Program.Name & ": binding variables");
+
             Program.Iterate_Variables (Bind_Variable'Access);
 
             for Position in Target.Active_Uniforms.Iterate loop
@@ -622,9 +645,8 @@ package body Rho.Handles.OpenGL is
    is
       Surface : Cairo.Cairo_Surface;
    begin
-      Surface :=
-        Cairo.Png.Create_From_Png
-          (Path & ".png");
+      Surface := Cairo.Png.Create_From_Png (Path & ".png");
+
       case Cairo.Surface.Status (Surface) is
          when Cairo.Cairo_Status_Success =>
             declare
@@ -744,6 +766,12 @@ package body Rho.Handles.OpenGL is
          Window.Render;
       end loop;
       GL.Disable_Debug;
+   exception
+      when E : others =>
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Standard_Error,
+            Ada.Exceptions.Exception_Message (E));
+         GLUT.Leave_Main_Loop;
    end Display_Handler;
 
    ----------------
@@ -771,6 +799,9 @@ package body Rho.Handles.OpenGL is
       Local_Render_Target.Add_Shader_Fragment
         (Rho.Shaders.Slices.Attributes.In_Attribute_Fragment
            (Vertex_Shader, "position", "vec3"));
+      Local_Render_Target.Add_Shader_Fragment
+        (Rho.Shaders.Slices.Attributes.In_Attribute_Fragment
+           (Vertex_Shader, "vertexNormal", "vec3"));
       Local_Render_Target.Add_Shader_Fragment
         (Rho.Shaders.Slices.Main.Shader_Line
            (Stage    => Vertex_Shader,
@@ -1090,6 +1121,18 @@ package body Rho.Handles.OpenGL is
    begin
       null;
    end Reshape_Handler;
+
+   -------------------------
+   -- Set_Camera_Position --
+   -------------------------
+
+   overriding procedure Set_Camera_Position
+     (Target : in out OpenGL_Render_Target;
+      Position : Rho.Matrices.Vector_3)
+   is
+   begin
+      Target.Active_Camera_Pos := Position;
+   end Set_Camera_Position;
 
    ---------------------------
    -- Set_Model_View_Matrix --

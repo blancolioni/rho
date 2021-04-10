@@ -12,6 +12,7 @@ package body Rho.Cameras is
    is
    begin
       Target.Set_Projection_Matrix (Camera.Projection_Matrix);
+      Target.Set_Camera_Position (Camera.World_Position);
    end Execute_Render;
 
    ------------------------

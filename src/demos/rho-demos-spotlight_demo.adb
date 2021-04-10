@@ -1,7 +1,7 @@
 with Rho.Color;
 with Rho.Lights.Ambient;
 with Rho.Lights.Spot;
-with Rho.Material.Basic;
+with Rho.Material.Simple;
 
 with Rho.Demos.Rotating_Cube;
 
@@ -44,7 +44,7 @@ package body Rho.Demos.Spotlight_Demo is
       Window : Rho.Windows.Window_Type)
    is
       Material : constant Rho.Material.Material_Type :=
-                   Rho.Material.Basic.Create_Basic_Material
+                   Rho.Material.Simple.Create_Simple_Material
                      (Handle.Assets.Create_Texture_From_Image
                         ("config/images/ada-mascot"));
    begin
@@ -56,13 +56,18 @@ package body Rho.Demos.Spotlight_Demo is
       Demo.Spotlight :=
         Rho.Lights.Spot.Spot_Light
           (Color         => Rho.Color.White,
-           Intensity     => 1.0);
-      Demo.Spotlight.Set_Position (3.0, 2.0, 4.0);
-      if False then
+           Intensity     => 1.0,
+           Decay         => 0.1);
+      Demo.Spotlight.Set_Position (1.0, 1.0, 2.0);
+
+      if True then
          Demo.Scene.Add (Demo.Spotlight);
       end if;
 
-      Demo.Scene.Add (Demo.Ambient);
+      if False then
+         Demo.Scene.Add (Demo.Ambient);
+      end if;
+
       Demo.Start;
    end Execute;
 

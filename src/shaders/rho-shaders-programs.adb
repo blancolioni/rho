@@ -63,6 +63,8 @@ package body Rho.Shaders.Programs is
          Program.Set_Name (Name);
          Program.Vertex_Position :=
            Program.Create_Attribute_Binding ("position", 3);
+         Program.Vertex_Normal :=
+           Program.Create_Attribute_Binding ("vertexNormal", 3);
          Program.Vertex_Texture :=
            Program.Create_Attribute_Binding ("vertexTextureCoord", 2);
          --  Program.Vertex_Color :=
@@ -71,11 +73,15 @@ package body Rho.Shaders.Programs is
            Program.Create_Uniform_Binding ("model");
          Program.Projection :=
            Program.Create_Uniform_Binding ("camera");
+         --  Program.Camera_Position :=
+         --    Program.Create_Uniform_Binding ("cameraPosition");
          Check_Variable (Program, Program.Vertex_Position);
+         Check_Variable (Program, Program.Vertex_Normal);
          Check_Variable (Program, Program.Vertex_Texture);
          --  Check_Variable (Program, Program.Vertex_Color);
          Check_Variable (Program, Program.Model_View);
          Check_Variable (Program, Program.Projection);
+         Check_Variable (Program, Program.Camera_Position);
       end return;
    end Create_Program;
 

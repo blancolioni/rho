@@ -47,9 +47,7 @@ package body Rho.Nodes is
       Target     : not null access Rho.Render.Render_Target'Class)
    is
    begin
-      for Child of Node.Children loop
-         Child.After_Render (Target);
-      end loop;
+      null;
    end After_Render;
 
    -------------------
@@ -68,11 +66,6 @@ package body Rho.Nodes is
       if Node.Local_Out_Of_Date then
          Root_Node_Type'Class (Node).Update_Matrix;
       end if;
-
-      for Child of Node.Children loop
-         Child.Before_Render (Target);
-      end loop;
-
    end Before_Render;
 
    -------------------
@@ -98,11 +91,6 @@ package body Rho.Nodes is
 --           Node.Local_Matrix);
 
       Target.Set_Model_View_Matrix (Node.World_Matrix);
-
-      for Child of Node.Children loop
-         Child.Execute_Render (Target);
-      end loop;
-
    end Execute_Render;
 
    -----------------------------
@@ -382,5 +370,18 @@ package body Rho.Nodes is
       end if;
       return Node.M_World;
    end World_Matrix;
+
+   --------------------
+   -- World_Position --
+   --------------------
+
+   function World_Position
+     (Node : in out Root_Node_Type'Class)
+      return Rho.Matrices.Vector_3
+   is
+   begin
+      Node.Update_World_Matrix;
+      return Rho.Matrices.Get_Position (Node.World_Matrix);
+   end World_Position;
 
 end Rho.Nodes;

@@ -53,9 +53,9 @@ package body Rho.Shaders.Stages is
       Rho.Logging.Log (Line);
 
       Writer.Source := Writer.Source & Line;
-      if Line (Line'First) = '#' then
-         Writer.Source := Writer.Source & Character'Val (10);
-      end if;
+      --  if Line (Line'First) = '#' then
+      Writer.Source := Writer.Source & Character'Val (10);
+      --  end if;
    end Append;
 
    -----------

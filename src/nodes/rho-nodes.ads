@@ -21,6 +21,14 @@ package Rho.Nodes is
 
    function Parent (Node : Root_Node_Type'Class) return Node_Type;
 
+   function Position
+     (Node : Root_Node_Type'Class)
+      return Rho.Matrices.Vector_3;
+
+   function World_Position
+     (Node : in out Root_Node_Type'Class)
+      return Rho.Matrices.Vector_3;
+
    procedure Set_Position
      (Node  : in out Root_Node_Type'Class;
       X, Y, Z : Real);
@@ -145,6 +153,11 @@ private
      (Node : Root_Node_Type)
       return String
    is ("node");
+
+   function Position
+     (Node : Root_Node_Type'Class)
+      return Rho.Matrices.Vector_3
+   is (Node.Position);
 
    procedure Invalidate_World_Matrix
      (Node : in out Root_Node_Type'Class);

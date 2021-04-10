@@ -29,4 +29,8 @@ private
          Decay         : Non_Negative_Real       := 1.0;
       end record;
 
+   overriding procedure Load
+     (Light : in out Root_Spot_Light;
+      Target : not null access Rho.Render.Render_Target'Class);
+
 end Rho.Lights.Spot;

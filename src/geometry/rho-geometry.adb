@@ -28,6 +28,8 @@ package body Rho.Geometry is
       Target.Activate_Buffer
         (Geometry.Faces, Target.Current_Shader.Vertex_Position_Attribute);
       Target.Activate_Buffer
+        (Geometry.Normals, Target.Current_Shader.Vertex_Normal_Attribute);
+      Target.Activate_Buffer
         (Geometry.UVs, Target.Current_Shader.Vertex_Texture_Attribute);
    end Execute_Render;
 
