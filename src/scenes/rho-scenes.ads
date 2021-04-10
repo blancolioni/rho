@@ -27,6 +27,10 @@ private
      (Scene  : in out Root_Scene_Type;
       Target : not null access Rho.Render.Render_Target'Class);
 
+   overriding procedure Execute_Render
+     (Scene  : in out Root_Scene_Type;
+      Target : not null access Rho.Render.Render_Target'Class);
+
    function Create_Scene return Scene_Type
    is (new Root_Scene_Type);
 
