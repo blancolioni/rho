@@ -14,11 +14,7 @@ package body Rho.Material.Basic is
    is
    begin
       return Material : constant Material_Type :=
-        new Root_Material_Type'
-          (Rho.Objects.Root_Object_Type with
-             Slices => <>,
-           Program   => <>,
-           Textures => <>)
+        new Root_Material_Type
       do
          Material.Add_Slice
            (Rho.Shaders.Slices.Attributes.Out_Attribute_Fragment
@@ -58,11 +54,7 @@ package body Rho.Material.Basic is
    is
    begin
       return Material : constant Material_Type :=
-        new Root_Material_Type'
-          (Rho.Objects.Root_Object_Type with
-             Slices => <>,
-           Program   => <>,
-           Textures => <>)
+        new Root_Material_Type
       do
          Material.Add_Slice
            (Rho.Shaders.Slices.Attributes.Out_Attribute_Fragment

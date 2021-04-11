@@ -39,6 +39,10 @@ package body Rho.Material is
    is
       Shaders : array (Shader_Stage) of Rho.Shaders.Stages.Shader_Type;
    begin
+      if Material.Compiled then
+         return;
+      end if;
+
       for Stage in Shaders'Range loop
          declare
             Shader : Rho.Shaders.Stages.Shader_Type renames
@@ -60,6 +64,8 @@ package body Rho.Material is
         Target.Create_Program
           (Name    => Material.Name,
            Shaders => (Shaders (Vertex_Shader), Shaders (Fragment_Shader)));
+
+      Material.Compiled := True;
 
    end Compile;
 
@@ -84,10 +90,17 @@ package body Rho.Material is
       Target   : not null access Rho.Render.Render_Target'Class)
    is
    begin
+      if Material.Loaded then
+         return;
+      end if;
+
       for Texture of Material.Textures loop
          Texture.Load (Target);
          Rho.Shaders.Slices.Add_Slices (Material, Texture);
       end loop;
+
+      Material.Loaded := True;
+
    end Load;
 
 end Rho.Material;

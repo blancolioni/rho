@@ -43,6 +43,8 @@ private
          Program   : Rho.Shaders.Programs.Program_Type;
          Textures  : Texture_Vectors.Vector;
          Slices    : Rho.Shaders.Slices.Slice_Container;
+         Loaded    : Boolean := False;
+         Compiled  : Boolean := False;
       end record;
 
    overriding procedure Compile

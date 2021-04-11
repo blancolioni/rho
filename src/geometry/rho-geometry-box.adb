@@ -7,8 +7,6 @@ package body Rho.Geometry.Box is
 
    type Axis_Direction is (Up, Down);
 
-   type Material_Index_Type is range 1 .. 6;
-
    ------------------
    -- Box_Geometry --
    ------------------
@@ -27,7 +25,7 @@ package body Rho.Geometry.Box is
          Width          : Real;
          Height         : Real;
          Depth          : Real;
-         Material_Index : Material_Index_Type);
+         Material       : Material_Index);
 
       -----------------
       -- Build_Plane --
@@ -40,9 +38,8 @@ package body Rho.Geometry.Box is
          Width          : Real;
          Height         : Real;
          Depth          : Real;
-         Material_Index : Material_Index_Type)
+         Material       : Material_Index)
       is
-         pragma Unreferenced (Material_Index);
          DW               : constant Real := Width / 2.0;
          DH               : constant Real := Height / 2.0;
          DD               : constant Real := Depth / 2.0;
@@ -57,6 +54,8 @@ package body Rho.Geometry.Box is
          Vector           : array (Axis_Type) of Real;
          New_Vertex_Start : Vertex_Index := Start_Vertex;
       begin
+
+         Geometry.Begin_Group (Material);
 
          for Y_Index in 0 .. 1 loop
 
@@ -109,6 +108,8 @@ package body Rho.Geometry.Box is
          end;
 
          Start_Vertex := New_Vertex_Start;
+
+         Geometry.End_Group;
 
       end Build_Plane;
 

@@ -1,5 +1,20 @@
 package body Rho.Geometry is
 
+   -----------------
+   -- Begin_Group --
+   -----------------
+
+   procedure Begin_Group
+     (Geometry : in out Root_Geometry_Type'Class;
+      Material : Material_Index)
+   is
+   begin
+      Geometry.Groups.Append
+        (Group_Record'
+           (Faces    => Rho.Buffers.Create_Buffer (Rho.Buffers.Integer_Data),
+            Material => Material));
+   end Begin_Group;
+
    ---------------------
    -- Create_Geometry --
    ---------------------
@@ -11,27 +26,20 @@ package body Rho.Geometry is
          Vertices => Rho.Buffers.Create_Buffer (Rho.Buffers.Vector_3_Data),
          Normals  => Rho.Buffers.Create_Buffer (Rho.Buffers.Vector_3_Data),
          UVs      => Rho.Buffers.Create_Buffer (Rho.Buffers.Vector_2_Data),
-         Faces    => Rho.Buffers.Create_Buffer (Rho.Buffers.Integer_Data));
+         Faces    => <>,
+         Groups   => <>);
    end Create_Geometry;
 
-   --------------------
-   -- Execute_Render --
-   --------------------
+   ---------------
+   -- End_Group --
+   ---------------
 
-   overriding procedure Execute_Render
-     (Geometry : in out Root_Geometry_Type;
-      Target   : not null access Rho.Render.Render_Target'Class)
+   procedure End_Group
+     (Geometry : in out Root_Geometry_Type'Class)
    is
    begin
-      Target.Activate_Buffer
-        (Geometry.Vertices, Target.Current_Shader.Vertex_Position_Attribute);
-      Target.Activate_Buffer
-        (Geometry.Faces, Target.Current_Shader.Vertex_Position_Attribute);
-      Target.Activate_Buffer
-        (Geometry.Normals, Target.Current_Shader.Vertex_Normal_Attribute);
-      Target.Activate_Buffer
-        (Geometry.UVs, Target.Current_Shader.Vertex_Texture_Attribute);
-   end Execute_Render;
+      null;
+   end End_Group;
 
    ----------
    -- Face --
@@ -54,9 +62,18 @@ package body Rho.Geometry is
       Vertices :        Vertex_Index_Array)
    is
    begin
-      for Index of Vertices loop
-         Geometry.Faces.Append (Natural (Index) - 1);
-      end loop;
+      if Geometry.Groups.Is_Empty then
+         Geometry.Begin_Group (1);
+      end if;
+
+      declare
+         Faces : Rho.Buffers.Buffer_Type renames
+                   Geometry.Groups.Last_Element.Faces;
+      begin
+         for Vertex of Vertices loop
+            Faces.Append (Natural (Vertex) - 1);
+         end loop;
+      end;
    end Face;
 
    ----------
@@ -68,10 +85,18 @@ package body Rho.Geometry is
       Target   : not null access Rho.Render.Render_Target'Class)
    is
    begin
+      if Geometry.Is_Loaded then
+         return;
+      end if;
+
       Target.Load_Buffer (Geometry.Vertices);
       Target.Load_Buffer (Geometry.Normals);
       Target.Load_Buffer (Geometry.UVs);
-      Target.Load_Buffer (Geometry.Faces);
+
+      for Group of Geometry.Groups loop
+         Target.Load_Buffer (Group.Faces);
+      end loop;
+
       Geometry.Set_Loaded;
    end Load;
 
@@ -98,6 +123,39 @@ package body Rho.Geometry is
    begin
       Geometry.Normals.Append (Rho.Matrices.To_Vector (X, Y, Z));
    end Normal;
+
+   ------------
+   -- Render --
+   ------------
+
+   procedure Render
+     (Geometry          : Root_Geometry_Type'Class;
+      Target            : not null access Rho.Render.Render_Target'Class;
+      Activate_Material : not null access
+        procedure (Index : Material_Index);
+      Render_Material   : not null access
+        procedure (Index : Material_Index))
+   is
+   begin
+      for Group of Geometry.Groups loop
+         Activate_Material (Group.Material);
+         Target.Activate_Buffer
+           (Geometry.Vertices,
+            Target.Current_Shader.Vertex_Position_Attribute);
+         Target.Activate_Buffer
+           (Geometry.Normals,
+            Target.Current_Shader.Vertex_Normal_Attribute);
+         Target.Activate_Buffer
+           (Geometry.UVs,
+            Target.Current_Shader.Vertex_Texture_Attribute);
+         Target.Activate_Buffer
+           (Buffer   => Group.Faces,
+            Argument => Target.Current_Shader.Vertex_Position_Attribute);
+         Render_Material (Group.Material);
+         Target.Render_Current_Buffers;
+      end loop;
+
+   end Render;
 
    -------------
    -- Texture --
