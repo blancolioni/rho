@@ -40,6 +40,18 @@ package body Rho.Shaders.Stages is
       end loop;
    end Add_Slices;
 
+   ----------------
+   -- Add_Slices --
+   ----------------
+
+   procedure Add_Slices
+     (Shader    : in out Root_Shader_Type;
+      Slices    : Rho.Shaders.Slices.Slice_Container_Interface'Class)
+   is
+   begin
+      Shader.Add_Slices (Slices.Shader_Slices);
+   end Add_Slices;
+
    ------------
    -- Append --
    ------------
@@ -109,17 +121,21 @@ package body Rho.Shaders.Stages is
    -- Create --
    ------------
 
-   function Create (Name  : String;
-                    Stage : Shader_Stage)
-                    return Shader_Type
+   function Create
+     (Name   : String;
+      Stage  : Shader_Stage;
+      Source : String := "")
+      return Shader_Type
    is
    begin
       return Shader : constant Shader_Type :=
         new Root_Shader_Type'
           (Rho.Objects.Root_Object_Type with
              Stage     => Stage,
-             Source    => <>,
-             Slices => (others => <>))
+           Source    =>
+             (if Source = "" then Ada.Strings.Unbounded.Null_Unbounded_String
+              else Ada.Strings.Unbounded.To_Unbounded_String (Source)),
+           Slices    => (others => <>))
       do
          Shader.Set_Name (Name);
       end return;

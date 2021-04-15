@@ -1,0 +1,18 @@
+abstract shader Rho.Shaders.Light : Rho.Shaders.Node is
+
+    vertex
+        Fragment_Vertex : out Vector_3;
+    begin
+        Fragment_Vertex := Position;
+    end vertex;
+
+    fragment
+        Model           : uniform Matrix_4;
+        Fragment_Vertex : in Vector_3;
+    local
+        Lit_Color : Vector_3 with Aggregate => Sum;
+    provide
+        Final_Color : Color := Color (Lit_Color, 1.0);
+    end fragment;
+
+end Rho.Shaders.Light;

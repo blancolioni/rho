@@ -1,3 +1,4 @@
+with Rho.Logging;
 with Rho.Matrices;
 with Rho.Shaders.Slices.Main;
 with Rho.Shaders.Slices.Uniforms;
@@ -25,6 +26,9 @@ package body Rho.Lights.Spot is
 
       procedure Main_Line (Line : String) is
       begin
+         Rho.Logging.Log
+           ("raw: " & Line);
+
          Target.Add_Shader_Fragment
            (Rho.Shaders.Slices.Main.Shader_Line
               (Stage    => Fragment_Shader,
@@ -37,6 +41,10 @@ package body Rho.Lights.Spot is
    begin
       Root_Light_Type (Light).Load (Target);
 
+      Target.Add_Shader
+        (Target.Assets.Shader
+           ("rho-shaders-light-spot"));
+
       Target.Add_Shader_Fragment
         (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
            (Fragment_Shader, "spotPosition", "vec3"));
@@ -45,7 +53,7 @@ package body Rho.Lights.Spot is
            (Fragment_Shader, "spotColor", "vec3"));
       Target.Add_Shader_Fragment
         (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
-           (Fragment_Shader, "spotDecay", "float"));
+           (Fragment_Shader, "attenuation", "float"));
       --  Target.Add_Shader_Fragment
       --    (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
       --       (Fragment_Shader, "spotIntensity", "float"));
@@ -85,7 +93,7 @@ package body Rho.Lights.Spot is
              (Rho.Matrices.To_Vector
                   (Light.Color.R, Light.Color.G, Light.Color.B)));
       Target.Add_Uniform
-        (Name  => "spotDecay",
+        (Name  => "attenuation",
          Value =>
            Rho.Values.Real_Value (Light.Decay));
       --  Target.Add_Uniform

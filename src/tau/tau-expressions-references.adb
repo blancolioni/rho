@@ -1,7 +1,5 @@
 with Ada.Strings.Unbounded;
 
-with Rho.Logging;
-
 with Tau.Entries;
 
 package body Tau.Expressions.References is
@@ -24,8 +22,14 @@ package body Tau.Expressions.References is
 
    overriding function To_String
      (Expression : Reference_Expression_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
       return String;
+
+   overriding function Depends_On
+     (Node : Reference_Expression_Type;
+      Name : String)
+      return Boolean
+   is (-Node.Name = Name);
 
    -----------------
    -- Check_Names --
@@ -96,35 +100,13 @@ package body Tau.Expressions.References is
 
    overriding function To_String
      (Expression : Reference_Expression_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
       return String
    is
       Name : constant String :=
                Ada.Strings.Unbounded.To_String (Expression.Name);
    begin
-      if Name = "texture_coordinate" then
-         Rho.Logging.Log
-           (Rho.Stage_Name (Generator.Current_Stage)
-            & ":  To_String : Reference : " & Name);
-      end if;
-      if Generator.Environment.Contains (Name) then
-         declare
-            Item : constant Tau.Entries.Tau_Entry :=
-              Generator.Environment.Get (Name);
-         begin
-            return Item.To_Source (Generator);
-         end;
-      else
-         declare
-            use all type Rho.Shader_Stage;
-         begin
-            return
-              (if Generator.Current_Stage = Vertex_Shader
-               then ""
-               else Stage_Name (Generator.Current_Stage) & "_")
-              & Name;
-         end;
-      end if;
+      return Generator.Normalize_Reference (Name);
    end To_String;
 
 end Tau.Expressions.References;

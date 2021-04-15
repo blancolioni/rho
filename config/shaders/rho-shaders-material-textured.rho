@@ -1,0 +1,16 @@
+shader Rho.Shaders.Material.Textured : Rho.Shaders.Material is
+
+    vertex
+        Fragment_Texture_Coord : out Vector_2;
+    begin
+        Fragment_Texture_Coord := Vertex_Texture_Coord;
+    end vertex;
+    
+    fragment
+        Material_Texture : uniform Sampler_2D;
+        Fragment_Texture_Coord : in Vector_2;
+    provide
+        Surface_Color : Vector_4 := Texture (Material_Texture, Fragment_Texture_Coord);
+    end fragment;
+
+end Rho.Shaders.Material.Textured;

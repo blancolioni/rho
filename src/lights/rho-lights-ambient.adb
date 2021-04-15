@@ -21,7 +21,7 @@ package body Rho.Lights.Ambient is
          Light.Initialize (Color, Intensity);
          Light.Add_Slice
            (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
-              (Fragment_Shader, "ambientLightColor", "vec3"));
+              (Fragment_Shader, "ambientColor", "vec3"));
          Light.Add_Slice
            (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
               (Fragment_Shader, "ambientCoefficient", "float"));
@@ -47,14 +47,19 @@ package body Rho.Lights.Ambient is
    is
    begin
       Root_Light_Type (Light).Load (Target);
+
+      Target.Add_Shader
+        (Target.Assets.Shader
+           ("rho-shaders-light-ambient"));
+
       Target.Add_Uniform
-        (Name  => "ambientLightColor",
+        (Name  => "ambientColor",
          Value =>
            Rho.Values.Vector_Value
              (Rho.Matrices.To_Vector
                   (Light.Color.R, Light.Color.G, Light.Color.B)));
       Target.Add_Uniform
-        (Name  => "ambientCoefficient",
+        (Name  => "ambientCoeff",
          Value =>
            Rho.Values.Real_Value (Light.Intensity));
    end Load;

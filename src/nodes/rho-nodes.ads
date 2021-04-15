@@ -1,7 +1,5 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 
-with Tau.Shaders;
-
 with Rho.Objects;
 with Rho.Matrices;
 with Rho.Renderable;
@@ -100,13 +98,6 @@ package Rho.Nodes is
      (Node  : in out Root_Node_Type;
       Slice : Rho.Shaders.Slices.Slice_Type);
 
-   type Shader_Component_Array is
-     array (Positive range <>) of Tau.Shaders.Tau_Shader;
-
-   function Shader_Components
-     (Node : Root_Node_Type)
-      return Shader_Component_Array;
-
    function Create_Node return Node_Type;
 
 private
@@ -164,13 +155,6 @@ private
 
    function Parent (Node : Root_Node_Type'Class) return Node_Type
    is (Node.Parent);
-
-   No_Components : Shader_Component_Array (1 .. 0);
-
-   function Shader_Components
-     (Node : Root_Node_Type)
-      return Shader_Component_Array
-   is (No_Components);
 
    overriding function Shader_Slices
      (Node : Root_Node_Type)

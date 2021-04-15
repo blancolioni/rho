@@ -28,7 +28,7 @@ package Tau.Expressions is
 
    function To_String
      (Expression : Root_Tau_Expression;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
       return String
       is abstract;
 
@@ -55,10 +55,20 @@ package Tau.Expressions is
       Name      : String)
       return Tau_Expression;
 
+   function Condition
+     (Position       : GCS.Positions.File_Position;
+      Condition      : Tau_Expression;
+      True_Value     : Tau_Expression;
+      False_Value    : Tau_Expression)
+      return Tau_Expression;
+
+   function Equal (Left, Right : Tau_Expression) return Tau_Expression;
+   function Not_Equal (Left, Right : Tau_Expression) return Tau_Expression;
    function Add (Left, Right : Tau_Expression) return Tau_Expression;
    function Subtract (Left, Right : Tau_Expression) return Tau_Expression;
    function Multiply (Left, Right : Tau_Expression) return Tau_Expression;
    function Divide (Left, Right : Tau_Expression) return Tau_Expression;
+   function Power (Left, Right : Tau_Expression) return Tau_Expression;
 
    type Tau_Expression_Array is array (Positive range <>) of Tau_Expression;
 

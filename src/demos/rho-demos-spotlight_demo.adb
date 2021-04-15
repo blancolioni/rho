@@ -43,12 +43,17 @@ package body Rho.Demos.Spotlight_Demo is
       Handle : Rho.Handles.Handle;
       Window : Rho.Windows.Window_Type)
    is
-      Material : constant Rho.Material.Material_Type :=
-                   Rho.Material.Simple.Create_Simple_Material
-                     (Handle.Assets.Create_Texture_From_Image
-                        ("config/images/ada-mascot"));
+      Side : constant Rho.Material.Material_Type :=
+               Rho.Material.Simple.Create_Simple_Material
+                 (Handle.Assets.Create_Texture_From_Image
+                    ("config/images/grass_block_side"));
+      Top  : constant Rho.Material.Material_Type :=
+               Rho.Material.Simple.Create_Simple_Material
+                 (Handle.Assets.Create_Texture_From_Image
+                    ("config/images/grass_block_top"));
    begin
-      Demo.Initialize (Handle, Window, Material);
+      Demo.Initialize (Handle, Window,
+                       (Side, Side, Top, Top, Side, Side));
       Demo.Ambient :=
         Rho.Lights.Ambient.Ambient_Light
           (Color     => (0.2, 0.2, 0.2, 1.0),
@@ -58,15 +63,10 @@ package body Rho.Demos.Spotlight_Demo is
           (Color         => Rho.Color.White,
            Intensity     => 1.0,
            Decay         => 0.1);
-      Demo.Spotlight.Set_Position (1.0, 1.0, 2.0);
+      Demo.Spotlight.Set_Position (0.0, 4.0, 0.0);
 
-      if True then
-         Demo.Scene.Add (Demo.Spotlight);
-      end if;
-
-      if False then
-         Demo.Scene.Add (Demo.Ambient);
-      end if;
+      Demo.Scene.Add (Demo.Spotlight);
+      Demo.Scene.Add (Demo.Ambient);
 
       Demo.Start;
    end Execute;

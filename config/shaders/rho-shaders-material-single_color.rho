@@ -1,0 +1,7 @@
+shader Rho.Shaders.Material.Single_Color is
+
+    fragment
+        Surface_Color : Vector_4;
+    end fragment;
+
+end Rho.Shaders.Material.Single_Color;

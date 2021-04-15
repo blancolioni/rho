@@ -29,6 +29,12 @@ private package Rho.Handles.OpenGL.Maps is
         Rho.Shaders.Stages.Root_Shader_Type'Class)
       return GL_Types.Uint;
 
+   function Has_Id
+     (Map      : Id_Map'Class;
+      Variable : not null access
+        Rho.Shaders.Variables.Root_Variable_Type'Class)
+      return Boolean;
+
    function Variable_Id
      (Map      : Id_Map'Class;
       Variable : not null access
@@ -70,6 +76,11 @@ private
          Argument_Map : Id_Maps.Map;
       end record;
 
+   function Has_Id
+     (Map        : Id_Maps.Map;
+      Object     : not null access Rho.Objects.Root_Object_Type'Class)
+      return Boolean;
+
    function Get_Id
      (Map        : Id_Maps.Map;
       Object     : not null access Rho.Objects.Root_Object_Type'Class)
@@ -94,6 +105,13 @@ private
         Rho.Shaders.Stages.Root_Shader_Type'Class)
       return GL_Types.Uint
    is (Get_Id (Map.Shader_Map, Shader));
+
+   function Has_Id
+     (Map      : Id_Map'Class;
+      Variable : not null access
+        Rho.Shaders.Variables.Root_Variable_Type'Class)
+      return Boolean
+   is (Has_Id (Map.Variable_Map, Variable));
 
    function Variable_Id
      (Map      : Id_Map'Class;

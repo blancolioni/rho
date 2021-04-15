@@ -49,10 +49,10 @@ package body Tau.Statements.Return_Statements is
    overriding procedure Compile
      (Statement : Return_Statement_Type;
       Generator : in out Tau.Generators.Root_Tau_Generator'Class)
-   is null;
---     begin
---        Generator.Return_Value (Statement.Value.To_String (Generator));
---     end Compile;
+   is
+   begin
+      Generator.Return_Value (Statement.Value.To_String (Generator));
+   end Compile;
 
    ------------
    -- Create --

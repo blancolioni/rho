@@ -1,0 +1,21 @@
+abstract shader Rho.Shaders.Node is
+
+    vertex
+        Model                : uniform Matrix_4;
+        Camera               : uniform Matrix_4;
+        Position             : in Vector_3;
+        Vertex_Normal        : in Vector_3;
+        Vertex_Texture_Coord : in Vector_2;
+    begin
+        return Camera * Model * Vector_4 (Position, 1);
+    end vertex;
+
+    fragment
+        Fragment_Color : out Vector_4;
+    require
+        Final_Color : Color;
+    begin
+        Fragment_Color := Final_Color;
+    end fragment;    
+
+end Rho.Shaders.Node;

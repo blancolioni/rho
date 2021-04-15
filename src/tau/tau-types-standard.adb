@@ -4,6 +4,15 @@ with Tau.Types.Vectors;
 
 package body Tau.Types.Standard is
 
+   -----------------
+   -- Tau_Boolean --
+   -----------------
+
+   function Tau_Boolean return Tau_Type is
+   begin
+      return Tau.Types.Scalar.Tau_Boolean;
+   end Tau_Boolean;
+
    ---------------
    -- Tau_Float --
    ---------------

@@ -21,7 +21,7 @@ package body Tau.Expressions.Literals is
 
    overriding function To_String
      (Expression : Float_Literal_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
       return String
    is (Generator.Float_Image (Expression.Float_Value));
 
@@ -44,7 +44,7 @@ package body Tau.Expressions.Literals is
 
    overriding function To_String
      (Expression : Integer_Literal_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
       return String
    is (Generator.Integer_Image (Expression.Integer_Value));
 

@@ -8,12 +8,16 @@ package body Rho.Material.Simple is
    ----------------------------
 
    function Create_Simple_Material
-     (Texture : Rho.Textures.Texture_Type) return Material_Type
+     (Texture : not null access
+        Rho.Textures.Root_Texture_Type'Class)
+      return Material_Type
    is
    begin
       return Material : constant Material_Type :=
         new Root_Material_Type
       do
+         Material.Add_Shader ("rho-shaders-material-textured");
+
          Material.Add_Slice
            (Rho.Shaders.Slices.Attributes.Out_Attribute_Fragment
               (Fragment_Shader, "finalColor", "vec4"));
@@ -23,7 +27,7 @@ package body Rho.Material.Simple is
                Priority => Rho.Shaders.Slices.Shader_Source_Priority'Last,
                Name     => "set final color",
                Line     => "finalColor = fragmentColor"));
-         Material.Textures.Append (Texture);
+         Material.Textures.Append (Rho.Textures.Texture_Type (Texture));
       end return;
    end Create_Simple_Material;
 

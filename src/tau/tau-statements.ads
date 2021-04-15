@@ -21,6 +21,14 @@ package Tau.Statements is
      (Statement : Root_Tau_Statement)
       return Tau.Expressions.Tau_Expression;
 
+   function Assigned_Value
+     (Statement : Root_Tau_Statement'Class)
+      return Tau.Expressions.Tau_Expression;
+
+   function Target
+     (Statement : Root_Tau_Statement'Class)
+      return String;
+
    type Tau_Statement is access all Root_Tau_Statement'Class;
 
    function Return_Statement

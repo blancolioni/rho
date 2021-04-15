@@ -25,6 +25,10 @@ package Rho.Shaders.Stages is
      (Shader    : in out Root_Shader_Type;
       Slices : Rho.Shaders.Slices.Slice_Array);
 
+   procedure Add_Slices
+     (Shader    : in out Root_Shader_Type;
+      Slices    : Rho.Shaders.Slices.Slice_Container_Interface'Class);
+
    procedure Set_Source
      (Shader : in out Root_Shader_Type;
       Source : String);
@@ -33,7 +37,8 @@ package Rho.Shaders.Stages is
 
    function Create
      (Name   : String;
-      Stage  : Shader_Stage)
+      Stage  : Shader_Stage;
+      Source : String := "")
       return Shader_Type;
 
    type Shader_Array is array (Positive range <>) of Shader_Type;

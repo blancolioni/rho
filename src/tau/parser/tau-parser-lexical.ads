@@ -16,11 +16,14 @@ private package Tau.Parser.Lexical is
                  Tok_Integer        => Tok_Integer_Constant,
                  Tok_Float          => Tok_Floating_Point_Constant,
                  First_Keyword      => Tok_Abstract,
-                 Keywords           => "abstract begin constant end "
-                                     & "function generic in is "
-                                     & "material out return texture",
+                 Keywords           => "abstract begin else end "
+                                     & "fragment function "
+                                     & "if in is local out "
+                                     & "provide require return "
+                                     & "shader then uniform vertex with",
                  First_Symbol       => Tok_Colon,
-                 Symbols            => ": ; , = /= > >= < <= * / + - ( ) . :=",
+                 Symbols            => ": ; , = /= > >= < <= * / + - ** "
+                                     & "( ) . := =>",
                  Identifier_Start   => "abcdefghijklmnopqrstuvwxyz" &
                                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
                  Identifier_Body    => "abcdefghijklmnopqrstuvwxyz" &

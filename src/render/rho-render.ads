@@ -1,4 +1,4 @@
---  with Rho.Assets;
+with Rho.Assets;
 with Rho.Buffers;
 with Rho.Matrices;
 with Rho.Shaders.Slices;
@@ -6,6 +6,9 @@ with Rho.Shaders.Programs;
 with Rho.Shaders.Stages;
 with Rho.Signals;
 with Rho.Values;
+
+with Tau.Generators;
+with Tau.Shaders;
 
 package Rho.Render is
 
@@ -22,6 +25,19 @@ package Rho.Render is
      (Target   : in out Render_Target;
       Slice : Rho.Shaders.Slices.Slice_Type)
    is abstract;
+
+   procedure Add_Shader
+     (Target : in out Render_Target;
+      Shader : Tau.Shaders.Tau_Shader)
+   is null;
+
+   type Active_Shader_Array is
+     array (Positive range <>) of Tau.Shaders.Tau_Shader;
+
+   function Active_Shaders
+     (Target : Render_Target)
+      return Active_Shader_Array
+      is abstract;
 
    procedure Add_Uniform
      (Target  : in out Render_Target;
@@ -75,9 +91,14 @@ package Rho.Render is
       return Rho.Shaders.Programs.Program_Type
       is abstract;
 
-   --  function Assets
-   --    (Render : Render_Target)
-   --     return Rho.Assets.Asset_Container_Type
-   --     is abstract;
+   function Generator
+     (Render : Render_Target)
+      return Tau.Generators.Root_Tau_Generator'Class
+   is abstract;
+
+   function Assets
+     (Render : Render_Target)
+      return Rho.Assets.Asset_Container_Type
+      is abstract;
 
 end Rho.Render;

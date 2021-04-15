@@ -20,6 +20,20 @@ package body Rho.Demos.Rotating_Cube is
       Window   : Rho.Windows.Window_Type;
       Material : Rho.Material.Material_Type)
    is
+   begin
+      Demo.Initialize (Handle, Window, (1 => Material));
+   end Initialize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Demo     : not null access Rotating_Cube_Demo'Class;
+      Handle   : Rho.Handles.Handle;
+      Window   : Rho.Windows.Window_Type;
+      Material : Material_Array)
+   is
       Scene    : constant Rho.Scenes.Scene_Type :=
         Rho.Scenes.Create_Scene;
       Camera   : constant Rho.Cameras.Camera_Type :=
@@ -31,7 +45,7 @@ package body Rho.Demos.Rotating_Cube is
       Geometry : constant Rho.Geometry.Geometry_Type :=
         Rho.Geometry.Box.Box_Geometry;
       Mesh     : constant Rho.Meshes.Mesh_Type :=
-        Rho.Meshes.Create_Mesh (Geometry, Material);
+        Rho.Meshes.Create_Mesh (Geometry);
 
       Handler_Id : constant Rho.Signals.Handler_Id :=
         Handle.Current_Renderer.Add_Handler
@@ -47,6 +61,11 @@ package body Rho.Demos.Rotating_Cube is
       Camera.Set_Name ("camera");
       Mesh.Set_Name ("mesh");
       Camera.Set_Position (0.0, 0.0, 4.0);
+
+      for M of Material loop
+         Mesh.Add_Material (M);
+      end loop;
+
       Scene.Add (Mesh);
 
       Demo.Handle := Handle;

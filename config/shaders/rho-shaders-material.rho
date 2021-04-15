@@ -1,0 +1,8 @@
+abstract shader Rho.Shaders.Material is
+
+    fragment
+        Shininess      : uniform Float;
+        Specular_Color : uniform Vector_3;
+    end fragment;
+
+end Rho.Shaders.Material;

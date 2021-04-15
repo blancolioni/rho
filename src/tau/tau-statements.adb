@@ -3,6 +3,18 @@ with Tau.Statements.Return_Statements;
 
 package body Tau.Statements is
 
+   --------------------
+   -- Assigned_Value --
+   --------------------
+
+   function Assigned_Value
+     (Statement : Root_Tau_Statement'Class)
+      return Tau.Expressions.Tau_Expression
+   is
+   begin
+      return Assignment_Statements.Assigned_Value (Statement);
+   end Assigned_Value;
+
    --------------------------
    -- Assignment_Statement --
    --------------------------
@@ -43,5 +55,17 @@ package body Tau.Statements is
    begin
       return null;
    end Return_Value;
+
+   ------------
+   -- Target --
+   ------------
+
+   function Target
+     (Statement : Root_Tau_Statement'Class)
+      return String
+   is
+   begin
+      return Assignment_Statements.Assignment_Target (Statement);
+   end Target;
 
 end Tau.Statements;

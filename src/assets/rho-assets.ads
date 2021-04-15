@@ -1,9 +1,14 @@
 private with WL.String_Maps;
 
 with Rho.Objects;
-with Rho.Textures;
+
+limited with Rho.Textures;
+
+with Tau.Shaders;
 
 package Rho.Assets is
+
+   type Texture_Access is access all Rho.Textures.Root_Texture_Type'Class;
 
    type Root_Asset_Container_Type is
      abstract new Rho.Objects.Root_Object_Type
@@ -24,20 +29,20 @@ package Rho.Assets is
       return String
       is abstract;
 
---     function Shader
---       (Container : in out Root_Asset_Container_Type;
---        Name      : String)
---        return Rho.Shaders.Shader_Type;
-
-   function Texture
+   function Shader
      (Container : in out Root_Asset_Container_Type;
       Name      : String)
-      return Rho.Textures.Texture_Type;
+      return Tau.Shaders.Tau_Shader;
+
+   --  function Texture
+   --    (Container : in out Root_Asset_Container_Type;
+   --     Name      : String)
+   --     return Texture_Access;
 
    function Create_Texture_From_Image
      (Container  : in out Root_Asset_Container_Type;
       Identifier : String)
-      return Rho.Textures.Texture_Type
+      return Texture_Access
       is abstract;
 
    type Asset_Container_Type is access all Root_Asset_Container_Type'Class;

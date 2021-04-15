@@ -2,13 +2,10 @@ with Ada.Text_IO;
 
 with WL.String_Maps;
 
-with Tau.Environment;
-
 with Rho.Buffers;
 with Rho.Matrices;
 with Rho.Shaders;
 with Rho.Signals;
-with Rho.Textures;
 
 with Rho.Shaders.Programs;
 with Rho.Shaders.Slices;
@@ -20,6 +17,8 @@ with Rho.Values;
 with Rho.Matrices.Logs;
 
 with Rho.Version;
+
+with Tau.Generators;
 
 package body Rho.Handles.Simulation is
 
@@ -40,7 +39,7 @@ package body Rho.Handles.Simulation is
    overriding function Create_Texture_From_Image
      (Container : in out Simulation_Asset_Container;
       Identifier : String)
-      return Rho.Textures.Texture_Type;
+      return Rho.Assets.Texture_Access;
 
    type Simulation_Render_Target is
      new Rho.Signals.Signal_Dispatcher
@@ -55,14 +54,21 @@ package body Rho.Handles.Simulation is
          Current_Count     : Natural := 0;
       end record;
 
-   --  overriding function Assets
-   --    (Target : Simulation_Render_Target)
-   --     return Rho.Assets.Asset_Container_Type
-   --  is (Target.Assets);
+   overriding function Assets
+     (Target : Simulation_Render_Target)
+      return Rho.Assets.Asset_Container_Type
+   is (Target.Assets);
 
    overriding procedure Activate_Shader
      (Target : in out Simulation_Render_Target;
       Shader : Rho.Shaders.Programs.Program_Type);
+
+   No_Active_Shaders : Rho.Render.Active_Shader_Array (1 .. 0);
+
+   overriding function Active_Shaders
+     (Target : Simulation_Render_Target)
+      return Rho.Render.Active_Shader_Array
+   is (No_Active_Shaders);
 
    overriding procedure Add_Uniform
      (Target  : in out Simulation_Render_Target;
@@ -89,6 +95,11 @@ package body Rho.Handles.Simulation is
      (Target : Simulation_Render_Target)
       return Rho.Shaders.Programs.Program_Type
    is (Target.Active_Program);
+
+   overriding function Generator
+     (Target : Simulation_Render_Target)
+      return Tau.Generators.Root_Tau_Generator'Class
+   is (Tau.Generators.Null_Generator);
 
    overriding procedure Set_Projection_Matrix
      (Target : in out Simulation_Render_Target;
@@ -267,7 +278,7 @@ package body Rho.Handles.Simulation is
    overriding function Create_Texture_From_Image
      (Container : in out Simulation_Asset_Container;
       Identifier : String)
-      return Rho.Textures.Texture_Type
+      return Rho.Assets.Texture_Access
    is
    begin
       return null;

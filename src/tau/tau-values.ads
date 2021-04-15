@@ -2,7 +2,6 @@ with Tau.Objects;
 with Tau.Types;
 
 with Rho.Color;
-with Rho.Textures;
 
 package Tau.Values is
 
@@ -55,14 +54,14 @@ package Tau.Values is
      (Rho_Color : Rho.Color.Color_Type)
       return Tau_Value;
 
-   function Texture
-     (Position    : GCS.Positions.File_Position;
-      Rho_Texture : Rho.Textures.Texture_Type)
-      return Tau_Value;
-
-   function Texture
-     (Rho_Texture : Rho.Textures.Texture_Type)
-      return Tau_Value;
+   --  function Texture
+   --    (Position    : GCS.Positions.File_Position;
+   --     Rho_Texture : Rho.Textures.Texture_Type)
+   --     return Tau_Value;
+   --
+   --  function Texture
+   --    (Rho_Texture : Rho.Textures.Texture_Type)
+   --     return Tau_Value;
 
    function Object_Value
      (Object : not null access Tau.Objects.Root_Tau_Object'Class)
@@ -106,9 +105,9 @@ private
       return Tau_Value
    is (Color (GCS.Positions.Null_Position, Rho_Color));
 
-   function Texture
-     (Rho_Texture : Rho.Textures.Texture_Type)
-      return Tau_Value
-   is (Texture (GCS.Positions.Null_Position, Rho_Texture));
+   --  function Texture
+   --    (Rho_Texture : Rho.Textures.Texture_Type)
+   --     return Tau_Value
+   --  is (Texture (GCS.Positions.Null_Position, Rho_Texture));
 
 end Tau.Values;

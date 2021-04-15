@@ -1,4 +1,5 @@
 with Tau.Expressions.Aggregates;
+with Tau.Expressions.Conditional;
 with Tau.Expressions.Functions;
 with Tau.Expressions.Literals;
 with Tau.Expressions.Operators;
@@ -69,6 +70,22 @@ package body Tau.Expressions is
       end if;
    end Check;
 
+   ---------------
+   -- Condition --
+   ---------------
+
+   function Condition
+     (Position       : GCS.Positions.File_Position;
+      Condition      : Tau_Expression;
+      True_Value     : Tau_Expression;
+      False_Value    : Tau_Expression)
+      return Tau_Expression
+   is
+   begin
+      return Tau.Expressions.Conditional.Conditional_Expression
+        (Position, Condition, True_Value, False_Value);
+   end Condition;
+
    ------------
    -- Divide --
    ------------
@@ -80,6 +97,18 @@ package body Tau.Expressions is
          Left     => Left,
          Right    => Right);
    end Divide;
+
+   -----------
+   -- Equal --
+   -----------
+
+   function Equal (Left, Right : Tau_Expression) return Tau_Expression is
+   begin
+      return Operators.Operate
+        (Operator => Operators.Op_Equal,
+         Left     => Left,
+         Right    => Right);
+   end Equal;
 
    -------------
    -- Literal --
@@ -118,6 +147,30 @@ package body Tau.Expressions is
          Left     => Left,
          Right    => Right);
    end Multiply;
+
+   ---------------
+   -- Not_Equal --
+   ---------------
+
+   function Not_Equal (Left, Right : Tau_Expression) return Tau_Expression is
+   begin
+      return Operators.Operate
+        (Operator => Operators.Op_Not_Equal,
+         Left     => Left,
+         Right    => Right);
+   end Not_Equal;
+
+   -----------
+   -- Power --
+   -----------
+
+   function Power (Left, Right : Tau_Expression) return Tau_Expression is
+   begin
+      return Operators.Operate
+        (Operator => Operators.Op_Power,
+         Left     => Left,
+         Right    => Right);
+   end Power;
 
    --------------
    -- Property --

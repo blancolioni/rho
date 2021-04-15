@@ -22,8 +22,6 @@ with GL_Types;
 
 with WL.String_Maps;
 
-with Tau.Environment;
-
 with Rho.Buffers;
 with Rho.Color;
 with Rho.Matrices;
@@ -44,6 +42,9 @@ with Rho.Real_Arrays;
 with Rho.Handles.OpenGL.Maps;
 
 with Rho.Logging;
+
+with Tau.Generators;
+with Tau.Shaders;
 
 package body Rho.Handles.OpenGL is
 
@@ -80,12 +81,18 @@ package body Rho.Handles.OpenGL is
    overriding function Create_Texture_From_Image
      (Container : in out OpenGL_Asset_Container;
       Path      : String)
-      return Rho.Textures.Texture_Type;
+      return Rho.Assets.Texture_Access;
 
    package Shader_Slices is
      new Ada.Containers.Vectors
        (Positive, Rho.Shaders.Slices.Slice_Type,
         Rho.Shaders.Slices."=");
+
+   package Shader_Vectors is
+     new Ada.Containers.Vectors
+       (Index_Type   => Positive,
+        Element_Type => Tau.Shaders.Tau_Shader,
+        "="          => Tau.Shaders."=");
 
    type OpenGL_Render_Target is
      new Rho.Signals.Signal_Dispatcher
@@ -97,6 +104,7 @@ package body Rho.Handles.OpenGL is
          Active_Model_View : Rho.Matrices.Matrix_4;
          Active_Camera_Pos : Rho.Matrices.Vector_3;
          Active_Fragments  : Shader_Slices.Vector;
+         Active_Shaders    : Shader_Vectors.Vector;
          Active_Uniforms   : Uniform_Value_Maps.Map;
          Active_Variables  : Shader_Variable_Maps.Map;
          Active_Texture_Id : Natural := 0;
@@ -107,14 +115,22 @@ package body Rho.Handles.OpenGL is
    type OpenGL_Render_Target_Access is
      access all OpenGL_Render_Target'Class;
 
-   --  overriding function Assets
-   --    (Target : OpenGL_Render_Target)
-   --     return Rho.Assets.Asset_Container_Type
-   --  is (Target.Assets);
+   overriding function Assets
+     (Target : OpenGL_Render_Target)
+      return Rho.Assets.Asset_Container_Type
+   is (Target.Assets);
+
+   overriding function Active_Shaders
+     (Target : OpenGL_Render_Target)
+      return Rho.Render.Active_Shader_Array;
 
    overriding function Active_Shader_Slices
      (Target : OpenGL_Render_Target)
       return Rho.Shaders.Slices.Slice_Array;
+
+   overriding procedure Add_Shader
+     (Target   : in out OpenGL_Render_Target;
+      Shader   : Tau.Shaders.Tau_Shader);
 
    overriding procedure Add_Shader_Fragment
      (Target   : in out OpenGL_Render_Target;
@@ -147,6 +163,11 @@ package body Rho.Handles.OpenGL is
      (Target : OpenGL_Render_Target)
       return Rho.Shaders.Programs.Program_Type
    is (Target.Active_Program);
+
+   overriding function Generator
+     (Target : OpenGL_Render_Target)
+      return Tau.Generators.Root_Tau_Generator'Class
+   is (Tau.Generators.Null_Generator);
 
    overriding procedure Set_Projection_Matrix
      (Target : in out OpenGL_Render_Target;
@@ -294,6 +315,10 @@ package body Rho.Handles.OpenGL is
    is
       Buffer_Id : constant GL_Types.Uint := Target.Id_Map.Buffer_Id (Buffer);
    begin
+      if not Target.Id_Map.Has_Id (Argument) then
+         return;
+      end if;
+
       case Buffer.Contents is
          when Rho.Buffers.Integer_Data =>
             GL.Bind_Buffer (GL_Constants.GL_ELEMENT_ARRAY_BUFFER, Buffer_Id);
@@ -346,6 +371,36 @@ package body Rho.Handles.OpenGL is
          end loop;
       end return;
    end Active_Shader_Slices;
+
+   --------------------
+   -- Active_Shaders --
+   --------------------
+
+   overriding function Active_Shaders
+     (Target : OpenGL_Render_Target)
+      return Rho.Render.Active_Shader_Array
+   is
+   begin
+      return Arr : Rho.Render.Active_Shader_Array
+        (1 .. Target.Active_Shaders.Last_Index)
+      do
+         for I in Arr'Range loop
+            Arr (I) := Target.Active_Shaders (I);
+         end loop;
+      end return;
+   end Active_Shaders;
+
+   ----------------
+   -- Add_Shader --
+   ----------------
+
+   overriding procedure Add_Shader
+     (Target   : in out OpenGL_Render_Target;
+      Shader   : Tau.Shaders.Tau_Shader)
+   is
+   begin
+      Target.Active_Shaders.Append (Shader);
+   end Add_Shader;
 
    -------------------------
    -- Add_Shader_Fragment --
@@ -445,17 +500,22 @@ package body Rho.Handles.OpenGL is
          end;
       end if;
 
-      for Position in Target.Active_Uniforms.Iterate loop
-         declare
-            Name     : constant String := Uniform_Value_Maps.Key (Position);
-            Value    : constant Rho.Values.Rho_Value :=
-                         Uniform_Value_Maps.Element (Position);
-            Variable : constant Rho.Shaders.Variables.Variable_Type :=
-                         Shader.Get_Variable (Name);
-         begin
-            Target.Bind_Uniform (Variable, Value);
-         end;
-      end loop;
+      declare
+      begin
+
+         for Position in Target.Active_Uniforms.Iterate loop
+            declare
+               Name     : constant String := Uniform_Value_Maps.Key (Position);
+               Value    : constant Rho.Values.Rho_Value :=
+                            Uniform_Value_Maps.Element (Position);
+               Variable : constant Rho.Shaders.Variables.Variable_Type :=
+                            Shader.Get_Variable (Name);
+            begin
+               Target.Bind_Uniform (Variable, Value);
+            end;
+         end loop;
+
+      end;
    end Bind_Shader;
 
    ------------------
@@ -641,7 +701,7 @@ package body Rho.Handles.OpenGL is
    overriding function Create_Texture_From_Image
      (Container : in out OpenGL_Asset_Container;
       Path      : String)
-      return Rho.Textures.Texture_Type
+      return Rho.Assets.Texture_Access
    is
       Surface : Cairo.Cairo_Surface;
    begin
@@ -662,7 +722,7 @@ package body Rho.Handles.OpenGL is
                   Width      => Natural (Width),
                   Height     => Natural (Height));
                Texture.Surface := Surface;
-               return Rho.Textures.Texture_Type (Texture);
+               return Rho.Assets.Texture_Access (Texture);
             end;
 
          when Cairo.Cairo_Status_File_Not_Found =>

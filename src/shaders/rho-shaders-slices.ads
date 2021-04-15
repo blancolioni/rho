@@ -69,6 +69,8 @@ package Rho.Shaders.Slices is
 
    type Slice_Container is new Slice_Container_Interface with private;
 
+   Empty : constant Slice_Container;
+
 private
 
    type Root_Slice_Type is
@@ -114,5 +116,8 @@ private
    overriding procedure Add_Slice
      (Container : in out Slice_Container;
       Slice     : Rho.Shaders.Slices.Slice_Type);
+
+   Empty : constant Slice_Container :=
+             Slice_Container'(Slices => <>);
 
 end Rho.Shaders.Slices;

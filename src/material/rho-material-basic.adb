@@ -1,3 +1,5 @@
+with Tau.Shaders.Library;
+
 with Rho.Shaders.Slices.Attributes;
 with Rho.Shaders.Slices.Main;
 --  with Rho.Shaders.Slices.Uniforms;
@@ -16,6 +18,9 @@ package body Rho.Material.Basic is
       return Material : constant Material_Type :=
         new Root_Material_Type
       do
+         Material.Compiler.Add_Shader
+           (Tau.Shaders.Library.Single_Color_Shader (Color));
+
          Material.Add_Slice
            (Rho.Shaders.Slices.Attributes.Out_Attribute_Fragment
               (Vertex_Shader, "fragmentColor", "vec4"));
@@ -49,7 +54,8 @@ package body Rho.Material.Basic is
    ---------------------------
 
    function Create_Basic_Material
-     (Texture : Rho.Textures.Texture_Type)
+     (Texture : not null access
+        Rho.Textures.Root_Texture_Type'Class)
       return Material_Type
    is
    begin
@@ -65,7 +71,7 @@ package body Rho.Material.Basic is
                Priority => Rho.Shaders.Slices.Shader_Source_Priority'Last,
                Name     => "set final color",
                Line     => "finalColor = fragmentColor"));
-         Material.Textures.Append (Texture);
+         Material.Textures.Append (Rho.Textures.Texture_Type (Texture));
       end return;
    end Create_Basic_Material;
 

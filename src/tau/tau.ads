@@ -16,6 +16,11 @@ package Tau is
      (Node : Root_Tau_Node'Class)
       return GCS.Positions.File_Position;
 
+   function Depends_On
+     (Node : Root_Tau_Node;
+      Name : String)
+      return Boolean;
+
    function Has_Errors
      (Node : Root_Tau_Node'Class)
       return Boolean;
@@ -37,6 +42,8 @@ package Tau is
                    Message : String));
 
    type Tau_Node_Array is array (Positive range <>) of Tau_Node;
+
+   Empty_Tau_Node_Array : Tau_Node_Array (1 .. 0);
 
    function Children
      (Node : Root_Tau_Node)
@@ -69,5 +76,10 @@ private
 
    function "-" (X : Tau_String) return String
    is (Ada.Strings.Unbounded.To_String (X));
+
+   function Children
+     (Node : Root_Tau_Node)
+      return Tau_Node_Array
+   is (Empty_Tau_Node_Array);
 
 end Tau;

@@ -51,6 +51,19 @@ package body Tau.Declarations is
      (Declaration : Local_Variable_Type)
       return Tau_Node_Array;
 
+   ----------------
+   -- Add_Aspect --
+   ----------------
+
+   procedure Add_Aspect
+     (Declaration : in out Root_Tau_Declaration'Class;
+      Name        : String;
+      Value       : String)
+   is
+   begin
+      Declaration.Aspects.Insert (Name, Value);
+   end Add_Aspect;
+
    --------------
    -- Children --
    --------------
@@ -80,7 +93,8 @@ package body Tau.Declarations is
    is
    begin
       Generator.Global_Declaration
-        (Name      => Declaration.Name,
+        (Name      =>
+           Generator.Normalize_Reference (Declaration.Name),
          Qualifier => Declaration.Qualifier,
          Type_Name =>
            Generator.Shader_Type_Name
@@ -98,7 +112,8 @@ package body Tau.Declarations is
       use type Tau.Expressions.Tau_Expression;
    begin
       Generator.Local_Declaration
-        (Name           => Declaration.Name,
+        (Name           =>
+           Generator.Normalize_Reference (Declaration.Name),
          Type_Name      =>
            Generator.Shader_Type_Name
              (Ada.Strings.Unbounded.To_String (Declaration.Type_Name)),
@@ -107,6 +122,27 @@ package body Tau.Declarations is
             then ""
             else Declaration.Initialization.To_String (Generator)));
    end Compile;
+
+   --------------------------
+   -- Constant_Declaration --
+   --------------------------
+
+   function Constant_Declaration
+     (Position      : GCS.Positions.File_Position;
+      Name          : String;
+      Type_Name     : String;
+      Initial_Value : Tau.Expressions.Tau_Expression)
+      return Tau_Declaration
+   is
+      Declaration : Local_Variable_Type := Local_Variable_Type'
+        (Root_Tau_Declaration with
+         Type_Name        =>
+           Ada.Strings.Unbounded.To_Unbounded_String (Type_Name),
+         Initialization   => Initial_Value);
+   begin
+      Declaration.Initialize_Object (Position, Name);
+      return new Local_Variable_Type'(Declaration);
+   end Constant_Declaration;
 
    ---------------
    -- Elaborate --
@@ -231,24 +267,21 @@ package body Tau.Declarations is
 
    end Elaborate;
 
-   --------------------------------
-   -- Generic_Formal_Declaration --
-   --------------------------------
+   ---------------------
+   -- Get_Initializer --
+   ---------------------
 
-   function Generic_Formal_Declaration
-     (Position  : GCS.Positions.File_Position;
-      Name      : String;
-      Type_Name : String)
-      return Tau_Declaration
+   function Get_Initializer
+     (Declaration : Root_Tau_Declaration'Class)
+      return Tau.Expressions.Tau_Expression
    is
-      Declaration : Generic_Formal_Type := Generic_Formal_Type'
-        (Root_Tau_Declaration with
-         Type_Name        =>
-           Ada.Strings.Unbounded.To_Unbounded_String (Type_Name));
    begin
-      Declaration.Initialize_Object (Position, Name);
-      return new Generic_Formal_Type'(Declaration);
-   end Generic_Formal_Declaration;
+      if Declaration in Local_Variable_Type'Class then
+         return Local_Variable_Type (Declaration).Initialization;
+      else
+         return null;
+      end if;
+   end Get_Initializer;
 
    ---------------------------------
    -- Global_Variable_Declaration --
@@ -271,25 +304,41 @@ package body Tau.Declarations is
       return new Global_Variable_Type'(Declaration);
    end Global_Variable_Declaration;
 
-   --------------------------------
-   -- Local_Variable_Declaration --
-   --------------------------------
+   ---------------------
+   -- Set_Initializer --
+   ---------------------
 
-   function Local_Variable_Declaration
-     (Position      : GCS.Positions.File_Position;
-      Name          : String;
-      Type_Name     : String;
-      Initial_Value : Tau.Expressions.Tau_Expression)
+   procedure Set_Initializer
+     (Declaration : in out Root_Tau_Declaration'Class;
+      Initializer : Tau.Expressions.Tau_Expression)
+   is
+   begin
+      if Declaration in Local_Variable_Type'Class then
+         Local_Variable_Type (Declaration).Initialization := Initializer;
+      else
+         raise Constraint_Error with
+           "declaration at " & GCS.Positions.Image (Declaration.Defined_At)
+           & " has no initializer";
+      end if;
+   end Set_Initializer;
+
+   ---------------------------------
+   -- Shader_Argument_Declaration --
+   ---------------------------------
+
+   function Shader_Argument_Declaration
+     (Position  : GCS.Positions.File_Position;
+      Name      : String;
+      Type_Name : String)
       return Tau_Declaration
    is
-      Declaration : Local_Variable_Type := Local_Variable_Type'
+      Declaration : Generic_Formal_Type := Generic_Formal_Type'
         (Root_Tau_Declaration with
          Type_Name        =>
-           Ada.Strings.Unbounded.To_Unbounded_String (Type_Name),
-         Initialization   => Initial_Value);
+           Ada.Strings.Unbounded.To_Unbounded_String (Type_Name));
    begin
       Declaration.Initialize_Object (Position, Name);
-      return new Local_Variable_Type'(Declaration);
-   end Local_Variable_Declaration;
+      return new Generic_Formal_Type'(Declaration);
+   end Shader_Argument_Declaration;
 
 end Tau.Declarations;

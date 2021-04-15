@@ -1,0 +1,12 @@
+shader Rho.Shaders.Light.Ambient : Rho.Shaders.Light is
+
+    fragment
+        Ambient_Color : uniform Vector_3;
+        Ambient_Coeff : uniform Float;
+    require
+        Surface_Color      : Color;
+    begin
+        Lit_Color := Ambient_Coeff * Surface_Color.rgb *  Ambient_Color.rgb;
+    end fragment;
+
+end Rho.Shaders.Light.Ambient;

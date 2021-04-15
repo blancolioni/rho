@@ -1,5 +1,7 @@
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 
+with WL.String_Maps;
+
 with Rho;
 
 with Tau.Parser.Tokens;                use Tau.Parser.Tokens;
@@ -7,49 +9,40 @@ with Tau.Parser.Lexical;               use Tau.Parser.Lexical;
 
 with Tau.Expressions;
 
-with Tau.Material.Create;
-
-with Tau.Declarations.Lists;
+with Tau.Declarations;
 with Tau.Statements.Lists;
 
-with Tau.Shaders.Create;
-with Tau.Shaders.Lists;
-
-with Tau.Textures.Create;
+with Tau.Shaders.Builder;
 
 package body Tau.Parser is
 
    package String_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
+   package String_Maps is
+     new WL.String_Maps (String);
+
    function Parse_Top_Level_Declaration return Tau.Objects.Tau_Object;
-
-   function Parse_Material_Declaration
-     (Is_Generic  : Boolean := False;
-      Is_Abstract : Boolean := False;
-      Formals     : Tau.Declarations.Lists.List :=
-        Tau.Declarations.Lists.Empty_List)
-      return Tau.Material.Tau_Material;
-
-   function Parse_Texture_Declaration
-     return Tau.Textures.Tau_Texture;
 
    function Parse_Qualified_Name return String;
 
    procedure Scan_Matching_Qualified_Name (Match_Name : String);
 
    type Object_Declaration_Context is
-     (Formal_Argument_Context,
-      Generic_Formal_Context,
-      Local_Declaration_Context);
+     (Global_Context,
+      Require_Context,
+      Provide_Context,
+      Local_Context);
 
-   function Parse_Object_Declarations
-     (Context : Object_Declaration_Context)
-      return Tau.Declarations.Lists.List;
+   procedure Parse_Object_Declarations
+     (Context : Object_Declaration_Context;
+      Stage   : Tau.Shaders.Tau_Shader_Stage);
 
-   function Parse_Shader_List return Tau.Shaders.Lists.List;
+   function Parse_Shader
+     (Is_Abstract : Boolean)
+     return Tau.Shaders.Tau_Shader;
 
-   function Parse_Shader return Tau.Shaders.Tau_Shader;
+   function Parse_Shader_Stage return Tau.Shaders.Tau_Shader_Stage;
 
    function Parse_Expression return Tau.Expressions.Tau_Expression;
 
@@ -61,7 +54,8 @@ package body Tau.Parser is
    is (Tok = Tok_Identifier or else Tok = Tok_Return);
 
    procedure Parse_Property_List
-     (Object : not null access Tau.Objects.Root_Tau_Object'Class);
+     (Object : not null access Tau.Objects.Root_Tau_Object'Class)
+     with Unreferenced;
 
    type Operator_Precedence is range 1 .. 9;
 
@@ -82,11 +76,21 @@ package body Tau.Parser is
    type Infix_Operator_Array is array (Token) of Infix_Operator_Info;
 
    Infix_Operator : constant Infix_Operator_Array :=
-     (Tok_Plus     => (True, 4, Left, Tau.Expressions.Add'Access),
-      Tok_Minus    => (True, 4, Left, Tau.Expressions.Subtract'Access),
-      Tok_Asterisk => (True, 3, Left, Tau.Expressions.Multiply'Access),
-      Tok_Slash    => (True, 3, Left, Tau.Expressions.Divide'Access),
-      others       => (others => <>));
+                      (Tok_Equal =>
+                         (True, 6, Left, Tau.Expressions.Equal'Access),
+                       Tok_Not_Equal =>
+                         (True, 6, Left, Tau.Expressions.Not_Equal'Access),
+                       Tok_Plus      =>
+                         (True, 4, Left, Tau.Expressions.Add'Access),
+                       Tok_Minus     =>
+                         (True, 4, Left, Tau.Expressions.Subtract'Access),
+                       Tok_Asterisk  =>
+                         (True, 3, Left, Tau.Expressions.Multiply'Access),
+                       Tok_Slash     =>
+                         (True, 3, Left, Tau.Expressions.Divide'Access),
+                       Tok_Power     =>
+                         (True, 2, Left, Tau.Expressions.Power'Access),
+                       others        => (others => <>));
 
    ---------------
    -- Load_File --
@@ -119,6 +123,48 @@ package body Tau.Parser is
       function Parse_Operator_Expression
         (Precedence : Operator_Precedence)
          return Tau.Expressions.Tau_Expression;
+
+      function Parse_Conditional_Expression
+         return Tau.Expressions.Tau_Expression;
+
+      ----------------------------------
+      -- Parse_Conditional_Expression --
+      ----------------------------------
+
+      function Parse_Conditional_Expression
+        return Tau.Expressions.Tau_Expression
+      is
+         Position : constant GCS.Positions.File_Position :=
+           GCS.Positions.Get_Current_Position;
+         Condition, True_Value, False_Value : Tau.Expressions.Tau_Expression;
+      begin
+         pragma Assert (Tok = Tok_If);
+         Scan;
+         Condition := Parse_Expression;
+
+         if Tok = Tok_Then then
+            Scan;
+         else
+            Error ("missing 'then'");
+         end if;
+
+         True_Value := Parse_Expression;
+
+         if Tok = Tok_Else then
+            Scan;
+         else
+            Error ("missing 'else'");
+         end if;
+
+         False_Value := Parse_Expression;
+
+         return Tau.Expressions.Condition
+           (Position, Condition, True_Value, False_Value);
+      end Parse_Conditional_Expression;
+
+      -------------------------
+      -- Parse_Function_Call --
+      -------------------------
 
       function Parse_Function_Call
         return Tau.Expressions.Tau_Expression
@@ -206,7 +252,11 @@ package body Tau.Parser is
       begin
          if Tok = Tok_Left_Paren then
             Scan;
-            Primary := Parse_Expression;
+            if Tok = Tok_If then
+               Primary := Parse_Conditional_Expression;
+            else
+               Primary := Parse_Expression;
+            end if;
             if Tok = Tok_Right_Paren then
                Scan;
             else
@@ -254,100 +304,22 @@ package body Tau.Parser is
         (Operator_Precedence'Last);
    end Parse_Expression;
 
-   --------------------------------
-   -- Parse_Material_Declaration --
-   --------------------------------
-
-   function Parse_Material_Declaration
-     (Is_Generic  : Boolean := False;
-      Is_Abstract : Boolean := False;
-      Formals     : Tau.Declarations.Lists.List :=
-        Tau.Declarations.Lists.Empty_List)
-      return Tau.Material.Tau_Material
-   is
-   begin
-
-      if Tok /= Tok_Material then
-         Error ("expected 'material'");
-         return null;
-      end if;
-
-      Scan;
-
-      declare
-         Position  : constant GCS.Positions.File_Position :=
-                       GCS.Positions.Get_Current_Position;
-         Name      : constant String := Parse_Qualified_Name;
-         Arguments : Tau.Declarations.Lists.List;
-         Shaders   : Tau.Shaders.Lists.List;
-      begin
-         if Name = "" then
-            return null;
-         end if;
-
-         if Tok = Tok_Left_Paren then
-            Scan;
-            Arguments := Parse_Object_Declarations (Formal_Argument_Context);
-            if Tok = Tok_Right_Paren then
-               Scan;
-            else
-               Error ("missing ')'");
-            end if;
-         end if;
-
-         if Tok = Tok_Is then
-            Scan;
-         else
-            Error ("missing 'is'");
-         end if;
-
-         Shaders := Parse_Shader_List;
-
-         if Tok = Tok_End then
-            Scan;
-            Scan_Matching_Qualified_Name (Name);
-         else
-            Error ("missing 'end " & Name & "'");
-         end if;
-
-         if Tok = Tok_Semicolon then
-            Scan;
-         else
-            Error ("missing ';'");
-         end if;
-
-         if Tok /= Tok_End_Of_File then
-            Error ("extra tokens ignored");
-         end if;
-
-         return Tau.Material.Create.New_Material
-           (Declaration     => Position,
-            Name            => Name,
-            Is_Generic      => Is_Generic,
-            Is_Abstract     => Is_Abstract,
-            Generic_Formals => Formals,
-            Arguments       => Arguments,
-            Shaders         => Shaders);
-      end;
-
-   end Parse_Material_Declaration;
-
    -------------------------------
    -- Parse_Object_Declarations --
    -------------------------------
 
-   function Parse_Object_Declarations
-     (Context : Object_Declaration_Context)
-      return Tau.Declarations.Lists.List
+   procedure Parse_Object_Declarations
+     (Context : Object_Declaration_Context;
+      Stage   : Tau.Shaders.Tau_Shader_Stage)
    is
-      Result    : Tau.Declarations.Lists.List;
    begin
       while Tok = Tok_Identifier loop
          declare
-            Names    : String_Lists.List;
+            Names     : String_Lists.List;
             Qualifier : Rho.Storage_Qualifier := Rho.Input;
-            Position : constant GCS.Positions.File_Position :=
-                         GCS.Positions.Get_Current_Position;
+            Position  : constant GCS.Positions.File_Position :=
+                          GCS.Positions.Get_Current_Position;
+            Aspects   : String_Maps.Map;
          begin
             while Tok = Tok_Identifier loop
                Names.Append (Tok_Text);
@@ -372,16 +344,16 @@ package body Tau.Parser is
 
             if Tok = Tok_In
               or else Tok = Tok_Out
-              or else Tok = Tok_Constant
+              or else Tok = Tok_Uniform
             then
-               if Context /= Formal_Argument_Context then
+               if Context /= Global_Context then
                   Error ("storage qualifier not allowed here");
                end if;
                if Tok = Tok_In then
                   Qualifier := Rho.Input;
                elsif Tok = Tok_Out then
                   Qualifier := Rho.Output;
-               elsif Tok = Tok_Constant then
+               elsif Tok = Tok_Uniform then
                   Qualifier := Rho.Uniform;
                else
                   raise Constraint_Error with
@@ -400,7 +372,7 @@ package body Tau.Parser is
                   Scan;
 
                   if Tok = Tok_Becomes then
-                     if Context /= Local_Declaration_Context then
+                     if Context = Global_Context then
                         Error ("initialization not allowed here");
                      end if;
 
@@ -408,26 +380,75 @@ package body Tau.Parser is
                      Initialization := Parse_Expression;
                   end if;
 
+                  if Tok = Tok_With then
+                     Scan;
+                     if Tok = Tok_Identifier then
+                        while Tok = Tok_Identifier loop
+                           declare
+                              Aspect_Name : constant String := Tok_Text;
+                           begin
+                              Scan;
+                              if Tok = Tok_Right_Arrow then
+                                 Scan;
+                                 if Tok = Tok_Identifier then
+                                    Aspects.Insert (Aspect_Name, Tok_Text);
+                                    Scan;
+                                 else
+                                    Error ("missing aspect value");
+                                 end if;
+                              else
+                                 Aspects.Insert (Aspect_Name, "true");
+                              end if;
+                              if Tok = Tok_Comma then
+                                 Scan;
+                                 if Tok /= Tok_Identifier then
+                                    Error ("missing aspect");
+                                 end if;
+                              elsif Tok = Tok_Identifier then
+                                 Error ("missing ','");
+                              end if;
+                           end;
+                        end loop;
+                     else
+                        Error ("missing aspect");
+                     end if;
+                  end if;
+
                   for Name of Names loop
                      declare
-                        Dec : Tau.Declarations.Tau_Declaration;
+                        use Tau.Shaders.Builder;
+                        Dec : constant Tau.Declarations.Tau_Declaration :=
+                                (if Context = Global_Context
+                                 then Declarations.Global_Variable_Declaration
+                                   (Position, Name, Qualifier, Type_Name)
+                                 else Declarations.Constant_Declaration
+                                   (Position, Name, Type_Name,
+                                    Initialization));
                      begin
+                        for Aspect in Aspects.Iterate loop
+                           Dec.Add_Aspect
+                             (Name  => String_Maps.Key (Aspect),
+                              Value => String_Maps.Element (Aspect));
+                        end loop;
+
                         case Context is
-                           when Formal_Argument_Context =>
-                              Dec :=
-                                Tau.Declarations.Global_Variable_Declaration
-                                  (Position, Name, Qualifier, Type_Name);
-                           when Generic_Formal_Context =>
-                              Dec :=
-                                Tau.Declarations.Generic_Formal_Declaration
-                                  (Position, Name, Type_Name);
-                           when Local_Declaration_Context =>
-                              Dec :=
-                                Tau.Declarations.Local_Variable_Declaration
-                                  (Position, Name, Type_Name,
-                                  Initialization);
+                           when Global_Context =>
+                              case Qualifier is
+                                 when Rho.Input =>
+                                    Add_In_Variable (Stage, Dec);
+                                 when Rho.Output =>
+                                    Add_Out_Variable (Stage, Dec);
+                                 when Rho.Uniform =>
+                                    Add_Uniform_Variable (Stage, Dec);
+                              end case;
+                           when Require_Context =>
+                              Add_Require (Stage, Dec);
+                           when Provide_Context =>
+                              Add_Provide (Stage, Dec);
+                           when Local_Context =>
+                              Add_Local (Stage, Dec);
                         end case;
-                        Result.Append (Dec);
+
                      end;
                   end loop;
                end;
@@ -435,20 +456,17 @@ package body Tau.Parser is
 
             if Tok = Tok_Semicolon then
                Scan;
-               if Context = Formal_Argument_Context
-                 and then Tok /= Tok_Identifier
-               then
-                  Error ("missing declaration");
-               end if;
             elsif Tok = Tok_Identifier then
                Error ("missing ';'");
             end if;
          end;
       end loop;
 
-      return Result;
-
    end Parse_Object_Declarations;
+
+   -------------------------
+   -- Parse_Property_List --
+   -------------------------
 
    procedure Parse_Property_List
      (Object : not null access Tau.Objects.Root_Tau_Object'Class)
@@ -536,143 +554,140 @@ package body Tau.Parser is
       end if;
    end Parse_Qualified_Name;
 
-   ------------------
-   -- Parse_Shader --
-   ------------------
-
-   function Parse_Shader return Tau.Shaders.Tau_Shader is
-   begin
-      if Tok /= Tok_Function then
-         Error ("expected 'function'");
-         return null;
-      end if;
-
-      Scan;
-
-      declare
-         Position : constant GCS.Positions.File_Position :=
-           GCS.Positions.Get_Current_Position;
-         Name     : constant String := Tok_Text;
-         Stage    : constant Rho.Shader_Stage :=
-           (if Name = "fragment_shader"
-            then Rho.Fragment_Shader
-            else Rho.Vertex_Shader);
-         Arguments : Tau.Declarations.Lists.List;
-      begin
-         Scan;
-
-         if Tok = Tok_Left_Paren then
-            Scan;
-
-            Arguments := Parse_Object_Declarations (Formal_Argument_Context);
-
-            if Tok = Tok_Right_Paren then
-               Scan;
-            else
-               Error ("missing ')'");
-            end if;
-         end if;
-
-         if Tok /= Tok_Return then
-            Error ("missing 'return'");
-         end if;
-
-         Scan;
-
-         declare
-            Return_Type_Name : constant String := Tok_Text;
-            pragma Unreferenced (Return_Type_Name);
-            Statements       : Tau.Statements.Lists.List;
-            Declarations     : Tau.Declarations.Lists.List;
-         begin
-
-            Scan;
-
-            if Tok = Tok_Is then
-               Scan;
-            else
-               Error ("missing 'is'");
-            end if;
-
-            if Tok = Tok_Left_Paren then
-               Scan;
-
-               declare
-                  Position   : constant GCS.Positions.File_Position :=
-                    GCS.Positions.Get_Current_Position;
-                  Expression : constant Tau.Expressions.Tau_Expression :=
-                    Parse_Expression;
-               begin
-                  if Tok = Tok_Right_Paren then
-                     Scan;
-                  else
-                     Error ("missing ')'");
-                  end if;
-
-                  Statements.Append
-                    (Tau.Statements.Return_Statement (Position, Expression));
-               end;
-
-            else
-
-               Declarations :=
-                 Parse_Object_Declarations (Local_Declaration_Context);
-
-               if Tok /= Tok_Begin then
-                  Error ("missing 'begin'");
-               else
-                  Scan;
-               end if;
-
-               Statements := Parse_Statement_List;
-
-               if Tok /= Tok_End then
-                  Error ("missing 'end " & Name & "'");
-               else
-                  Scan;
-
-                  if Tok /= Tok_Identifier then
-                     Error ("missing '" & Name & "'");
-                  else
-                     if Tok_Text /= Name then
-                        Error ("name does not match '" & Name & "'");
-                     end if;
-                     Scan;
-                  end if;
-
-               end if;
-
-            end if;
-
-            if Tok = Tok_Semicolon then
-               Scan;
-            else
-               Error ("missing ';'");
-            end if;
-
-            return Tau.Shaders.Create.New_Shader
-              (Declaration  => Position,
-               Name         => Name,
-               Stage        => Stage,
-               Arguments    => Arguments,
-               Declarations => Declarations,
-               Statements   => Statements);
-         end;
-      end;
-   end Parse_Shader;
-
    -----------------------
    -- Parse_Shader_List --
    -----------------------
 
-   function Parse_Shader_List return Tau.Shaders.Lists.List is
-      List : Tau.Shaders.Lists.List;
+   function Parse_Shader
+     (Is_Abstract : Boolean)
+      return Tau.Shaders.Tau_Shader
+   is
+      Position : constant GCS.Positions.File_Position :=
+                   GCS.Positions.Get_Current_Position;
+      Name : constant String := Parse_Qualified_Name;
+      Shader : constant Tau.Shaders.Tau_Shader :=
+                 Tau.Shaders.Builder.New_Shader
+                   (Position, Name, Is_Abstract);
    begin
-      while Tok = Tok_Function loop
-         List.Append (Parse_Shader);
+      if Tok = Tok_Colon then
+         Scan;
+         while Tok = Tok_Identifier loop
+            declare
+               Base : constant String := Parse_Qualified_Name
+                 with Unreferenced;
+            begin
+               if Tok = Tok_Comma then
+                  Scan;
+                  if Tok /= Tok_Identifier then
+                     Error ("extra ',' ignored");
+                  end if;
+               elsif Tok = Tok_Identifier then
+                  Error ("missing ','");
+               end if;
+            end;
+         end loop;
+      end if;
+
+      if Tok = Tok_Is then
+         Scan;
+      elsif Tok = Tok_Vertex
+        or else Tok = Tok_Fragment
+      then
+         Error ("missing 'is'");
+      else
+         Error ("missing shader body");
+         return Shader;
+      end if;
+
+      while Tok = Tok_Vertex or else Tok = Tok_Fragment loop
+         Tau.Shaders.Builder.Add_Stage
+           (Shader, Parse_Shader_Stage);
       end loop;
-      return List;
-   end Parse_Shader_List;
+
+      if Tok = Tok_End then
+         Scan;
+         Scan_Matching_Qualified_Name (Name);
+         if Tok = Tok_Semicolon then
+            Scan;
+         else
+            Error ("missing ';'");
+         end if;
+      else
+         Error ("missing 'end'");
+      end if;
+
+      return Shader;
+   end Parse_Shader;
+
+   ------------------------
+   -- Parse_Shader_Stage --
+   ------------------------
+
+   function Parse_Shader_Stage return Tau.Shaders.Tau_Shader_Stage is
+      Position : constant GCS.Positions.File_Position :=
+                   GCS.Positions.Get_Current_Position;
+      Stage    : constant Rho.Shader_Stage :=
+                   (if Tok = Tok_Vertex
+                    then Rho.Vertex_Shader
+                    elsif Tok = Tok_Fragment
+                    then Rho.Fragment_Shader
+                    else (raise Constraint_Error with
+                        "expected 'vertex' or 'fragment'"));
+      Start_Tok : constant String := Tok_Text;
+      Shader   : constant Tau.Shaders.Tau_Shader_Stage :=
+                   Tau.Shaders.Builder.New_Shader_Stage
+                     (Position => Position,
+                      Stage    => Stage);
+   begin
+      Scan;
+      Parse_Object_Declarations (Global_Context, Shader);
+
+      while Tok = Tok_Require
+        or else Tok = Tok_Provide
+        or else Tok = Tok_Local
+      loop
+         declare
+            Context : constant Object_Declaration_Context :=
+                        (if Tok = Tok_Require then Require_Context
+                         elsif Tok = Tok_Provide then Provide_Context
+                         else Local_Context);
+         begin
+            Scan;
+            Parse_Object_Declarations (Context, Shader);
+         end;
+      end loop;
+
+      if Tok = Tok_Begin then
+         Scan;
+         declare
+            Statements : constant Tau.Statements.Lists.List :=
+                           Parse_Statement_List;
+         begin
+            for Statement of Statements loop
+               Tau.Shaders.Builder.Add_Statement (Shader, Statement);
+            end loop;
+         end;
+      end if;
+
+      if Tok = Tok_End then
+         Scan;
+         if Tok_Text /= Start_Tok then
+            Error ("expected '" & Start_Tok & "'");
+         end if;
+         if Tok = Tok_Fragment or else Tok = Tok_Vertex then
+            Scan;
+         end if;
+      else
+         Error ("missing 'end '" & Start_Tok);
+      end if;
+      if Tok = Tok_Semicolon then
+         Scan;
+      else
+         Error ("missing ';'");
+      end if;
+
+      return Shader;
+   end Parse_Shader_Stage;
 
    ---------------------
    -- Parse_Statement --
@@ -741,77 +756,21 @@ package body Tau.Parser is
       return List;
    end Parse_Statement_List;
 
-   function Parse_Texture_Declaration
-     return Tau.Textures.Tau_Texture
-   is
-   begin
-      pragma Assert (Tok = Tok_Texture);
-      Scan;
-
-      declare
-         Position : constant GCS.Positions.File_Position :=
-           GCS.Positions.Get_Current_Position;
-         Name     : constant String := Parse_Qualified_Name;
-         Texture  : Tau.Textures.Tau_Texture;
-      begin
-         if Tok = Tok_Is then
-            Scan;
-         else
-            Error ("missing 'is'");
-         end if;
-
-         Texture :=
-           Tau.Textures.Create.New_Texture (Position, Name);
-
-         Parse_Property_List (Texture);
-
-         if Tok = Tok_End then
-            Scan;
-            Scan_Matching_Qualified_Name (Name);
-         else
-            Error ("missing 'end " & Name & "'");
-         end if;
-
-         if Tok = Tok_Semicolon then
-            Scan;
-         else
-            Error ("missing ';'");
-         end if;
-
-         return Texture;
-      end;
-   end Parse_Texture_Declaration;
-
    ---------------------------------
    -- Parse_Top_Level_Declaration --
    ---------------------------------
 
    function Parse_Top_Level_Declaration return Tau.Objects.Tau_Object is
       Is_Abstract : Boolean := False;
-      Is_Generic  : Boolean := False;
-      Generic_Formals : Tau.Declarations.Lists.List;
    begin
       if Tok = Tok_Abstract then
          Is_Abstract := True;
          Scan;
       end if;
 
-      if Tok = Tok_Generic then
-         Is_Generic := True;
+      if Tok = Tok_Shader then
          Scan;
-         Generic_Formals :=
-           Parse_Object_Declarations (Generic_Formal_Context);
-      end if;
-
-      if Tok = Tok_Material then
-         return Tau.Objects.Tau_Object
-           (Parse_Material_Declaration
-              (Is_Generic  => Is_Generic,
-               Is_Abstract => Is_Abstract,
-               Formals     => Generic_Formals));
-      elsif Tok = Tok_Texture then
-         return Tau.Objects.Tau_Object
-           (Parse_Texture_Declaration);
+         return Tau.Objects.Tau_Object (Parse_Shader (Is_Abstract));
       else
          Error ("expected a top level declaration");
          return null;

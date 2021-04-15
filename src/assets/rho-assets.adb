@@ -3,7 +3,6 @@ with Rho.Paths;
 
 with Tau.Objects;
 with Tau.Parser;
-with Tau.Textures;
 
 package body Rho.Assets is
 
@@ -96,57 +95,57 @@ package body Rho.Assets is
    -- Shader --
    ------------
 
---     function Shader
---       (Container : in out Root_Asset_Container_Type;
---        Name      : String)
---        return Rho.Shaders.Shader_Type
---     is
---        Asset_Class : Root_Asset_Container_Type'Class renames
---                        Root_Asset_Container_Type'Class (Container);
---        Path        : constant String :=
---                        Asset_Class.Find_File (Name, "rho");
---     begin
---        if Path = "" then
---           raise Constraint_Error with
---             "cannot find shader file " & Name & ".rho";
---        end if;
---
---        declare
---           Object  : constant Tau.Objects.Tau_Object :=
---                       Tau.Parser.Load_File (Path);
---           Shader  : constant Tau.Shaders.Tau_Shader :=
---                       Tau.Shaders.Tau_Shader (Object);
---        begin
---           return Container.Shader (Shader, null);
---        end;
---     end Shader;
+   function Shader
+     (Container : in out Root_Asset_Container_Type;
+      Name      : String)
+      return Tau.Shaders.Tau_Shader
+   is
+      Asset_Class : Root_Asset_Container_Type'Class renames
+                      Root_Asset_Container_Type'Class (Container);
+      Path        : constant String :=
+                      Asset_Class.Find_File (Name, "rho");
+   begin
+      if Path = "" then
+         raise Constraint_Error with
+           "cannot find shader file " & Name & ".rho";
+      end if;
+
+      declare
+         Object  : constant Tau.Objects.Tau_Object :=
+                     Tau.Parser.Load_File (Path);
+         Shader  : constant Tau.Shaders.Tau_Shader :=
+                     Tau.Shaders.Tau_Shader (Object);
+      begin
+         return Shader;
+      end;
+   end Shader;
 
    -------------
    -- Texture --
    -------------
 
-   function Texture
-     (Container : in out Root_Asset_Container_Type;
-      Name      : String)
-      return Rho.Textures.Texture_Type
-   is
-      Asset_Class : Root_Asset_Container_Type'Class renames
-        Root_Asset_Container_Type'Class (Container);
-      Path        : constant String :=
-        Asset_Class.Find_File (Name, "rho");
-   begin
-      if Path = "" then
-         raise Constraint_Error with
-           "cannot find texture file " & Name & ".rho";
-      end if;
-
-      declare
-         Texture : constant Tau.Textures.Tau_Texture :=
-           Tau.Parser.Load_Texture (Path);
-      begin
-         return Texture.Instantiate;
-      end;
-
-   end Texture;
+   --  function Texture
+   --    (Container : in out Root_Asset_Container_Type;
+   --     Name      : String)
+   --     return Rho.Textures.Texture_Type
+   --  is
+   --     Asset_Class : Root_Asset_Container_Type'Class renames
+   --       Root_Asset_Container_Type'Class (Container);
+   --     Path        : constant String :=
+   --       Asset_Class.Find_File (Name, "rho");
+   --  begin
+   --     if Path = "" then
+   --        raise Constraint_Error with
+   --          "cannot find texture file " & Name & ".rho";
+   --     end if;
+   --
+   --     declare
+   --        Texture : constant Tau.Textures.Tau_Texture :=
+   --          Tau.Parser.Load_Texture (Path);
+   --     begin
+   --        return Texture.Instantiate;
+   --     end;
+   --
+   --  end Texture;
 
 end Rho.Assets;

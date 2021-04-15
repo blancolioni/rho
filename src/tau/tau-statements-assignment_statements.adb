@@ -23,6 +23,44 @@ package body Tau.Statements.Assignment_Statements is
      (Statement : Assignment_Statement_Type;
       Generator : in out Tau.Generators.Root_Tau_Generator'Class);
 
+   overriding function Depends_On
+     (Statement : Assignment_Statement_Type;
+      Name      : String)
+      return Boolean
+   is (Name /= -(Statement.Name) and then Statement.Value.Depends_On (Name));
+
+   --------------------
+   -- Assigned_Value --
+   --------------------
+
+   function Assigned_Value
+     (Statement : Root_Tau_Statement'Class)
+      return Tau.Expressions.Tau_Expression
+   is
+   begin
+      if Statement in Assignment_Statement_Type'Class then
+         return Assignment_Statement_Type'Class (Statement).Value;
+      else
+         return null;
+      end if;
+   end Assigned_Value;
+
+   -----------------------
+   -- Assignment_Target --
+   -----------------------
+
+   function Assignment_Target
+     (Statement : Root_Tau_Statement'Class)
+      return String
+   is
+   begin
+      if Statement in Assignment_Statement_Type'Class then
+         return -Assignment_Statement_Type'Class (Statement).Name;
+      else
+         return "";
+      end if;
+   end Assignment_Target;
+
    -----------
    -- Check --
    -----------
@@ -53,8 +91,8 @@ package body Tau.Statements.Assignment_Statements is
    is
    begin
       Generator.Set_Value
-        (To_Name => Ada.Strings.Unbounded.To_String (Statement.Name),
-         Value   => Statement.Value.To_String (Generator));
+        (Generator.Normalize_Reference (-(Statement.Name)),
+         Statement.Value.To_String (Generator));
    end Compile;
 
    ------------

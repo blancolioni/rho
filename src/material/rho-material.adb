@@ -1,6 +1,33 @@
 with Rho.Shaders.Stages;
+with Tau.Generators;
 
 package body Rho.Material is
+
+   ----------------
+   -- Add_Shader --
+   ----------------
+
+   procedure Add_Shader
+     (Material : in out Root_Material_Type'Class;
+      Shader   : Tau.Shaders.Tau_Shader)
+   is
+   begin
+      Material.Compiler.Add_Shader (Shader);
+   end Add_Shader;
+
+   ----------------
+   -- Add_Shader --
+   ----------------
+
+   procedure Add_Shader
+     (Material    : in out Root_Material_Type'Class;
+      Shader_Name : String)
+   is
+   begin
+      if not Material.Shader_Names.Contains (Shader_Name) then
+         Material.Shader_Names.Append (Shader_Name);
+      end if;
+   end Add_Shader;
 
    ---------------
    -- Add_Slice --
@@ -43,22 +70,32 @@ package body Rho.Material is
          return;
       end if;
 
-      for Stage in Shaders'Range loop
-         declare
-            Shader : Rho.Shaders.Stages.Shader_Type renames
-                       Shaders (Stage);
-         begin
-            Shader :=
-              Rho.Shaders.Stages.Create
-                (Name  => Material.Name & "-" & Stage_Name (Stage),
-                 Stage => Stage);
-            Shader.Add_Slices (Target.Active_Shader_Slices);
-            Shader.Add_Slices
-              (Root_Material_Type'Class (Material).Shader_Slices);
-            Shader.Build;
-            Target.Compile_Shader (Shader);
-         end;
+      for Shader of Target.Active_Shaders loop
+         Material.Compiler.Add_Shader (Shader);
       end loop;
+
+      Material.Compiler.Link;
+
+      declare
+         Gen : Tau.Generators.Root_Tau_Generator'Class := Target.Generator;
+      begin
+         Gen.Start (Material.Name);
+         Material.Compiler.Generate (Gen);
+
+         for Stage in Shader_Stage loop
+            declare
+               Shader : Rho.Shaders.Stages.Shader_Type renames
+                          Shaders (Stage);
+            begin
+               Shader :=
+                 Rho.Shaders.Stages.Create
+                   (Name  => Material.Name & "-" & Stage_Name (Stage),
+                    Stage => Stage,
+                    Source => Gen.Shader_Source (Stage));
+               Target.Compile_Shader (Shader);
+            end;
+         end loop;
+      end;
 
       Material.Program :=
         Target.Create_Program
@@ -93,6 +130,14 @@ package body Rho.Material is
       if Material.Loaded then
          return;
       end if;
+
+      Material.Compiler.Add_Shader
+        (Target.Assets.Shader ("rho-shaders-material"));
+
+      for Shader_Name of Material.Shader_Names loop
+         Material.Compiler.Add_Shader
+           (Target.Assets.Shader (Shader_Name));
+      end loop;
 
       for Texture of Material.Textures loop
          Texture.Load (Target);

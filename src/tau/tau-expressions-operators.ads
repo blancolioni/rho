@@ -4,7 +4,10 @@ private package Tau.Expressions.Operators is
      (Op_Add,
       Op_Subtract,
       Op_Multiply,
-      Op_Divide);
+      Op_Divide,
+      Op_Power,
+      Op_Equal,
+      Op_Not_Equal);
 
    type Prefix_Operator_Type is
      (Op_Plus, Op_Minus);

@@ -8,7 +8,8 @@ package Rho.Material.Basic is
       return Material_Type;
 
    function Create_Basic_Material
-     (Texture : Rho.Textures.Texture_Type)
+     (Texture : not null access
+        Rho.Textures.Root_Texture_Type'Class)
       return Material_Type;
 
 end Rho.Material.Basic;

@@ -3,6 +3,7 @@ with Ada.Float_Text_IO;
 
 with GL.Debug;
 with GL_Errors;
+with GL_Constants;
 
 package body GL is
 
@@ -896,7 +897,7 @@ package body GL is
 
       if Debug_Active then
          Ada.Text_IO.Put_Line
-           ("glUniform" & Program'Img & " -> " & Result'Img);
+           ("glUniform" & Program'Img & " " & Name & " -> " & Result'Img);
       end if;
 
       return Result;
@@ -1217,7 +1218,19 @@ package body GL is
 
       Error := Get_Error;
       if Error /= 0 then
-         raise Program_Error with GL.Debug.Image (Error);
+         declare
+            Message : constant String := GL.Debug.Image (Error);
+            type Get_Integer_Fn is access
+              procedure (Pname : GL_Types.GLenum;
+                         Data  : access GL_Types.Int);
+            pragma Convention (C, Get_Integer_Fn);
+            Proc    : Get_Integer_Fn;
+            pragma Import (C, Proc, "_ptrc_glGetIntegerv");
+            X       : aliased GL_Types.Int;
+         begin
+            Proc (GL_Constants.GL_CURRENT_PROGRAM, X'Access);
+            raise Program_Error with Message & ": current program" & X'Image;
+         end;
       end if;
    end Uniform;
 

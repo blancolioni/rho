@@ -1,3 +1,4 @@
+with Rho.Lights.Ambient;
 with Rho.Material.Basic;
 
 with Rho.Demos.Rotating_Cube;
@@ -39,12 +40,22 @@ package body Rho.Demos.Texture_Demo is
       Handle : Rho.Handles.Handle;
       Window : Rho.Windows.Window_Type)
    is
-      Material : constant Rho.Material.Material_Type :=
-                   Rho.Material.Basic.Create_Basic_Material
-                     (Handle.Assets.Create_Texture_From_Image
-                        ("config/images/ada-mascot"));
+      Side : constant Rho.Material.Material_Type :=
+               Rho.Material.Basic.Create_Basic_Material
+                 (Handle.Assets.Create_Texture_From_Image
+                    ("config/images/grass_block_side"));
+      Top  : constant Rho.Material.Material_Type :=
+               Rho.Material.Basic.Create_Basic_Material
+                 (Handle.Assets.Create_Texture_From_Image
+                    ("config/images/grass_block_top"))
+        with Unreferenced;
    begin
-      Demo.Initialize (Handle, Window, Material);
+      Demo.Initialize (Handle, Window, Side);
+      Demo.Scene.Add
+        (Rho.Lights.Ambient.Ambient_Light
+           (Color     => (1.0, 1.0, 1.0, 1.0),
+            Intensity => 1.0));
+      --  (Side, Side, Side, Side, Top, Top));
       Demo.Start;
    end Execute;
 

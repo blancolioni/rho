@@ -4,8 +4,6 @@ with Ada.Text_IO;
 
 with WL.Command_Line;
 
-with Tau.Library;
-
 with Rho.Handles.OpenGL;
 with Rho.Handles.Simulation;
 
@@ -29,8 +27,6 @@ begin
    WL.Command_Line.Load_Defaults (".rho-options");
 
    Rho.Logging.Start_Logging;
-
-   Tau.Library.Load_Library;
 
    Rho.Demos.Load_Demos;
 

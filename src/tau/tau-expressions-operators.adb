@@ -1,3 +1,4 @@
+with Ada.Characters.Handling;
 with Ada.Containers.Doubly_Linked_Lists;
 
 with Tau.Types.Standard;
@@ -29,10 +30,13 @@ package body Tau.Expressions.Operators is
      (Operator : Infix_Operator_Type)
       return String
    is (case Operator is
-          when Op_Add => "+",
-          when Op_Divide => "/",
-          when Op_Multiply => "*",
-          when Op_Subtract => "-");
+          when Op_Add       => "+",
+          when Op_Divide    => "/",
+          when Op_Multiply  => "*",
+          when Op_Subtract  => "-",
+          when Op_Power     => "pow",
+          when Op_Equal     => "==",
+          when Op_Not_Equal => "!=");
 
    procedure Check_Operator_Table;
 
@@ -68,15 +72,8 @@ package body Tau.Expressions.Operators is
 
    overriding function To_String
      (Expression : Infix_Expression_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
-      return String
-   is ("("
-       & Expression.Left.To_String (Generator)
-       & " "
-       & Operator_Name (Expression.Operator)
-       & " "
-       & Expression.Right.To_String (Generator)
-       & ")");
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      return String;
 
    -----------------
    -- Check_Names --
@@ -311,5 +308,36 @@ package body Tau.Expressions.Operators is
       Expression.Initialize_Node (Left.Defined_At);
       return new Infix_Expression_Type'(Expression);
    end Operate;
+
+   ---------------
+   -- To_String --
+   ---------------
+
+   overriding function To_String
+     (Expression : Infix_Expression_Type;
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
+      return String
+   is
+      use Ada.Characters.Handling;
+      Op : constant String := Operator_Name (Expression.Operator);
+   begin
+      if Is_Letter (Op (Op'First)) then
+         return Op
+           & "("
+           & Expression.Left.To_String (Generator)
+           & ","
+           & Expression.Right.To_String (Generator)
+           & ")";
+      else
+         return
+           "("
+           & Expression.Left.To_String (Generator)
+           & " "
+           & Op
+           & " "
+           & Expression.Right.To_String (Generator)
+           & ")";
+      end if;
+   end To_String;
 
 end Tau.Expressions.Operators;

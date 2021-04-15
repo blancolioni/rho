@@ -23,7 +23,7 @@ package body Tau.Expressions.Aggregates is
 
    overriding function To_String
      (Expression : Aggregate_Expression_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
       return String;
 
    ---------------
@@ -128,7 +128,7 @@ package body Tau.Expressions.Aggregates is
 
    overriding function To_String
      (Expression : Aggregate_Expression_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
       return String
    is
       function Image (Agg : Tau_Expression_Array) return String

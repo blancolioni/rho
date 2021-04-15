@@ -1,19 +1,5 @@
 package body Tau is
 
-   --------------
-   -- Children --
-   --------------
-
-   function Children
-     (Node : Root_Tau_Node)
-      return Tau_Node_Array
-   is
-      pragma Unreferenced (Node);
-      Result : Tau_Node_Array (1 .. 0);
-   begin
-      return Result;
-   end Children;
-
    ------------------
    -- Clear_Errors --
    ------------------
@@ -27,6 +13,20 @@ package body Tau is
          Child.Clear_Errors;
       end loop;
    end Clear_Errors;
+
+   ----------------
+   -- Depends_On --
+   ----------------
+
+   function Depends_On
+     (Node : Root_Tau_Node;
+      Name : String)
+      return Boolean
+   is
+   begin
+      return (for some Child of Root_Tau_Node'Class (Node).Children =>
+                Child.Depends_On (Name));
+   end Depends_On;
 
    -----------
    -- Error --

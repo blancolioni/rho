@@ -29,7 +29,7 @@ package body Tau.Expressions.Functions is
 
    overriding function To_String
      (Expression : Function_Expression_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
       return String;
 
    -----------
@@ -206,9 +206,10 @@ package body Tau.Expressions.Functions is
 
    overriding function To_String
      (Expression : Function_Expression_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
          return String
    is
+      use type Tau.Entries.Tau_Entry;
       function Image (Agg : Tau_Expression_Array) return String
       is (if Agg'Length = 0
           then ""
@@ -218,12 +219,15 @@ package body Tau.Expressions.Functions is
           & Image (Agg (Agg'First + 1 .. Agg'Last)));
 
       Name : constant String :=
-        (if Expression.Function_Entry.Is_Type_Entry
-         then Generator.Shader_Type_Name
-           (Expression.Function_Entry.Name)
-         else
-            Generator.Shader_Function_Name
-              (Expression.Function_Entry.Name));
+               (if Expression.Function_Entry = null
+                then Generator.Shader_Function_Name
+                (-Expression.Function_Name)
+                elsif Expression.Function_Entry.Is_Type_Entry
+                then Generator.Shader_Type_Name
+                  (Expression.Function_Entry.Name)
+                else
+                   Generator.Shader_Function_Name
+                  (Expression.Function_Entry.Name));
    begin
       return Name & "(" & Image (Expression.Values.Element) & ")";
    end To_String;

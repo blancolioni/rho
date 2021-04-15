@@ -30,7 +30,7 @@ package body Tau.Expressions.Properties is
 
    overriding function To_String
      (Expression : Property_Expression_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
       return String;
 
    -----------------
@@ -108,7 +108,7 @@ package body Tau.Expressions.Properties is
 
    overriding function To_String
      (Expression : Property_Expression_Type;
-      Generator  : in out Tau.Generators.Root_Tau_Generator'Class)
+      Generator  : Tau.Generators.Root_Tau_Generator'Class)
       return String
    is
       Name : constant String :=

@@ -89,4 +89,18 @@ package body Rho.Handles.OpenGL.Maps is
       return Map.Element (Guid);
    end Get_Id;
 
+   ------------
+   -- Has_Id --
+   ------------
+
+   function Has_Id
+     (Map        : Id_Maps.Map;
+      Object     : not null access Rho.Objects.Root_Object_Type'Class)
+      return Boolean
+   is
+      Guid : constant WL.Guids.Guid := Object.Guid;
+   begin
+      return Map.Contains (Guid);
+   end Has_Id;
+
 end Rho.Handles.OpenGL.Maps;

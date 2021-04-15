@@ -29,6 +29,10 @@ package body Rho.Lights is
    begin
       Rho.Nodes.Root_Node_Type (Light).Load (Target);
 
+      Target.Add_Shader
+        (Target.Assets.Shader
+           ("rho-shaders-light"));
+
       Light.Add_Slice
         (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
            (Fragment_Shader, "model", "mat4"));

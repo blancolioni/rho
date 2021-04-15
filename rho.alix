@@ -19,6 +19,8 @@ source_dir = src/render
 source_dir = src/scenes
 source_dir = src/shaders
 source_dir = src/tau
+source_dir = src/tau/compiler
+source_dir = src/tau/parser
 source_dir = src/textures
 source_dir = src/windows
 depend = { project = wlib version = any }
