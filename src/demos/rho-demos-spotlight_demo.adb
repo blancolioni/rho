@@ -46,14 +46,18 @@ package body Rho.Demos.Spotlight_Demo is
       Side : constant Rho.Material.Material_Type :=
                Rho.Material.Simple.Create_Simple_Material
                  (Handle.Assets.Create_Texture_From_Image
-                    ("config/images/grass_block_side"));
+                    ("config/images/tnt_side"));
       Top  : constant Rho.Material.Material_Type :=
                Rho.Material.Simple.Create_Simple_Material
                  (Handle.Assets.Create_Texture_From_Image
-                    ("config/images/grass_block_top"));
+                    ("config/images/tnt_top"));
+      Bottom  : constant Rho.Material.Material_Type :=
+               Rho.Material.Simple.Create_Simple_Material
+                 (Handle.Assets.Create_Texture_From_Image
+                    ("config/images/tnt_bottom"));
    begin
       Demo.Initialize (Handle, Window,
-                       (Side, Side, Top, Top, Side, Side));
+                       (Side, Side, Top, Bottom, Side, Side));
       Demo.Ambient :=
         Rho.Lights.Ambient.Ambient_Light
           (Color     => (0.2, 0.2, 0.2, 1.0),
