@@ -1,0 +1,3 @@
+texture Rho.Textures.Earth is
+   Image = "earth-physical";
+end Rho.Textures.Earth;
