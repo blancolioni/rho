@@ -1,5 +1,6 @@
 with Ada.Characters.Latin_1;
 with Ada.Containers.Vectors;
+with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
@@ -25,7 +26,6 @@ with WL.String_Maps;
 with Rho.Buffers;
 with Rho.Color;
 with Rho.Matrices;
-with Rho.Rectangles;
 with Rho.Shaders.Slices.Attributes;
 with Rho.Shaders.Slices.Main;
 with Rho.Shaders.Slices.Preamble;
@@ -705,7 +705,12 @@ package body Rho.Handles.OpenGL is
    is
       Surface : Cairo.Cairo_Surface;
    begin
-      Surface := Cairo.Png.Create_From_Png (Path & ".png");
+
+      if Ada.Directories.Extension (Path) = "" then
+         Surface := Cairo.Png.Create_From_Png (Path & ".png");
+      else
+         Surface := Cairo.Png.Create_From_Png (Path);
+      end if;
 
       case Cairo.Surface.Status (Surface) is
          when Cairo.Cairo_Status_Success =>
