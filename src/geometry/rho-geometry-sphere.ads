@@ -5,7 +5,7 @@ package Rho.Geometry.Sphere is
       Width_Segments  : Positive := 8;
       Height_Segments : Positive := 8;
       Theta_Start     : Real := 0.0;
-      Theta_Length    : Real := 360.0;
+      Theta_Length    : Real := 180.0;
       Phi_Start       : Real := 0.0;
       Phi_Length      : Real := 360.0)
       return Geometry_Type

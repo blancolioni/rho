@@ -11,7 +11,7 @@ package body Rho.Geometry.Sphere is
       Width_Segments  : Positive := 8;
       Height_Segments : Positive := 8;
       Theta_Start     : Real := 0.0;
-      Theta_Length    : Real := 360.0;
+      Theta_Length    : Real := 180.0;
       Phi_Start       : Real := 0.0;
       Phi_Length      : Real := 360.0)
       return Geometry_Type
@@ -48,7 +48,9 @@ package body Rho.Geometry.Sphere is
                                (X => -Radius * Cos (Phi) * Sin (Theta),
                                 Y => Radius * Cos (Theta),
                                 Z => Radius * Sin (Phi) * Sin (Theta));
+
                begin
+
                   Geometry.Vertex (Vertex);
                   Geometry.Normal (Rho.Matrices.Normalize (Vertex));
                   Geometry.Texture (Unit_Clamp (U + U_Offset),
@@ -77,6 +79,7 @@ package body Rho.Geometry.Sphere is
             end;
          end loop;
       end loop;
+
       return Geometry;
 
    end Sphere_Geometry;
