@@ -40,6 +40,8 @@ package Rho.Material is
 
    type Material_Type is access all Root_Material_Type'Class;
 
+   type Material_Array is array (Positive range <>) of Material_Type;
+
 private
 
    package Texture_Vectors is
