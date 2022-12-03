@@ -6,6 +6,7 @@ with WL.String_Maps;
 with Rho.Signals;
 
 --  with Rho.Demos.Ambient_Light;
+with Rho.Demos.Cobra_Demo;
 with Rho.Demos.Cube_Demo;
 --  with Rho.Demos.Depth_Demo;
 with Rho.Demos.Earth;
@@ -88,6 +89,7 @@ package body Rho.Demos is
       Load (White_Square_Demo.Load);
 --        Load (Ambient_Light.Load);
       Load (Cube_Demo.Load);
+      Load (Cobra_Demo.Load);
       Load (Earth.Load);
       --  Load (Depth_Demo.Load);
       Load (Spotlight_Demo.Load);

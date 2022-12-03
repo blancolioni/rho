@@ -10,6 +10,7 @@ source_dir = src/handles
 source_dir = src/handles/opengl
 source_dir = src/handles/simulation
 source_dir = src/lights
+source_dir = src/loaders
 source_dir = src/logging
 source_dir = src/matrices
 source_dir = src/material
