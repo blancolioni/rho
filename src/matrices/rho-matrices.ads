@@ -59,6 +59,17 @@ package Rho.Matrices is
    function "+" (Left, Right : Vector_3) return Vector_3;
    function "-" (Left, Right : Vector_3) return Vector_3;
 
+   function "+" (Left, Right : Vector_3) return Vector_3;
+   function "-" (Left, Right : Vector_3) return Vector_3;
+
+   function "*" (Left : Real; Right : Vector_3) return Vector_3;
+   function "*" (Left : Vector_3; Right : Real) return Vector_3;
+   function "/" (Left : Vector_3; Right : Real) return Vector_3
+     with Pre => Right /= 0.0;
+
+   function "*" (Left, Right : Vector_3) return Vector_3;
+   function "*" (Left, Right : Vector_3) return Real;
+
    function X (Vector : Vector_4) return Real;
    function Y (Vector : Vector_4) return Real;
    function Z (Vector : Vector_4) return Real;
@@ -199,6 +210,31 @@ private
        (Vector.Vector (1) ** 2
         + Vector.Vector (2) ** 2
         + Vector.Vector (3) ** 2));
+
+   function "+" (Left, Right : Vector_3) return Vector_3
+   is (Vector => (Left.Vector (1) + Right.Vector (1),
+                  Left.Vector (2) + Right.Vector (2),
+                  Left.Vector (3) + Right.Vector (3)));
+
+   function "-" (Left, Right : Vector_3) return Vector_3
+   is (Vector => (Left.Vector (1) - Right.Vector (1),
+                  Left.Vector (2) - Right.Vector (2),
+                  Left.Vector (3) - Right.Vector (3)));
+
+   function "*" (Left : Real; Right : Vector_3) return Vector_3
+   is (Vector => (Left * Right.Vector (1),
+                  Left * Right.Vector (2),
+                  Left * Right.Vector (3)));
+
+   function "*" (Left : Vector_3; Right : Real) return Vector_3
+   is (Vector => (Left.Vector (1) * Right,
+                  Left.Vector (2) * Right,
+                  Left.Vector (3) * Right));
+
+   function "/" (Left : Vector_3; Right : Real) return Vector_3
+   is (Vector => (Left.Vector (1) / Right,
+                  Left.Vector (2) / Right,
+                  Left.Vector (3) / Right));
 
    type Vector_2 is
       record
