@@ -1,7 +1,6 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 
 private with Tau.Declarations.Lists;
-private with Tau.Environment;
 private with Tau.Statements.Lists;
 
 with Rho;

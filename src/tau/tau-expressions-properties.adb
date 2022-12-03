@@ -1,8 +1,6 @@
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
-with Tau.Entries;
-
 package body Tau.Expressions.Properties is
 
    type Property_Expression_Type is

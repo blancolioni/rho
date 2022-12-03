@@ -1,7 +1,6 @@
 with Ada.Strings.Unbounded;
 
 with Tau.Entries;
-with Tau.Function_Objects;
 
 package body Tau.Expressions.Functions is
 

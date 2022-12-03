@@ -118,7 +118,7 @@ package body Tau.Generators is
    begin
       return Generator : constant Null_Generator_Record :=
         Null_Generator_Record'
-          (others => <>);
+          (Root_Tau_Generator with null record);
    end Null_Generator;
 
    ------------------

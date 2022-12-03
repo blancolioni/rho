@@ -1,7 +1,6 @@
 private with Ada.Strings.Unbounded;
 
 with Rho.Objects;
-with Rho.Rectangles;
 
 with Rho.Shaders.Slices;
 with Rho.Render;
