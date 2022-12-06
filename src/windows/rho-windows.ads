@@ -49,6 +49,10 @@ package Rho.Windows is
      (Window : in out Root_Window_Type'Class;
       Camera : not null access Rho.Cameras.Root_Camera_Type'Class);
 
+   function Scene
+     (Window : Root_Window_Type'Class)
+      return Rho.Scenes.Scene_Type;
+
    procedure Set_Scene
      (Window : in out Root_Window_Type'Class;
       Scene  : not null access Rho.Scenes.Root_Scene_Type'Class);
@@ -77,6 +81,11 @@ private
      (Window : Root_Window_Type'Class)
       return Rho.Color.Color_Type
    is (Window.Clear_Color);
+
+   function Scene
+     (Window : Root_Window_Type'Class)
+      return Rho.Scenes.Scene_Type
+   is (Window.Scene);
 
    function Wireframe
      (Window : Root_Window_Type'Class)

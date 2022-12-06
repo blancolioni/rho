@@ -44,6 +44,14 @@ package Rho.Handles is
      (Handle : in out Root_Handle_Type)
    is abstract;
 
+   procedure Set_Active_Window
+     (Handle : in out Root_Handle_Type;
+      Window : Rho.Windows.Window_Type);
+
+   function Active_Window
+     (Handle : Root_Handle_Type)
+      return Rho.Windows.Window_Type;
+
    function Assets
      (Handle : Root_Handle_Type)
       return Rho.Assets.Asset_Container_Type;
@@ -59,8 +67,14 @@ private
    type Root_Handle_Type is abstract tagged limited
       record
          Windows : Window_Lists.List;
+         Active  : Rho.Windows.Window_Type;
          Assets  : Rho.Assets.Asset_Container_Type;
       end record;
+
+   function Active_Window
+     (Handle : Root_Handle_Type)
+      return Rho.Windows.Window_Type
+   is (Handle.Active);
 
    function Assets
      (Handle : Root_Handle_Type)

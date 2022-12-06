@@ -1,36 +1,21 @@
-with Ada.Containers.Indefinite_Holders;
-
 package body Rho.Handles is
 
-   package Signal_Holders is
-     new Ada.Containers.Indefinite_Holders
-       (Rho.Signals.Signal_Type, Rho.Signals."=");
+   After_Render : constant Rho.Signals.Signal_Type :=
+                     Rho.Signals.New_Signal ("signal-after-render");
+   Before_Render : constant Rho.Signals.Signal_Type :=
+                            Rho.Signals.New_Signal ("signal-before-render");
 
-   Before_Render_Holder : Signal_Holders.Holder;
-   After_Render_Holder  : Signal_Holders.Holder;
+   -----------------------
+   -- Set_Active_Window --
+   -----------------------
 
-   function Get_Signal
-     (Holder : in out Signal_Holders.Holder;
-      Name   : String)
-      return Rho.Signals.Signal_Type;
-
-   ----------------
-   -- Get_Signal --
-   ----------------
-
-   function Get_Signal
-     (Holder : in out Signal_Holders.Holder;
-      Name   : String)
-      return Rho.Signals.Signal_Type
+   procedure Set_Active_Window
+     (Handle : in out Root_Handle_Type;
+      Window : Rho.Windows.Window_Type)
    is
    begin
-      if Holder.Is_Empty then
-         Holder := Signal_Holders.To_Holder (Rho.Signals.New_Signal (Name));
-      end if;
-
-      pragma Assert (Rho.Signals.Signal_Name (Holder.Element) = Name);
-      return Holder.Element;
-   end Get_Signal;
+      Handle.Active := Window;
+   end Set_Active_Window;
 
    -------------------------
    -- Signal_After_Render --
@@ -38,7 +23,7 @@ package body Rho.Handles is
 
    function Signal_After_Render return Rho.Signals.Signal_Type is
    begin
-      return Get_Signal (After_Render_Holder, "signal-after-render");
+      return After_Render;
    end Signal_After_Render;
 
    --------------------------
@@ -47,7 +32,7 @@ package body Rho.Handles is
 
    function Signal_Before_Render return Rho.Signals.Signal_Type is
    begin
-      return Get_Signal (Before_Render_Holder, "signal-before-render");
+      return Before_Render;
    end Signal_Before_Render;
 
 end Rho.Handles;

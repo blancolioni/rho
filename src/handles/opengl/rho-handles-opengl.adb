@@ -26,6 +26,7 @@ with WL.String_Maps;
 with Rho.Buffers;
 with Rho.Color;
 with Rho.Matrices;
+with Rho.Nodes.Signals;
 with Rho.Shaders.Slices.Attributes;
 with Rho.Shaders.Slices.Main;
 with Rho.Shaders.Slices.Preamble;
@@ -282,6 +283,12 @@ package body Rho.Handles.OpenGL is
      (Width, Height : Integer);
 
    procedure Idle_Handler;
+
+   procedure Mouse_Button_Handler
+     (Button : Integer;
+      State  : Integer;
+      X      : Integer;
+      Y      : Integer);
 
    function To_GL_Float_Array
      (Matrix : Rho.Matrices.Matrix_4)
@@ -777,7 +784,7 @@ package body Rho.Handles.OpenGL is
 
       GLUT.Display_Function (Display_Handler'Access);
       GLUT.Reshape_Function (Reshape_Handler'Access);
---        GLUT.Mouse_Function (Mouse_Button_Handler'Access);
+      GLUT.Mouse_Function (Mouse_Button_Handler'Access);
 --        GLUT.Motion_Function (Mouse_Move_Handler'Access);
 --        GLUT.Passive_Motion_Function (Mouse_Move_Handler'Access);
 --        GLUT.Keyboard_Function (Key_Down_Handler'Access);
@@ -806,6 +813,7 @@ package body Rho.Handles.OpenGL is
               (GL.Get_String (GL_Constants.GL_VERSION)));
 
          Handle.Windows.Append (Window);
+         Handle.Set_Active_Window (Window);
 
 --           GL.Polygon_Mode
 --             (GL_Constants.GL_FRONT_AND_BACK,
@@ -1119,6 +1127,37 @@ package body Rho.Handles.OpenGL is
    begin
       GLUT.Main_Loop;
    end Main_Loop;
+
+   --------------------------
+   -- Mouse_Button_Handler --
+   --------------------------
+
+   procedure Mouse_Button_Handler
+     (Button : Integer;
+      State  : Integer;
+      X      : Integer;
+      Y      : Integer)
+   is
+   begin
+      case Button is
+         when 0 | 1 | 2 =>
+            declare
+               Signal : constant Rho.Signals.Signal_Type :=
+                          (if State = 0
+                           then Rho.Nodes.Signals.Button_Press_Signal
+                           else Rho.Nodes.Signals.Button_Release_Signal);
+            begin
+               Local_Handle.Current_Renderer.Emit_Signal
+                 (Object => Local_Handle.Active_Window.Scene,
+                  Signal => Signal,
+                  Data   =>
+                    Rho.Nodes.Signals.Button_Signal_Data'
+                      (Button, X, Y));
+            end;
+         when others =>
+            null;
+      end case;
+   end Mouse_Button_Handler;
 
    ---------------
    -- Read_File --
