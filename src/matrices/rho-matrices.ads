@@ -56,8 +56,6 @@ package Rho.Matrices is
    function Z (Vector : Vector_3) return Real;
 
    function "abs" (Vector : Vector_3) return Non_Negative_Real;
-   function "+" (Left, Right : Vector_3) return Vector_3;
-   function "-" (Left, Right : Vector_3) return Vector_3;
 
    function "+" (Left, Right : Vector_3) return Vector_3;
    function "-" (Left, Right : Vector_3) return Vector_3;
@@ -252,16 +250,6 @@ private
    function Normalize (Vector : Vector_3) return Vector_3
    is (Vector => Real_Arrays."/" (Vector.Vector,
                                   Real_Arrays."abs" (Vector.Vector)));
-
-   function "+" (Left, Right : Vector_3) return Vector_3
-   is (Vector => (Left.Vector (1) + Right.Vector (1),
-                  Left.Vector (2) + Right.Vector (2),
-                  Left.Vector (3) + Right.Vector (3)));
-
-   function "-" (Left, Right : Vector_3) return Vector_3
-   is (Vector => (Left.Vector (1) - Right.Vector (1),
-                  Left.Vector (2) - Right.Vector (2),
-                  Left.Vector (3) - Right.Vector (3)));
 
    function To_Vector (X, Y : Real) return Vector_2
    is (Vector => (X, Y));
