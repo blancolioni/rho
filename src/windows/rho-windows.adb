@@ -2,6 +2,18 @@ with Rho.Handles;
 
 package body Rho.Windows is
 
+   ------------
+   -- Add_UI --
+   ------------
+
+   procedure Add_UI
+     (Window : not null access Root_Window_Type'Class;
+      Top    : Rho.UI.Widget.Reference)
+   is
+   begin
+      Window.UIs.Append (Top);
+   end Add_UI;
+
    -----------------------
    -- Initialize_Window --
    -----------------------
@@ -14,6 +26,22 @@ package body Rho.Windows is
    begin
       Window.Initialize_Rectangle (X, Y, Width, Height);
    end Initialize_Window;
+
+   ---------------
+   -- Remove_UI --
+   ---------------
+
+   procedure Remove_UI
+     (Window : not null access Root_Window_Type'Class;
+      Top    : Rho.UI.Widget.Reference)
+   is
+      use Rho_Widget_Lists;
+      Position : Cursor := Window.UIs.Find (Top);
+   begin
+      if Has_Element (Position) then
+         Window.UIs.Delete (Position);
+      end if;
+   end Remove_UI;
 
    ------------
    -- Render --
