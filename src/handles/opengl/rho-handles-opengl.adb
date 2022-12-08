@@ -35,6 +35,7 @@ with Rho.Shaders.Stages;
 with Rho.Shaders.Variables;
 with Rho.Signals;
 with Rho.Signals.Buttons;
+with Rho.Signals.Configure;
 with Rho.Signals.Pointer;
 with Rho.Textures;
 with Rho.Values;
@@ -178,6 +179,11 @@ package body Rho.Handles.OpenGL is
    overriding procedure Set_Model_View_Matrix
      (Target : in out OpenGL_Render_Target;
       Matrix : Rho.Matrices.Matrix_4);
+
+   overriding procedure Set_Size
+     (Render : in out OpenGL_Render_Target;
+      Width  : Natural;
+      Height : Natural);
 
    overriding procedure Set_Camera_Position
      (Target : in out OpenGL_Render_Target;
@@ -1244,7 +1250,12 @@ package body Rho.Handles.OpenGL is
      (Width, Height : Integer)
    is
    begin
-      null;
+      Local_Handle.Current_Renderer.Set_Size (Width, Height);
+      Local_Handle.Current_Renderer.Emit_Signal
+        (Object => Local_Handle.Active_Window.Scene,
+         Signal => Rho.Signals.Configure.Configure_Signal,
+         Data   =>
+           Rho.Signals.Configure.Configure_Data'(Width, Height));
    end Reshape_Handler;
 
    -------------------------
@@ -1282,6 +1293,19 @@ package body Rho.Handles.OpenGL is
    begin
       Target.Active_Projection := Matrix;
    end Set_Projection_Matrix;
+
+   --------------
+   -- Set_Size --
+   --------------
+
+   overriding procedure Set_Size
+     (Render : in out OpenGL_Render_Target;
+      Width  : Natural;
+      Height : Natural)
+   is
+   begin
+      GL.Viewport (0, 0, GL_Types.Sizei (Width), GL_Types.Sizei (Height));
+   end Set_Size;
 
    --------------------
    -- To_Color_Array --
