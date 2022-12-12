@@ -1,6 +1,10 @@
 with WL.String_Maps;
 
+with Rho.UI.Widget.Div;
+with Rho.UI.Widget.Head;
+with Rho.UI.Widget.Link;
 with Rho.UI.Widget.Main_Root;
+with Rho.UI.Widget.Title;
 
 package body Rho.UI.Builder is
 
@@ -18,7 +22,23 @@ package body Rho.UI.Builder is
       Root   : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
       return Rho.UI.Widget.Reference;
 
+   function Create_Div
+     (Root : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
+      return Rho.UI.Widget.Reference;
+
+   function Create_Head
+     (Root : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
+      return Rho.UI.Widget.Reference;
+
    function Create_Main_Root
+     (Root : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
+      return Rho.UI.Widget.Reference;
+
+   function Create_Link
+     (Root : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
+      return Rho.UI.Widget.Reference;
+
+   function Create_Title
      (Root : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
       return Rho.UI.Widget.Reference;
 
@@ -32,6 +52,7 @@ package body Rho.UI.Builder is
       return Rho.UI.Widget.Reference
    is
    begin
+      Parent.Initialize (Root);
       for Child_Node of Root.Children loop
          declare
             use type Rho.UI.Widget.Reference;
@@ -46,6 +67,51 @@ package body Rho.UI.Builder is
       return Rho.UI.Widget.Reference (Parent);
    end Create_Children;
 
+   ----------------
+   -- Create_Div --
+   ----------------
+
+   function Create_Div
+     (Root : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
+      return Rho.UI.Widget.Reference
+   is
+      Div : constant Rho.UI.Widget.Div.Reference :=
+               Rho.UI.Widget.Div.Create;
+   begin
+      return Create_Children (Div, Root);
+   end Create_Div;
+
+   -----------------
+   -- Create_Head --
+   -----------------
+
+   function Create_Head
+     (Root : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
+      return Rho.UI.Widget.Reference
+   is
+      Head : constant Rho.UI.Widget.Head.Reference :=
+               Rho.UI.Widget.Head.Create;
+   begin
+      return Create_Children (Head, Root);
+   end Create_Head;
+
+   -----------------
+   -- Create_Link --
+   -----------------
+
+   function Create_Link
+     (Root : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
+      return Rho.UI.Widget.Reference
+   is
+      Link : constant Rho.UI.Widget.Link.Reference :=
+               Rho.UI.Widget.Link.Create
+                 (Working_Path => Root.File_Path,
+                  Relation     => Root.Attribute ("rel").Text,
+                  Href         => Root.Attribute ("href").Text);
+   begin
+      return Create_Children (Link, Root);
+   end Create_Link;
+
    ----------------------
    -- Create_Main_Root --
    ----------------------
@@ -59,6 +125,20 @@ package body Rho.UI.Builder is
    begin
       return Create_Children (Html, Root);
    end Create_Main_Root;
+
+   ------------------
+   -- Create_Title --
+   ------------------
+
+   function Create_Title
+     (Root : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
+      return Rho.UI.Widget.Reference
+   is
+      Title : constant Rho.UI.Widget.Title.Reference :=
+               Rho.UI.Widget.Title.Create;
+   begin
+      return Create_Children (Title, Root);
+   end Create_Title;
 
    -------------------
    -- Create_Widget --
@@ -117,5 +197,9 @@ package body Rho.UI.Builder is
    end Register;
 
 begin
+   Register ("div", Create_Div'Access);
+   Register ("head", Create_Head'Access);
    Register ("html", Create_Main_Root'Access);
+   Register ("link", Create_Link'Access);
+   Register ("title", Create_Title'Access);
 end Rho.UI.Builder;

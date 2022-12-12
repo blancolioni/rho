@@ -14,6 +14,8 @@ with Rho.Demos.Spotlight_Demo;
 with Rho.Demos.Texture_Demo;
 with Rho.Demos.White_Square_Demo;
 
+with Rho.Demos.Rho_UI.Background;
+
 package body Rho.Demos is
 
    package Demo_Maps is
@@ -94,6 +96,7 @@ package body Rho.Demos is
       --  Load (Depth_Demo.Load);
       Load (Spotlight_Demo.Load);
       Load (Texture_Demo.Load);
+      Load (Rho_UI.Background.Load);
    end Load_Demos;
 
    -----------

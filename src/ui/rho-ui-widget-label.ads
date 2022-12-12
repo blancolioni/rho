@@ -1,3 +1,5 @@
+with Partoe.DOM;
+
 with Rho.UI.Properties;
 
 package Rho.UI.Widget.Label is
@@ -11,6 +13,11 @@ package Rho.UI.Widget.Label is
    function Create
      (Text    : String)
       return Reference;
+
+   function Create_From_Node
+     (Element : not null access constant
+        Partoe.DOM.Root_Partoe_Node'Class)
+      return Rho.UI.Widget.Reference;
 
    Label_Property : constant Rho.UI.Properties.String_Property;
 

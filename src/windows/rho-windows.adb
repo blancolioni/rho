@@ -1,3 +1,5 @@
+with Css;
+
 with Rho.Handles;
 
 package body Rho.Windows is
@@ -12,6 +14,9 @@ package body Rho.Windows is
    is
    begin
       Window.UIs.Append (Top);
+      Top.Configure;
+      Top.Set_Size (Window.Width, Window.Height);
+      Css.Apply_Layout (Top);
    end Add_UI;
 
    -----------------------

@@ -1,6 +1,9 @@
 private with Ada.Strings.Unbounded;
+private with WL.Guids;
 
 with Ada.Containers.Doubly_Linked_Lists;
+
+with Partoe.DOM;
 
 with Cairo;
 with Css;
@@ -15,6 +18,13 @@ package Rho.UI.Widget is
 
    subtype Any_Instance is Instance'Class;
    type Reference is access all Instance'Class;
+
+   procedure Initialize
+     (This : in out Instance;
+      Node : not null access constant Partoe.DOM.Root_Partoe_Node'Class);
+
+   procedure Configure
+     (This : not null access Instance);
 
    procedure Show
      (This : not null access Instance);
@@ -41,6 +51,10 @@ package Rho.UI.Widget is
       Id  : String)
       return Reference;
 
+   procedure Set_Size
+     (This          : in out Instance;
+      Width, Height : Non_Negative_Real);
+
    procedure On_Configure
      (This          : in out Instance'Class;
       Handler       : not null access
@@ -63,18 +77,23 @@ private
    function "-" (S : Ada.Strings.Unbounded.Unbounded_String) return String
                  renames Ada.Strings.Unbounded.To_String;
 
-   subtype Dispatch is Parent'Class;
+   subtype Dispatch is Instance'Class;
 
    type Instance is abstract new Parent
      and Css.Css_Element_Interface with
       record
-         Tag       : Ada.Strings.Unbounded.Unbounded_String;
-         Id        : Ada.Strings.Unbounded.Unbounded_String;
-         Classes   : Ada.Strings.Unbounded.Unbounded_String;
-         Children  : Widget_Lists.List;
-         Style_Map : Css.Css_Style_Map;
-         Position  : Css.Layout_Position;
-         Size      : Css.Layout_Size;
+         Guid         : WL.Guids.Guid := WL.Guids.New_Guid;
+         Tag          : Ada.Strings.Unbounded.Unbounded_String;
+         Id           : Ada.Strings.Unbounded.Unbounded_String;
+         File_Path    : Ada.Strings.Unbounded.Unbounded_String;
+         Classes      : Ada.Strings.Unbounded.Unbounded_String;
+         Parent       : Reference;
+         Children     : Widget_Lists.List;
+         Style_Map    : Css.Css_Style_Map;
+         Position     : Css.Layout_Position;
+         Size         : Css.Layout_Size;
+         Content_Size : Css.Layout_Size;
+         Rules        : Css.Css_Rule;
       end record;
 
    overriding function Tag (This : Instance) return String;
@@ -156,5 +175,18 @@ private
      (This : Instance'Class)
       return Widget_Lists.List
    is (This.Children);
+
+   overriding function Is_Table (This : Instance) return Boolean
+   is (False);
+
+   overriding function Inline_Style_Rules
+     (This : Instance)
+      return Css.Css_Rule
+   is (This.Rules);
+
+   overriding function Contents_Layout_Size
+     (This       : Instance)
+      return Css.Layout_Size
+   is (This.Content_Size);
 
 end Rho.UI.Widget;

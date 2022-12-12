@@ -1,4 +1,4 @@
-package Rho.UI.Widget.Main_Root is
+package Rho.UI.Widget.Link is
 
    subtype Parent is Widget.Instance;
 
@@ -7,7 +7,10 @@ package Rho.UI.Widget.Main_Root is
    type Reference is access all Instance'Class;
 
    function Create
-     return Reference;
+     (Working_Path : String;
+      Relation     : String;
+      Href         : String)
+      return Reference;
 
 private
 
@@ -15,11 +18,8 @@ private
 
    type Instance is new Parent with
       record
-         null;
+         Relation : Ada.Strings.Unbounded.Unbounded_String;
+         Href     : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 
-   function Create
-     return Reference
-   is (new Instance);
-
-end Rho.UI.Widget.Main_Root;
+end Rho.UI.Widget.Link;

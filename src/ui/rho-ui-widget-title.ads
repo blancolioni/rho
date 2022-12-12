@@ -1,4 +1,4 @@
-package Rho.UI.Widget.Main_Root is
+package Rho.UI.Widget.Title is
 
    subtype Parent is Widget.Instance;
 
@@ -22,4 +22,4 @@ private
      return Reference
    is (new Instance);
 
-end Rho.UI.Widget.Main_Root;
+end Rho.UI.Widget.Title;
