@@ -1,6 +1,5 @@
-with Css;
-
 with Rho.Handles;
+with Rho.UI.Widget.Main_Root;
 
 package body Rho.Windows is
 
@@ -15,8 +14,7 @@ package body Rho.Windows is
    begin
       Window.UIs.Append (Top);
       Top.Configure;
-      Top.Set_Size (Window.Width, Window.Height);
-      Css.Apply_Layout (Top);
+      Top.Map (Window);
    end Add_UI;
 
    -----------------------
@@ -68,9 +66,29 @@ package body Rho.Windows is
       W.Before_Render_Time := Ada.Calendar.Clock;
 
       W.Before_Render;
+
       Window.Camera.Render (Target);
       Window.Camera.Set_Root_Object (Window.Scene);
       Window.Scene.Render (Target);
+
+      if not W.UIs.Is_Empty then
+         declare
+            use type Rho.Cameras.Camera_Type;
+         begin
+            if W.UI_Camera = null then
+               W.UI_Camera :=
+                 Rho.Cameras.Orthographic_Camera
+                   (0.0, 0.0, W.Width, W.Height);
+            end if;
+         end;
+
+         W.UI_Camera.Render (Target);
+         for UI of W.UIs loop
+            Rho.UI.Widget.Main_Root.Any_Instance (UI.all)
+              .Root_Node.Render (Target);
+         end loop;
+      end if;
+
       W.After_Render;
 
       Target.Emit_Signal

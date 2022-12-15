@@ -85,6 +85,7 @@ private
          Clear_Color        : Rho.Color.Color_Type :=
            (0.0, 0.0, 0.0, 1.0);
          Camera             : Rho.Cameras.Camera_Type;
+         UI_Camera          : Rho.Cameras.Camera_Type;
          Scene              : Rho.Scenes.Scene_Type;
          Wireframe_Changed  : Boolean := True;
          Current_Wireframe  : Boolean := False;
