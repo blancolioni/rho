@@ -31,6 +31,10 @@ package Rho.Nodes is
      (Node  : in out Root_Node_Type'Class;
       X, Y, Z : Real);
 
+   procedure Scale
+     (Node  : in out Root_Node_Type'Class;
+      X, Y, Z : Real);
+
    procedure Rotate_On_Axis
      (Node  : in out Root_Node_Type'Class;
       Axis  : Rho.Matrices.Normal_Vector_3;

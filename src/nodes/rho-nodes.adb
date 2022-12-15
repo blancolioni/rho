@@ -271,6 +271,18 @@ package body Rho.Nodes is
          Angle => Angle);
    end Rotate_Z;
 
+   -----------
+   -- Scale --
+   -----------
+
+   procedure Scale
+     (Node  : in out Root_Node_Type'Class;
+      X, Y, Z : Real)
+   is
+   begin
+      Node.Scale := Rho.Matrices.To_Vector (X, Y, Z);
+   end Scale;
+
    ------------------
    -- Set_Position --
    ------------------
