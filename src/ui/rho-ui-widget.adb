@@ -1,4 +1,27 @@
+with Ada.Text_IO;
+
+--  with WL.String_Maps;
+
+with Rho.Geometry;
+with Rho.Material.Custom;
+with Rho.Meshes;
+with Rho.Shaders.Stages;
+
+with Rho.Paths;
+
 package body Rho.UI.Widget is
+
+   Local_Square_Geometry : Rho.Geometry.Geometry_Type;
+   Local_Vertex_Shader   : Rho.Shaders.Stages.Shader_Type;
+   Local_Fragment_Shader : Rho.Shaders.Stages.Shader_Type;
+
+   function Square_Geometry return Rho.Geometry.Geometry_Type;
+   function Vertex_Shader return Rho.Shaders.Stages.Shader_Type;
+   function Fragment_Shader return Rho.Shaders.Stages.Shader_Type;
+
+   function Load_Standard_Shader_Source
+     (Name : String)
+      return String;
 
    overriding function Classes  (This : Instance) return String
    is (-This.Classes);
@@ -153,6 +176,24 @@ package body Rho.UI.Widget is
       return Top.Find (Match_Id'Access);
    end Find_By_Id;
 
+   ---------------------
+   -- Fragment_Shader --
+   ---------------------
+
+   function Fragment_Shader return Rho.Shaders.Stages.Shader_Type is
+      use type Rho.Shaders.Stages.Shader_Type;
+   begin
+      if True or else Local_Fragment_Shader = null then
+         Local_Fragment_Shader :=
+           Rho.Shaders.Stages.Create
+             (Name   => "ui-bg-fragment",
+              Stage  => Rho.Fragment_Shader,
+              Source =>
+                Load_Standard_Shader_Source ("ui-bg-fragment"));
+      end if;
+      return Local_Fragment_Shader;
+   end Fragment_Shader;
+
    -------------------------
    -- Get_Layout_Position --
    -------------------------
@@ -204,6 +245,62 @@ package body Rho.UI.Widget is
       This.Tag := +Node.Name;
       This.Classes := +Attr ("class");
    end Initialize;
+
+   ---------------------------------
+   -- Load_Standard_Shader_Source --
+   ---------------------------------
+
+   function Load_Standard_Shader_Source
+     (Name : String)
+      return String
+   is
+      use Ada.Strings.Unbounded;
+      use Ada.Text_IO;
+      File : File_Type;
+      Source : Unbounded_String;
+   begin
+      Open (File, In_File,
+            Rho.Paths.Config_File ("shaders/gl/" & Name & ".txt"));
+      while not End_Of_File (File) loop
+         Source := Source & Get_Line (File) & Character'Val (10);
+      end loop;
+      Close (File);
+      return To_String (Source);
+   end Load_Standard_Shader_Source;
+
+   ---------
+   -- Map --
+   ---------
+
+   procedure Map
+     (This : not null access Instance;
+      Surface : not null access constant
+        Rho.Rectangles.Rectangle_Interface'Class)
+   is
+      Mesh : constant Rho.Meshes.Mesh_Type :=
+               Rho.Meshes.Create_Mesh
+                 (Geometry => Square_Geometry,
+                  Material =>
+                    Rho.Material.Custom.Create_Custom_Material
+                      (Shaders => (Vertex_Shader, Fragment_Shader)));
+   begin
+      This.Surface := Render_Surface (Surface);
+      This.Node := Rho.Nodes.Node_Type (Mesh);
+
+      if This.Parent /= null then
+         declare
+            W : Reference := This.Parent;
+         begin
+            while W.Parent /= null loop
+               W := W.Parent;
+            end loop;
+            W.Node.Add (This.Node);
+         end;
+      end if;
+      for Child of Dispatch (This.all).Children loop
+         Child.Map (Surface);
+      end loop;
+   end Map;
 
    ------------------
    -- Minimum_Size --
@@ -286,6 +383,8 @@ package body Rho.UI.Widget is
    is
    begin
       This.Position := Position;
+      This.Node.Set_Position
+        (Real (Position.X), Real (Position.Y), 0.0);
    end Set_Layout_Position;
 
    ---------------------
@@ -298,6 +397,8 @@ package body Rho.UI.Widget is
    is
    begin
       This.Size := Size;
+      This.Node.Scale
+        (Real (Size.Width), Real (Size.Height), 1.0);
    end Set_Layout_Size;
 
    --------------
@@ -341,6 +442,58 @@ package body Rho.UI.Widget is
       end loop;
    end Show;
 
+   ---------------------
+   -- Square_Geometry --
+   ---------------------
+
+   function Square_Geometry return Rho.Geometry.Geometry_Type is
+
+      procedure Create;
+
+      ------------
+      -- Create --
+      ------------
+
+      procedure Create is
+         use Rho.Geometry;
+         Geometry     : constant Geometry_Type := Create_Geometry;
+
+         procedure Point (X, Y : Unit_Real);
+
+         -----------
+         -- Point --
+         -----------
+
+         procedure Point (X, Y : Unit_Real) is
+         begin
+            Geometry.Vertex (X, Y, 0.0);
+            Geometry.Texture (X, Y);
+            Geometry.Normal (0.0, 0.0, 1.0);
+         end Point;
+
+      begin
+
+         Point (0.0, 0.0);
+         Point (1.0, 0.0);
+         Point (1.0, 1.0);
+         Point (0.0, 1.0);
+
+         Geometry.Face (1, 3, 2);
+         Geometry.Face (3, 4, 1);
+
+         Local_Square_Geometry := Geometry;
+
+      end Create;
+
+      use type Rho.Geometry.Geometry_Type;
+   begin
+      if Local_Square_Geometry = null then
+         Create;
+      end if;
+
+      return Local_Square_Geometry;
+   end Square_Geometry;
+
    -----------
    -- Style --
    -----------
@@ -353,5 +506,23 @@ package body Rho.UI.Widget is
    begin
       return This.Style_Map.Style (Name);
    end Style;
+
+   -------------------
+   -- Vertex_Shader --
+   -------------------
+
+   function Vertex_Shader return Rho.Shaders.Stages.Shader_Type is
+      use type Rho.Shaders.Stages.Shader_Type;
+   begin
+      if True or else Local_Vertex_Shader = null then
+         Local_Vertex_Shader :=
+           Rho.Shaders.Stages.Create
+             (Name   => "ui-bg-vertex",
+              Stage  => Rho.Vertex_Shader,
+              Source =>
+                Load_Standard_Shader_Source ("ui-bg-vertex"));
+      end if;
+      return Local_Vertex_Shader;
+   end Vertex_Shader;
 
 end Rho.UI.Widget;

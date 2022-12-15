@@ -8,6 +8,9 @@ with Partoe.DOM;
 with Cairo;
 with Css;
 
+with Rho.Rectangles;
+with Rho.Nodes;
+
 package Rho.UI.Widget is
 
    subtype Parent is UI.Instance;
@@ -25,6 +28,11 @@ package Rho.UI.Widget is
 
    procedure Configure
      (This : not null access Instance);
+
+   procedure Map
+     (This : not null access Instance;
+      Surface : not null access constant
+        Rho.Rectangles.Rectangle_Interface'Class);
 
    procedure Show
      (This : not null access Instance);
@@ -77,6 +85,9 @@ private
    function "-" (S : Ada.Strings.Unbounded.Unbounded_String) return String
                  renames Ada.Strings.Unbounded.To_String;
 
+   type Render_Surface is access constant
+     Rho.Rectangles.Rectangle_Interface'Class;
+
    subtype Dispatch is Instance'Class;
 
    type Instance is abstract new Parent
@@ -94,6 +105,8 @@ private
          Size         : Css.Layout_Size;
          Content_Size : Css.Layout_Size;
          Rules        : Css.Css_Rule;
+         Surface      : Render_Surface;
+         Node         : Rho.Nodes.Node_Type;
       end record;
 
    overriding function Tag (This : Instance) return String;

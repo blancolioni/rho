@@ -1,10 +1,6 @@
 with Rho.Cameras;
-with Rho.Color;
-with Rho.Geometry.Sphere;
 with Rho.Lights.Ambient;
 with Rho.Lights.Spot;
-with Rho.Material.Simple;
-with Rho.Meshes;
 with Rho.Nodes;
 with Rho.UI.Builder;
 
@@ -61,19 +57,6 @@ package body Rho.Demos.Rho_UI.Background is
                       Near          => 0.1,
                       Far           => 100.0);
 
-      Material : constant Rho.Material.Material_Type :=
-                   Rho.Material.Simple.Create_Simple_Material
-                     (Handle.Assets.Create_Texture_From_Image
-                        (Rho.Paths.Config_File ("images/earth-physical")));
-      Geometry : constant Rho.Geometry.Geometry_Type :=
-                   Rho.Geometry.Sphere.Sphere_Geometry
-                     (Width_Segments => 64,
-                      Height_Segments => 32);
-
-      Node     : constant Rho.Nodes.Node_Type :=
-                   Rho.Nodes.Create_Node;
-      Mesh     : constant Rho.Meshes.Mesh_Type :=
-                   Rho.Meshes.Create_Mesh (Geometry);
       Builder : constant Rho.UI.Builder.Reference :=
                   Rho.UI.Builder.Load_Html
                     (Rho.Paths.Config_File ("gui/demos/ui/background.html"));
@@ -83,32 +66,7 @@ package body Rho.Demos.Rho_UI.Background is
 
       Scene.Set_Name ("scene");
       Camera.Set_Name ("camera");
-      Mesh.Set_Name ("mesh");
-
-      Camera.Set_Position (0.0, 0.0, 4.0);
-
-      Mesh.Add_Material (Material);
-
-      Node.Add (Mesh);
-      Scene.Add (Node);
-
-      Node.Rotate_X (-23.4);
-
-      Demo.Ambient :=
-        Rho.Lights.Ambient.Ambient_Light
-          (Color     => (1.0, 1.0, 1.0, 1.0),
-           Intensity => 0.2);
-
-      Demo.Spotlight :=
-        Rho.Lights.Spot.Spot_Light
-          (Color         => Rho.Color.White,
-           Intensity     => 1.0,
-           Decay         => 0.001);
-      Demo.Spotlight.Set_Position (-10.0, 0.0, 4.0);
-      Scene.Add (Demo.Spotlight);
-
-      Scene.Add (Demo.Ambient);
-
+      Camera.Set_Position (0.0, 0.0, 1.0);
       Demo.Handle := Handle;
       Demo.Window := Window;
       Demo.Camera := Camera;
