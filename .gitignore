@@ -11,3 +11,4 @@ rho.log
 rho.gpr
 src/driver/rho-options.adb
 src/driver/rho-options.ads
+agama.log
