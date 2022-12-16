@@ -1,4 +1,3 @@
-with Rho.Cameras;
 with Rho.Material;
 
 package Rho.Demos.Rotating_Cube is
@@ -34,7 +33,6 @@ private
          Handle   : Rho.Handles.Handle;
          Window   : Rho.Windows.Window_Type;
          Scene    : Rho.Scenes.Scene_Type;
-         Camera   : Rho.Cameras.Camera_Type;
       end record;
 
    function Scene (Demo : Rotating_Cube_Demo) return Rho.Scenes.Scene_Type

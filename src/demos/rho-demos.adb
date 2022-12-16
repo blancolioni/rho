@@ -3,10 +3,12 @@ with Ada.Text_IO;
 
 with WL.String_Maps;
 
+with Rho.Controls.Orbit;
 with Rho.Signals;
 
 --  with Rho.Demos.Ambient_Light;
 with Rho.Demos.Cobra_Demo;
+with Rho.Demos.Cone;
 with Rho.Demos.Cube_Demo;
 --  with Rho.Demos.Depth_Demo;
 with Rho.Demos.Earth;
@@ -88,6 +90,7 @@ package body Rho.Demos is
    begin
       Load (White_Square_Demo.Load);
 --        Load (Ambient_Light.Load);
+      Load (Cone.Load);
       Load (Cube_Demo.Load);
       Load (Cobra_Demo.Load);
       Load (Earth.Load);
@@ -106,7 +109,10 @@ package body Rho.Demos is
       Window : Rho.Windows.Window_Type;
       Scene  : Rho.Scenes.Scene_Type)
    is
-      pragma Unreferenced (Window);
+      Orbit_Control : constant Rho.Controls.Orbit.Reference :=
+                        Rho.Controls.Orbit.Create
+                          (Handle, Scene, Demo.Camera)
+                          with Unreferenced;
       Handler_Id : constant Rho.Signals.Handler_Id :=
         Handle.Current_Renderer.Add_Handler
           (Object  => Scene,

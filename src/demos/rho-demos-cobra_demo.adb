@@ -3,8 +3,9 @@ with Rho.Color;
 with Rho.Lights.Ambient;
 with Rho.Lights.Spot;
 with Rho.Material.Simple;
+with Rho.Matrices;
 with Rho.Nodes;
-with Rho.Signals;
+with Rho.Signals.Keyboard;
 
 with Rho.Loaders.Dat;
 
@@ -17,10 +18,13 @@ package body Rho.Demos.Cobra_Demo is
          Handle    : Rho.Handles.Handle;
          Window    : Rho.Windows.Window_Type;
          Scene     : Rho.Scenes.Scene_Type;
-         Camera    : Rho.Cameras.Camera_Type;
+         Node      : Rho.Nodes.Node_Type;
          Ambient   : Rho.Lights.Ambient.Ambient_Light_Type;
          Spotlight : Rho.Lights.Spot.Spot_Light_Type;
+         Look_At   : Rho.Matrices.Vector_3;
       end record;
+
+   type Cobra_Demo_Access is access all Cobra_Demo_Type'Class;
 
    overriding function Category
      (Demo : Cobra_Demo_Type)
@@ -42,7 +46,13 @@ package body Rho.Demos.Cobra_Demo is
       Handle : Rho.Handles.Handle;
       Window : Rho.Windows.Window_Type);
 
-   procedure On_Before_Scene_Render
+   type Event_User_Data is
+     new Rho.Signals.Signal_Data_Interface with
+      record
+         Demo : Cobra_Demo_Access;
+      end record;
+
+   procedure On_Key_Press
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class);
@@ -80,19 +90,25 @@ package body Rho.Demos.Cobra_Demo is
                     ("models/oolite_cobra3.dat"),
                   Material => (Mat_1, Mat_2));
 
-      Handler_Id : constant Rho.Signals.Handler_Id :=
-        Handle.Current_Renderer.Add_Handler
-          (Object  => Node,
-           Signal  => Rho.Handles.Signal_Before_Render,
-           Handler => On_Before_Scene_Render'Access,
-           Data    => Rho.Signals.No_Signal_Data)
+      User_Data    : constant Event_User_Data :=
+                       Event_User_Data'(Demo => Cobra_Demo_Access (Demo));
+      Key_Press_Id : constant Rho.Signals.Handler_Id :=
+                       Handle.Current_Renderer.Add_Handler
+                         (Object  => Scene,
+                          Signal  =>
+                            Rho.Signals.Keyboard.Press_Signal,
+                          Handler => On_Key_Press'Access,
+                          Data    => User_Data)
         with Unreferenced;
-
    begin
 
       Scene.Set_Name ("scene");
       Camera.Set_Name ("camera");
       Camera.Set_Position (0.0, 0.0, 200.0);
+
+      Demo.Look_At := Rho.Matrices.To_Vector (0.0, 0.0, 0.0);
+      Camera.Look_At (Demo.Look_At);
+      --  Node.Look_At (Demo.Look_At);
 
       Scene.Add (Node);
 
@@ -115,6 +131,7 @@ package body Rho.Demos.Cobra_Demo is
       Demo.Window := Window;
       Demo.Camera := Camera;
       Demo.Scene := Scene;
+      Demo.Node := Node;
 
       Window.Set_Scene (Demo.Scene);
       Window.Set_Camera (Demo.Camera);
@@ -134,23 +151,34 @@ package body Rho.Demos.Cobra_Demo is
       return new Cobra_Demo_Type;
    end Load;
 
-   ----------------------------
-   -- On_Before_Scene_Render --
-   ----------------------------
+   ------------------
+   -- On_Key_Press --
+   ------------------
 
-   procedure On_Before_Scene_Render
+   procedure On_Key_Press
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
    is
-      pragma Unreferenced (User_Data);
-      Render_Data : Rho.Handles.Render_Signal_Type renames
-                      Rho.Handles.Render_Signal_Type (Signal_Data);
-      Node : constant Rho.Nodes.Node_Type :=
-        Rho.Nodes.Node_Type (Object);
+      pragma Unreferenced (Object);
+      use Rho.Matrices;
+      Data : Rho.Signals.Keyboard.Signal_Data renames
+               Rho.Signals.Keyboard.Signal_Data (Signal_Data);
+      Demo : constant Cobra_Demo_Access :=
+               Event_User_Data (User_Data).Demo;
    begin
-      Node.Rotate_Z (7.0 * Real (Render_Data.Time_Since_Last_Event));
-      Node.Rotate_Y (5.3 * Real (Render_Data.Time_Since_Last_Event));
-   end On_Before_Scene_Render;
+      case Data.Key is
+         when Rho.Signals.Keyboard.Up =>
+            Demo.Look_At :=
+              Demo.Look_At + To_Vector (0.0, 1.0, 0.0);
+            Demo.Camera.Look_At (Demo.Look_At);
+         when Rho.Signals.Keyboard.Down =>
+            Demo.Look_At :=
+              Demo.Look_At + To_Vector (0.0, -1.0, 0.0);
+            Demo.Camera.Look_At (Demo.Look_At);
+         when others =>
+            null;
+      end case;
+   end On_Key_Press;
 
 end Rho.Demos.Cobra_Demo;

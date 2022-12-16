@@ -93,6 +93,20 @@ package body Rho.Nodes is
       Target.Set_Model_View_Matrix (Node.World_Matrix);
    end Execute_Render;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Node      : in out Root_Node_Type'Class;
+      Is_Camera : Boolean := False;
+      Is_Light  : Boolean := False)
+   is
+   begin
+      Node.Is_Camera := Is_Camera;
+      Node.Is_Light := Is_Light;
+   end Initialize;
+
    -----------------------------
    -- Invalidate_World_Matrix --
    -----------------------------
@@ -166,6 +180,40 @@ package body Rho.Nodes is
       end if;
       return Node.M_Local;
    end Local_Matrix;
+
+   -------------
+   -- Look_At --
+   -------------
+
+   procedure Look_At
+     (Node   : in out Root_Node_Type;
+      Target : Rho.Matrices.Vector_3)
+   is
+   begin
+      Root_Node_Type'Class (Node).Update_World_Matrix;
+      Node.Position := Rho.Matrices.Get_Position (Node.World_Matrix);
+      if Node.Is_Camera or else Node.Is_Light then
+         Node.Quaternion :=
+           Rho.Matrices.Look_At_Quaternion (Node.Position, Target, Node.Up);
+      else
+         Node.Quaternion :=
+           Rho.Matrices.Look_At_Quaternion (Target, Node.Position, Node.Up);
+      end if;
+      Node.On_Quaternion_Changed;
+
+   end Look_At;
+
+   -------------
+   -- Look_At --
+   -------------
+
+   procedure Look_At
+     (Node    : in out Root_Node_Type;
+      X, Y, Z : Real)
+   is
+   begin
+      Root_Node_Type'Class (Node).Look_At (Rho.Matrices.To_Vector (X, Y, Z));
+   end Look_At;
 
    ---------------------------
    -- On_Quaternion_Changed --
@@ -280,7 +328,19 @@ package body Rho.Nodes is
       X, Y, Z : Real)
    is
    begin
-      Node.Position := Rho.Matrices.To_Vector (X, Y, Z);
+      Node.Set_Position (Rho.Matrices.To_Vector (X, Y, Z));
+   end Set_Position;
+
+   ------------------
+   -- Set_Position --
+   ------------------
+
+   procedure Set_Position
+     (Node     : in out Root_Node_Type'Class;
+      Position : Rho.Matrices.Vector_3)
+   is
+   begin
+      Node.Position := Position;
       Node.Local_Out_Of_Date := True;
       Node.Invalidate_World_Matrix;
    end Set_Position;

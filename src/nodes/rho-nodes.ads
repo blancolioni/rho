@@ -31,6 +31,14 @@ package Rho.Nodes is
      (Node  : in out Root_Node_Type'Class;
       X, Y, Z : Real);
 
+   procedure Set_Position
+     (Node     : in out Root_Node_Type'Class;
+      Position : Rho.Matrices.Vector_3);
+
+   function Up
+     (Node : Root_Node_Type'Class)
+      return Rho.Matrices.Normal_Vector_3;
+
    procedure Rotate_On_Axis
      (Node  : in out Root_Node_Type'Class;
       Axis  : Rho.Matrices.Normal_Vector_3;
@@ -47,6 +55,14 @@ package Rho.Nodes is
    procedure Rotate_Z
      (Node  : in out Root_Node_Type'Class;
       Angle : Real);
+
+   procedure Look_At
+     (Node   : in out Root_Node_Type;
+      Target : Rho.Matrices.Vector_3);
+
+   procedure Look_At
+     (Node    : in out Root_Node_Type;
+      X, Y, Z : Real);
 
    function Local_Matrix
      (Node : in out Root_Node_Type'Class)
@@ -100,6 +116,11 @@ package Rho.Nodes is
 
    function Create_Node return Node_Type;
 
+   procedure Initialize
+     (Node      : in out Root_Node_Type'Class;
+      Is_Camera : Boolean := False;
+      Is_Light  : Boolean := False);
+
 private
 
    package Node_Lists is
@@ -114,6 +135,8 @@ private
          Children          : Node_Lists.List;
          Slices            : Rho.Shaders.Slices.Slice_Container;
          Position          : Rho.Matrices.Vector_3;
+         Up                : Rho.Matrices.Normal_Vector_3 :=
+                               Rho.Matrices.To_Vector (0.0, 1.0, 0.0);
          Quaternion        : Rho.Matrices.Quaternion;
          Scale             : Rho.Matrices.Vector_3 :=
            Rho.Matrices.To_Vector (1.0, 1.0, 1.0);
@@ -122,6 +145,8 @@ private
          Local_Out_Of_Date : Boolean := False;
          World_Out_Of_Date : Boolean := False;
          Is_Visible        : Boolean := True;
+         Is_Camera         : Boolean := False;
+         Is_Light          : Boolean := False;
       end record;
 
    overriding procedure Load
@@ -155,6 +180,11 @@ private
 
    function Parent (Node : Root_Node_Type'Class) return Node_Type
    is (Node.Parent);
+
+   function Up
+     (Node : Root_Node_Type'Class)
+      return Rho.Matrices.Normal_Vector_3
+   is (Node.Up);
 
    overriding function Shader_Slices
      (Node : Root_Node_Type)

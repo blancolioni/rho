@@ -1,12 +1,15 @@
+with Ada.Text_IO;
+with Rho.Matrices.Logs;
+
 package body Rho.Matrices is
 
    function "*" (Left, Right : Vector_3) return Vector_3 is
       A : Real_Arrays.Real_Vector renames Left.Vector;
       B : Real_Arrays.Real_Vector renames Right.Vector;
    begin
-      return (Vector => (A (2) * B (3) - A (3) - B (2),
-                         A (3) * B (1) - A (1) - B (3),
-                         A (1) * B (2) - A (2) - B (1)));
+      return (Vector => (A (2) * B (3) - A (3) * B (2),
+                         A (3) * B (1) - A (1) * B (3),
+                         A (1) * B (2) - A (2) * B (1)));
    end "*";
 
    ---------
@@ -136,6 +139,75 @@ package body Rho.Matrices is
       end return;
    end Compose;
 
+   --------------------------
+   -- From_Rotation_Matrix --
+   --------------------------
+
+   function From_Rotation_Matrix
+     (Matrix : Matrix_3)
+      return Quaternion
+   is
+      use Rho.Elementary_Functions;
+      M : Real_Matrix renames Matrix.Matrix;
+      M_11 : constant Real := M (1, 1);
+      M_21 : constant Real := M (2, 1);
+      M_31 : constant Real := M (3, 1);
+      M_12 : constant Real := M (1, 2);
+      M_22 : constant Real := M (2, 2);
+      M_32 : constant Real := M (3, 2);
+      M_13 : constant Real := M (1, 3);
+      M_23 : constant Real := M (2, 3);
+      M_33 : constant Real := M (3, 3);
+      Trace : constant Real := M_11 + M_22 + M_33;
+   begin
+      if Trace > 0.0 then
+         declare
+            S : constant Real := 0.5 / Sqrt (Trace + 1.0);
+         begin
+            return (Vector =>
+                      (0.25 / S,
+                       (M_32 - M_23) * S,
+                       (M_13 - M_31) * S,
+                       (M_21 - M_12) * S));
+         end;
+      elsif M_11 > M_22 and then M_11 > M_33 then
+         declare
+            S : constant Real := 2.0 * Sqrt (1.0 + M_11 - M_22 - M_33);
+         begin
+            return (Vector =>
+                      ((M_32 - M_23) / S,
+                       0.25 * S,
+                       (M_21 + M_12) / S,
+                       (M_13 + M_31) / S
+                      ));
+         end;
+      elsif M_22 > M_33 then
+         declare
+            S : constant Real := 2.0 * Sqrt (1.0 + M_22 - M_11 - M_33);
+         begin
+            return (Vector =>
+                      (
+                       (M_13 - M_31) / S,
+                       (M_12 + M_21) / S,
+                       0.25 * S,
+                       (M_23 + M_32) / S
+                      ));
+         end;
+      else
+         declare
+            S : constant Real := 2.0 * Sqrt (1.0 + M_33 - M_11 - M_33);
+         begin
+            return (Vector =>
+                      (
+                       (M_21 - M_12) / S,
+                       (M_13 + M_31) / S,
+                       (M_23 + M_32) / S,
+                       0.25 * S
+                      ));
+         end;
+      end if;
+   end From_Rotation_Matrix;
+
    -----------
    -- Image --
    -----------
@@ -149,6 +221,79 @@ package body Rho.Matrices is
       return "(" & X'Image & "," & Y'Image & "," & Z'Image
         & "," & W'Image & ")";
    end Image;
+
+   --------------------
+   -- Look_At_Matrix --
+   --------------------
+
+   function Look_At_Matrix
+     (From, To, Up : Vector_3)
+      return Matrix_4
+   is
+      X, Y, Z : Vector_3;
+   begin
+
+      Z := From - To;
+
+      if abs Z = 0.0 then
+         Z.Vector (3) := 1.0;
+      end if;
+      Z := Normalize (Z);
+
+      X := Up * Z;
+
+      if abs X = 0.0 then
+         if abs Up.Vector (3) = 1.0 then
+            Z.Vector (1) := @ + 0.0001;
+         else
+            Z.Vector (3) := @ + 0.0001;
+         end if;
+         Z := Normalize (Z);
+         X := Up * Z;
+      end if;
+
+      X := Normalize (X);
+
+      Y := Z * X;
+
+      if False then
+         declare
+            use Ada.Text_IO;
+            use Rho.Matrices.Logs;
+         begin
+            Put ("from ");
+            Put_Vector (From);
+            Put (" to ");
+            Put_Vector (To);
+            Put (" up ");
+            Put_Vector (Up);
+            New_Line;
+            Put ("x ");
+            Put_Vector (X);
+            Put (" y ");
+            Put_Vector (Y);
+            Put (" z ");
+            Put_Vector (Z);
+            New_Line;
+         end;
+      end if;
+
+      return M : constant Rho.Matrices.Matrix_4 :=
+        ((Matrix =>
+              ((X.Vector (1), Y.Vector (1), Z.Vector (1), 0.0),
+               (X.Vector (2), Y.Vector (2), Z.Vector (2), 0.0),
+               (X.Vector (3), Y.Vector (3), Z.Vector (3), 0.0),
+               (0.0, 0.0, 0.0, 1.0))))
+      do
+         if False then
+            Rho.Matrices.Logs.Log_Matrix ("look at", M);
+            Ada.Text_IO.Put ("quaternion ");
+            Rho.Matrices.Logs.Put_Quaternion (From_Rotation_Matrix (M));
+            Ada.Text_IO.New_Line;
+         end if;
+      end return;
+
+   end Look_At_Matrix;
 
    ------------------------
    -- Perspective_Matrix --
@@ -218,6 +363,33 @@ package body Rho.Matrices is
          end;
       end loop;
    end Set_Scale;
+
+   -----------------
+   -- To_Matrix_3 --
+   -----------------
+
+   function To_Matrix_3 (Matrix : Matrix_4) return Matrix_3 is
+      M : Real_Arrays.Real_Matrix renames Matrix.Matrix;
+   begin
+      return (Matrix =>
+                ((M (1, 1), M (1, 2), M (1, 3)),
+                 (M (2, 1), M (2, 2), M (2, 3)),
+                 (M (3, 1), M (3, 2), M (3, 3))));
+   end To_Matrix_3;
+
+   -----------------
+   -- To_Matrix_4 --
+   -----------------
+
+   function To_Matrix_4 (Matrix : Matrix_3) return Matrix_4 is
+      M : Real_Arrays.Real_Matrix renames Matrix.Matrix;
+   begin
+      return (Matrix =>
+                ((M (1, 1), M (1, 2), M (1, 3), 0.0),
+                 (M (2, 1), M (2, 2), M (2, 3), 0.0),
+                 (M (3, 1), M (3, 2), M (3, 3), 0.0),
+                 (0.0, 0.0, 0.0, 1.0)));
+   end To_Matrix_4;
 
    -----------------
    -- To_Matrix_4 --

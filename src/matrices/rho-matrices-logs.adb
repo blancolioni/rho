@@ -75,6 +75,25 @@ package body Rho.Matrices.Logs is
       Real_IO.Put (X, 1, 2, 0);
    end Put_Number;
 
+   --------------------
+   -- Put_Quaternion --
+   --------------------
+
+   procedure Put_Quaternion (Q : Quaternion) is
+      First : Boolean := True;
+   begin
+      Ada.Text_IO.Put ("(");
+      for X of Q.Vector loop
+         if First then
+            First := False;
+         else
+            Ada.Text_IO.Put (",");
+         end if;
+         Real_IO.Put (X, 1, 2, 0);
+      end loop;
+      Ada.Text_IO.Put (")");
+   end Put_Quaternion;
+
    ----------------
    -- Put_Vector --
    ----------------

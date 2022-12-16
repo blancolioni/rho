@@ -12,7 +12,7 @@ package body Rho.Cameras is
    is
    begin
       Target.Set_Projection_Matrix (Camera.Projection_Matrix);
-      Target.Set_Camera_Position (Camera.World_Position);
+      Target.Set_Camera_World_Matrix (Camera.World_Matrix);
    end Execute_Render;
 
    ------------------------
@@ -35,6 +35,7 @@ package body Rho.Cameras is
            Projection_Matrix         => <>,
            Inverse_Projection_Matrix => <>)
       do
+         Camera.Initialize (Is_Camera => True);
          Camera.Update_Projection_Matrix;
       end return;
    end Perspective_Camera;
@@ -48,7 +49,9 @@ package body Rho.Cameras is
       Object : not null access Rho.Nodes.Root_Node_Type'Class)
    is
    begin
-      Object.Set_World_Matrix (Camera.Inverse_World_Matrix);
+      if False then
+         Object.Set_World_Matrix (Camera.Inverse_World_Matrix);
+      end if;
    end Set_Root_Object;
 
    -------------------

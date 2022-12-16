@@ -35,6 +35,7 @@ with Rho.Shaders.Stages;
 with Rho.Shaders.Variables;
 with Rho.Signals;
 with Rho.Signals.Buttons;
+with Rho.Signals.Keyboard;
 with Rho.Signals.Pointer;
 with Rho.Textures;
 with Rho.Values;
@@ -100,18 +101,19 @@ package body Rho.Handles.OpenGL is
      new Rho.Signals.Signal_Dispatcher
      and Rho.Render.Render_Target with
       record
-         Assets            : Rho.Assets.Asset_Container_Type;
-         Active_Program    : Rho.Shaders.Programs.Program_Type;
-         Active_Projection : Rho.Matrices.Matrix_4;
-         Active_Model_View : Rho.Matrices.Matrix_4;
-         Active_Camera_Pos : Rho.Matrices.Vector_3;
-         Active_Fragments  : Shader_Slices.Vector;
-         Active_Shaders    : Shader_Vectors.Vector;
-         Active_Uniforms   : Uniform_Value_Maps.Map;
-         Active_Variables  : Shader_Variable_Maps.Map;
-         Active_Texture_Id : Natural := 0;
-         Current_Count     : Natural := 0;
-         Id_Map            : Rho.Handles.OpenGL.Maps.Id_Map;
+         Assets                 : Rho.Assets.Asset_Container_Type;
+         Active_Program         : Rho.Shaders.Programs.Program_Type;
+         Active_Projection      : Rho.Matrices.Matrix_4;
+         Active_Model_View      : Rho.Matrices.Matrix_4;
+         Active_Camera          : Rho.Matrices.Matrix_4;
+         Active_Camera_Inverted : Rho.Matrices.Matrix_4;
+         Active_Fragments       : Shader_Slices.Vector;
+         Active_Shaders         : Shader_Vectors.Vector;
+         Active_Uniforms        : Uniform_Value_Maps.Map;
+         Active_Variables       : Shader_Variable_Maps.Map;
+         Active_Texture_Id      : Natural := 0;
+         Current_Count          : Natural := 0;
+         Id_Map                 : Rho.Handles.OpenGL.Maps.Id_Map;
       end record;
 
    type OpenGL_Render_Target_Access is
@@ -179,9 +181,9 @@ package body Rho.Handles.OpenGL is
      (Target : in out OpenGL_Render_Target;
       Matrix : Rho.Matrices.Matrix_4);
 
-   overriding procedure Set_Camera_Position
+   overriding procedure Set_Camera_World_Matrix
      (Target : in out OpenGL_Render_Target;
-      Position : Rho.Matrices.Vector_3);
+      Matrix : Rho.Matrices.Matrix_4);
 
    overriding procedure Render_Current_Buffers
      (Target : in out OpenGL_Render_Target);
@@ -295,6 +297,18 @@ package body Rho.Handles.OpenGL is
      (X      : Integer;
       Y      : Integer);
 
+   procedure Key_Down_Handler
+     (Key  : GLUT.Key_Type;
+      X, Y : Integer);
+
+   procedure Key_Up_Handler
+     (Key  : GLUT.Key_Type;
+      X, Y : Integer);
+
+   procedure Special_Key_Handler
+     (Key  : Integer;
+      X, Y : Integer);
+
    function To_GL_Float_Array
      (Matrix : Rho.Matrices.Matrix_4)
       return GL_Types.Float_Matrix_4x4;
@@ -302,6 +316,10 @@ package body Rho.Handles.OpenGL is
    function To_Color_Array
      (From_Surface : Cairo.Cairo_Surface)
       return Aliased_Ubyte_Array_Access;
+
+   function To_Rho_Key
+     (Glut_Key : Integer)
+      return Rho.Signals.Keyboard.Key_Type;
 
    --------------
    -- Activate --
@@ -497,20 +515,20 @@ package body Rho.Handles.OpenGL is
          Transpose => GL_Constants.GL_FALSE,
          Matrix    => To_GL_Float_Array (Target.Active_Model_View));
 
-      if False then
-         declare
-            Pos : constant Rho.Matrices.Vector_3 :=
-                    Target.Active_Camera_Pos;
-         begin
-            GL.Uniform
-              (Location  =>
-                 Target.Id_Map.Variable_Id (Shader.Camera_Position_Uniform),
-               Value     =>
-                 (GL_Types.GLfloat (Rho.Matrices.X (Pos)),
-                  GL_Types.GLfloat (Rho.Matrices.Y (Pos)),
-                  GL_Types.GLfloat (Rho.Matrices.Z (Pos))));
-         end;
-      end if;
+      --  if False then
+      --     declare
+      --        Pos : constant Rho.Matrices.Vector_3 :=
+      --                Target.Active_Camera_Pos;
+      --     begin
+      --        GL.Uniform
+      --          (Location  =>
+      --          Target.Id_Map.Variable_Id (Shader.Camera_Position_Uniform),
+      --           Value     =>
+      --             (GL_Types.GLfloat (Rho.Matrices.X (Pos)),
+      --              GL_Types.GLfloat (Rho.Matrices.Y (Pos)),
+      --              GL_Types.GLfloat (Rho.Matrices.Z (Pos))));
+      --     end;
+      --  end if;
 
       declare
       begin
@@ -792,9 +810,9 @@ package body Rho.Handles.OpenGL is
       GLUT.Mouse_Function (Mouse_Button_Handler'Access);
       GLUT.Motion_Function (Mouse_Move_Handler'Access);
       GLUT.Passive_Motion_Function (Mouse_Move_Handler'Access);
---        GLUT.Keyboard_Function (Key_Down_Handler'Access);
---        GLUT.Keyboard_Up_Function (Key_Up_Handler'Access);
---        GLUT.Special_Function (Special_Key_Handler'Access);
+      GLUT.Keyboard_Function (Key_Down_Handler'Access);
+      GLUT.Keyboard_Up_Function (Key_Up_Handler'Access);
+      GLUT.Special_Function (Special_Key_Handler'Access);
 
       GLUT.Idle_Function (Idle_Handler'Access);
 
@@ -898,6 +916,46 @@ package body Rho.Handles.OpenGL is
    begin
       GLUT.Post_Redisplay;
    end Idle_Handler;
+
+   ----------------------
+   -- Key_Down_Handler --
+   ----------------------
+
+   procedure Key_Down_Handler
+     (Key  : GLUT.Key_Type;
+      X, Y : Integer)
+   is
+      Rho_Key : constant Rho.Signals.Keyboard.Key_Type :=
+                  Rho.Signals.Keyboard.Key_Type (Key);
+      Signal  : constant Rho.Signals.Signal_Type :=
+                  Rho.Signals.Keyboard.Press_Signal;
+   begin
+      Local_Handle.Current_Renderer.Emit_Signal
+        (Object => Local_Handle.Active_Window.Scene,
+         Signal => Signal,
+         Data   => Rho.Signals.Keyboard.Signal_Data'
+           (Rho_Key, X, Y));
+   end Key_Down_Handler;
+
+   --------------------
+   -- Key_Up_Handler --
+   --------------------
+
+   procedure Key_Up_Handler
+     (Key  : GLUT.Key_Type;
+      X, Y : Integer)
+   is
+      Rho_Key : constant Rho.Signals.Keyboard.Key_Type :=
+                  Rho.Signals.Keyboard.Key_Type (Key);
+      Signal  : constant Rho.Signals.Signal_Type :=
+                  Rho.Signals.Keyboard.Release_Signal;
+   begin
+      Local_Handle.Current_Renderer.Emit_Signal
+        (Object => Local_Handle.Active_Window.Scene,
+         Signal => Signal,
+         Data   => Rho.Signals.Keyboard.Signal_Data'
+           (Rho_Key, X, Y));
+   end Key_Up_Handler;
 
    ----------
    -- Load --
@@ -1247,17 +1305,18 @@ package body Rho.Handles.OpenGL is
       null;
    end Reshape_Handler;
 
-   -------------------------
-   -- Set_Camera_Position --
-   -------------------------
+   -----------------------------
+   -- Set_Camera_World_Matrix --
+   -----------------------------
 
-   overriding procedure Set_Camera_Position
+   overriding procedure Set_Camera_World_Matrix
      (Target : in out OpenGL_Render_Target;
-      Position : Rho.Matrices.Vector_3)
+      Matrix : Rho.Matrices.Matrix_4)
    is
    begin
-      Target.Active_Camera_Pos := Position;
-   end Set_Camera_Position;
+      Target.Active_Camera := Matrix;
+      Target.Active_Camera_Inverted := Rho.Matrices.Inverse (Matrix);
+   end Set_Camera_World_Matrix;
 
    ---------------------------
    -- Set_Model_View_Matrix --
@@ -1267,8 +1326,9 @@ package body Rho.Handles.OpenGL is
      (Target : in out OpenGL_Render_Target;
       Matrix : Rho.Matrices.Matrix_4)
    is
+      use type Rho.Matrices.Matrix_4;
    begin
-      Target.Active_Model_View := Matrix;
+      Target.Active_Model_View := Target.Active_Camera_Inverted * Matrix;
    end Set_Model_View_Matrix;
 
    ---------------------------
@@ -1282,6 +1342,29 @@ package body Rho.Handles.OpenGL is
    begin
       Target.Active_Projection := Matrix;
    end Set_Projection_Matrix;
+
+   -------------------------
+   -- Special_Key_Handler --
+   -------------------------
+
+   procedure Special_Key_Handler
+     (Key  : Integer;
+      X, Y : Integer)
+   is
+      Rho_Key : constant Rho.Signals.Keyboard.Key_Type :=
+                  To_Rho_Key (Key);
+      Data    : constant Rho.Signals.Keyboard.Signal_Data :=
+                  (Rho_Key, X, Y);
+   begin
+      Local_Handle.Current_Renderer.Emit_Signal
+        (Object => Local_Handle.Active_Window.Scene,
+         Signal => Rho.Signals.Keyboard.Press_Signal,
+         Data   => Data);
+      Local_Handle.Current_Renderer.Emit_Signal
+        (Object => Local_Handle.Active_Window.Scene,
+         Signal => Rho.Signals.Keyboard.Release_Signal,
+         Data   => Data);
+   end Special_Key_Handler;
 
    --------------------
    -- To_Color_Array --
@@ -1385,5 +1468,31 @@ package body Rho.Handles.OpenGL is
          end loop;
       end return;
    end To_GL_Float_Array;
+
+   ----------------
+   -- To_Rho_Key --
+   ----------------
+
+   function To_Rho_Key
+     (Glut_Key : Integer)
+      return Rho.Signals.Keyboard.Key_Type
+   is
+      use Rho.Signals.Keyboard;
+   begin
+      case Glut_Key is
+         when GLUT.KEY_LEFT =>
+            return Left;
+         when GLUT.KEY_RIGHT =>
+            return Right;
+         when GLUT.KEY_UP =>
+            return Up;
+         when GLUT.KEY_DOWN =>
+            return Down;
+         when GLUT.KEY_F1 .. GLUT.KEY_F12 =>
+            return F1 + Key_Type (Glut_Key) - GLUT.KEY_F1;
+         when others =>
+            return 0;
+      end case;
+   end To_Rho_Key;
 
 end Rho.Handles.OpenGL;

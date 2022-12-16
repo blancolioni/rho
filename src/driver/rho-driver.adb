@@ -103,7 +103,7 @@ begin
       declare
          Window : constant Rho.Windows.Window_Type :=
            Handle.Create_Window
-             (0.0, 0.0, 640.0, 480.0, True);
+             (0.0, 0.0, 1000.0, 800.0, True);
          Demo   : constant Rho.Demos.Demo_Type :=
            Rho.Demos.Get (Demo_Name);
       begin

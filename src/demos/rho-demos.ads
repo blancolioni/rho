@@ -1,3 +1,5 @@
+private with Rho.Cameras;
+
 with Rho.Handles;
 with Rho.Scenes;
 with Rho.Windows;
@@ -40,6 +42,7 @@ private
       record
          Frame_Count : Natural := 0;
          Elapsed     : Duration := 0.0;
+         Camera      : Rho.Cameras.Camera_Type;
       end record;
 
 end Rho.Demos;

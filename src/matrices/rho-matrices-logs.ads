@@ -18,6 +18,7 @@ package Rho.Matrices.Logs is
 
    procedure Put_Vector (Vector : Vector_3);
    procedure Put_Vector (Vector : Vector_4);
+   procedure Put_Quaternion (Q : Quaternion);
 
    procedure Put_Number (X : Real);
 

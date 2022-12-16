@@ -68,7 +68,8 @@ package body Rho.Demos.Earth is
       Material : constant Rho.Material.Material_Type :=
                    Rho.Material.Simple.Create_Simple_Material
                      (Handle.Assets.Create_Texture_From_Image
-                        (Rho.Paths.Config_File ("images/earth-physical")));
+                        (Rho.Paths.Config_File
+                           ("images/earth-physical-4096x2048")));
       Geometry : constant Rho.Geometry.Geometry_Type :=
                    Rho.Geometry.Sphere.Sphere_Geometry
                      (Width_Segments => 64,

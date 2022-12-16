@@ -66,6 +66,7 @@ package body Rho.Demos.White_Square_Demo is
       Mesh.Set_Name ("mesh");
       Camera.Set_Position (0.0, 0.0, 3.0);
       Scene.Add (Mesh);
+      Demo.Camera := Camera;
 
       Window.Set_Scene (Scene);
       Window.Set_Camera (Camera);
@@ -83,6 +84,7 @@ package body Rho.Demos.White_Square_Demo is
       return new White_Square_Demo_Type'
         (Frame_Count => 0,
          Elapsed     => 0.0,
+         Camera      => null,
          Shader      =>
            Tau.Shaders.Library.Single_Color_Shader
              (Color => Rho.Color.White));

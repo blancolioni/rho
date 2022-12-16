@@ -29,6 +29,9 @@ package Rho.Matrices is
    function Zero return Matrix_3;
    function Unit return Matrix_3;
 
+   function To_Matrix_3 (Matrix : Matrix_4) return Matrix_3;
+   function To_Matrix_4 (Matrix : Matrix_3) return Matrix_4;
+
    function "*" (Left, Right : Matrix_3) return Matrix_3;
 
    type Vector_4 is private;
@@ -95,6 +98,10 @@ package Rho.Matrices is
       Angle : Real)
       return Matrix_4;
 
+   function Look_At_Matrix
+     (From, To, Up : Vector_3)
+      return Matrix_4;
+
    function Translation_Matrix
      (Translation : Vector_3)
       return Matrix_4;
@@ -108,9 +115,21 @@ package Rho.Matrices is
       Angle : Real)
       return Quaternion;
 
+   function Look_At_Quaternion
+     (From, To, Up : Vector_3)
+      return Quaternion;
+
    function To_Matrix_4
      (From : Quaternion)
       return Matrix_4;
+
+   function From_Rotation_Matrix
+     (Matrix : Matrix_4)
+      return Quaternion;
+
+   function From_Rotation_Matrix
+     (Matrix : Matrix_3)
+      return Quaternion;
 
    function Compose
      (Position    : Vector_3;
@@ -289,5 +308,15 @@ private
       record
          Vector : Real_Arrays.Real_Vector (1 .. 4) := (0.0, 0.0, 0.0, 1.0);
       end record;
+
+   function Look_At_Quaternion
+     (From, To, Up : Vector_3)
+      return Quaternion
+   is (From_Rotation_Matrix (Look_At_Matrix (From, To, Up)));
+
+   function From_Rotation_Matrix
+     (Matrix : Matrix_4)
+      return Quaternion
+   is (From_Rotation_Matrix (To_Matrix_3 (Matrix)));
 
 end Rho.Matrices;
