@@ -10,6 +10,8 @@ with Rho.Meshes;
 
 package body Rho.Loaders.Dat is
 
+   Trace : constant Boolean := False;
+
    type Dat_Command is (Nverts, Nfaces, Vertex, Faces,
                         Textures, Normals, Names);
 
@@ -385,7 +387,10 @@ package body Rho.Loaders.Dat is
               and then (Trim_Line (Trim_Line'First) /= '/'
                         or else Trim_Line (Trim_Line'First + 1) /= '/')
             then
-               Ada.Text_IO.Put_Line (Trim_Line);
+               if Trace then
+                  Ada.Text_IO.Put_Line (Trim_Line);
+               end if;
+
                return Trim_Line;
             end if;
          end;
