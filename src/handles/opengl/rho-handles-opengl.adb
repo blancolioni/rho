@@ -187,8 +187,8 @@ package body Rho.Handles.OpenGL is
       Matrix : Rho.Matrices.Matrix_4);
 
    overriding procedure Set_Camera_Position
-     (Target : in out OpenGL_Render_Target;
-      Matrix : Rho.Matrices.Matrix_4);
+     (Target   : in out OpenGL_Render_Target;
+      Position : Rho.Matrices.Vector_3);
 
    overriding procedure Set_Size
      (Render : in out OpenGL_Render_Target;
@@ -1319,6 +1319,15 @@ package body Rho.Handles.OpenGL is
          Data   =>
            Rho.Signals.Configure.Configure_Data'(Width, Height));
    end Reshape_Handler;
+
+   -------------------------
+   -- Set_Camera_Position --
+   -------------------------
+
+   overriding procedure Set_Camera_Position
+     (Target   : in out OpenGL_Render_Target;
+      Position : Rho.Matrices.Vector_3)
+   is null;
 
    -----------------------------
    -- Set_Camera_World_Matrix --

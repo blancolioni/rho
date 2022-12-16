@@ -14,7 +14,6 @@ package body Rho.Demos.Rho_UI.Background is
          Handle    : Rho.Handles.Handle;
          Window    : Rho.Windows.Window_Type;
          Scene     : Rho.Scenes.Scene_Type;
-         Camera    : Rho.Cameras.Camera_Type;
          Ambient   : Rho.Lights.Ambient.Ambient_Light_Type;
          Spotlight : Rho.Lights.Spot.Spot_Light_Type;
       end record;

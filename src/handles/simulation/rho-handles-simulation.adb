@@ -122,7 +122,7 @@ package body Rho.Handles.Simulation is
 
    overriding procedure Set_Camera_Position
      (Target   : in out Simulation_Render_Target;
-      Position : Rho.Matrices.Matrix_4)
+      Position : Rho.Matrices.Vector_3)
    is null;
 
    overriding procedure Render_Current_Buffers
