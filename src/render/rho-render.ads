@@ -58,6 +58,17 @@ package Rho.Render is
    procedure Set_Camera_World_Matrix
      (Render : in out Render_Target;
       Matrix : Rho.Matrices.Matrix_4)
+      is abstract;
+
+   procedure Set_Camera_Position
+     (Render   : in out Render_Target;
+      Position : Rho.Matrices.Vector_3)
+   is abstract;
+
+   procedure Set_Size
+     (Render : in out Render_Target;
+      Width  : Natural;
+      Height : Natural)
    is abstract;
 
    procedure Render_Current_Buffers

@@ -114,6 +114,17 @@ package body Rho.Handles.Simulation is
       Position : Rho.Matrices.Matrix_4)
    is null;
 
+   overriding procedure Set_Size
+     (Render : in out Simulation_Render_Target;
+      Width  : Natural;
+      Height : Natural)
+   is null;
+
+   overriding procedure Set_Camera_Position
+     (Target   : in out Simulation_Render_Target;
+      Position : Rho.Matrices.Matrix_4)
+   is null;
+
    overriding procedure Render_Current_Buffers
      (Target : in out Simulation_Render_Target);
 
