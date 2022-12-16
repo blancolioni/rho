@@ -4,6 +4,7 @@ with Ada.Text_IO;
 
 with Rho.Geometry;
 with Rho.Material.Custom;
+with Rho.Matrices;
 with Rho.Meshes;
 with Rho.Shaders.Stages;
 
@@ -384,7 +385,9 @@ package body Rho.UI.Widget is
    begin
       This.Position := Position;
       This.Node.Set_Position
-        (Real (Position.X), Real (Position.Y), 0.0);
+        (Real (Position.X),
+         This.Surface.Height - Real (Position.Y) - Real (This.Size.Height),
+         0.0);
    end Set_Layout_Position;
 
    ---------------------
@@ -399,6 +402,10 @@ package body Rho.UI.Widget is
       This.Size := Size;
       This.Node.Scale
         (Real (Size.Width), Real (Size.Height), 1.0);
+      This.Node.Set_Position
+        (Rho.Matrices.X (This.Node.Position),
+         This.Surface.Height - Real (This.Position.Y) - Real (Size.Height),
+         0.0);
    end Set_Layout_Size;
 
    --------------
