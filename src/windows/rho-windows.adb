@@ -1,6 +1,21 @@
 with Rho.Handles;
+with Rho.UI.Widget.Main_Root;
 
 package body Rho.Windows is
+
+   ------------
+   -- Add_UI --
+   ------------
+
+   procedure Add_UI
+     (Window : not null access Root_Window_Type'Class;
+      Top    : Rho.UI.Widget.Reference)
+   is
+   begin
+      Window.UIs.Append (Top);
+      Top.Configure;
+      Top.Map (Window);
+   end Add_UI;
 
    -----------------------
    -- Initialize_Window --
@@ -14,6 +29,22 @@ package body Rho.Windows is
    begin
       Window.Initialize_Rectangle (X, Y, Width, Height);
    end Initialize_Window;
+
+   ---------------
+   -- Remove_UI --
+   ---------------
+
+   procedure Remove_UI
+     (Window : not null access Root_Window_Type'Class;
+      Top    : Rho.UI.Widget.Reference)
+   is
+      use Rho_Widget_Lists;
+      Position : Cursor := Window.UIs.Find (Top);
+   begin
+      if Has_Element (Position) then
+         Window.UIs.Delete (Position);
+      end if;
+   end Remove_UI;
 
    ------------
    -- Render --
@@ -35,9 +66,29 @@ package body Rho.Windows is
       W.Before_Render_Time := Ada.Calendar.Clock;
 
       W.Before_Render;
+
       Window.Camera.Render (Target);
       Window.Camera.Set_Root_Object (Window.Scene);
       Window.Scene.Render (Target);
+
+      if not W.UIs.Is_Empty then
+         declare
+            use type Rho.Cameras.Camera_Type;
+         begin
+            if W.UI_Camera = null then
+               W.UI_Camera :=
+                 Rho.Cameras.Orthographic_Camera
+                   (0.0, 0.0, W.Width, W.Height);
+            end if;
+         end;
+
+         W.UI_Camera.Render (Target);
+         for UI of W.UIs loop
+            Rho.UI.Widget.Main_Root.Any_Instance (UI.all)
+              .Root_Node.Render (Target);
+         end loop;
+      end if;
+
       W.After_Render;
 
       Target.Emit_Signal

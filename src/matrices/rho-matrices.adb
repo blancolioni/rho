@@ -294,6 +294,28 @@ package body Rho.Matrices is
       end return;
 
    end Look_At_Matrix;
+   -------------------------
+   -- Orthographic_Matrix --
+   -------------------------
+
+   function Orthographic_Matrix
+     (Left, Right  : Real;
+      Bottom, Top  : Real)
+      return Matrix_4
+   is
+      M_11 : constant Real := 2.0 / (Right - Left);
+      M_14 : constant Real := -(Right + Left) / (Right - Left);
+      M_22 : constant Real := 2.0 / (Top - Bottom);
+      M_24 : constant Real := -(Top + Bottom) / (Top - Bottom);
+      M_33 : constant Real := -1.0;
+      M_34 : constant Real := 0.0;
+   begin
+      return (Matrix =>
+                ((M_11, 0.0, 0.0, M_14),
+                 (0.0, M_22, 0.0, M_24),
+                 (0.0, 0.0, M_33, M_34),
+                 (0.0, 0.0, 0.0, 1.0)));
+   end Orthographic_Matrix;
 
    ------------------------
    -- Perspective_Matrix --

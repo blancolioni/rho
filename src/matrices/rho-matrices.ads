@@ -8,6 +8,11 @@ package Rho.Matrices is
    function Zero return Matrix_4;
    function Unit return Matrix_4;
 
+   function Orthographic_Matrix
+     (Left, Right  : Real;
+      Bottom, Top  : Real)
+      return Matrix_4;
+
    function Perspective_Matrix
      (Left, Right : Real;
       Bottom, Top : Real;

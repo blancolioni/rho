@@ -1,10 +1,13 @@
 private with Ada.Calendar;
+private with Ada.Containers.Doubly_Linked_Lists;
 
 with Rho.Cameras;
 with Rho.Color;
 with Rho.Rectangles;
 with Rho.Render;
 with Rho.Scenes;
+
+with Rho.UI.Widget;
 
 package Rho.Windows is
 
@@ -62,7 +65,19 @@ package Rho.Windows is
 
    type Window_Type is access all Root_Window_Type'Class;
 
+   procedure Add_UI
+     (Window : not null access Root_Window_Type'Class;
+      Top    : Rho.UI.Widget.Reference);
+
+   procedure Remove_UI
+     (Window : not null access Root_Window_Type'Class;
+      Top    : Rho.UI.Widget.Reference);
+
 private
+
+   package Rho_Widget_Lists is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Rho.UI.Widget.Reference, Rho.UI.Widget."=");
 
    type Root_Window_Type is
      abstract new Rho.Rectangles.Root_Rectangle_Type with
@@ -70,11 +85,13 @@ private
          Clear_Color        : Rho.Color.Color_Type :=
            (0.0, 0.0, 0.0, 1.0);
          Camera             : Rho.Cameras.Camera_Type;
+         UI_Camera          : Rho.Cameras.Camera_Type;
          Scene              : Rho.Scenes.Scene_Type;
          Wireframe_Changed  : Boolean := True;
          Current_Wireframe  : Boolean := False;
          Before_Render_Time : Ada.Calendar.Time := Ada.Calendar.Clock;
          After_Render_Time  : Ada.Calendar.Time := Ada.Calendar.Clock;
+         UIs                : Rho_Widget_Lists.List;
       end record;
 
    function Clear_Color

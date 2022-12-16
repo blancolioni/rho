@@ -9,6 +9,9 @@ with Rho.Meshes;
 with Rho.Nodes;
 with Rho.Signals.Buttons;
 with Rho.Signals.Pointer;
+with Rho.Signals;
+with Rho.UI.Builder;
+with Rho.UI.Main;
 
 with Rho.Paths;
 
@@ -145,9 +148,14 @@ package body Rho.Demos.Earth is
                                Data    => User_Data)
         with Unreferenced;
 
+      Builder : constant Rho.UI.Builder.Reference :=
+                  Rho.UI.Builder.Load_Html
+                    (Rho.Paths.Config_File ("gui/demos/earth/earth.html"));
+
    begin
 
       Window.Set_Wireframe (False);
+      Window.Add_UI (Builder.Top);
 
       Scene.Set_Name ("scene");
       Camera.Set_Name ("camera");
@@ -204,6 +212,7 @@ package body Rho.Demos.Earth is
 
    function Load return Demo_Type is
    begin
+      Rho.UI.Main.Init;
       return new Earth_Demo_Type;
    end Load;
 

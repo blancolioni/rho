@@ -5,7 +5,7 @@ with Rho.Nodes;
 
 package Rho.Cameras is
 
-   type Root_Camera_Type is
+   type Root_Camera_Type (<>) is
      new Rho.Nodes.Root_Node_Type with private;
 
    procedure Set_Root_Object
@@ -20,17 +20,30 @@ package Rho.Cameras is
       Near, Far     : Real)
       return Camera_Type;
 
+   function Orthographic_Camera
+     (Left, Bottom  : Real;
+      Width, Height : Non_Negative_Real)
+      return Camera_Type;
+
 private
 
-   type Root_Camera_Type is
+   type Camera_Mode is (Orthographic, Perspective);
+
+   type Root_Camera_Type (Mode : Camera_Mode) is
      new Rho.Nodes.Root_Node_Type with
       record
-         Field_Of_View             : Non_Negative_Real;
-         Aspect_Ratio              : Non_Negative_Real;
-         Near, Far                 : Real;
          Inverse_World_Matrix      : Rho.Matrices.Matrix_4;
          Projection_Matrix         : Rho.Matrices.Matrix_4;
          Inverse_Projection_Matrix : Rho.Matrices.Matrix_4;
+         case Mode is
+            when Orthographic =>
+               Width, Height             : Non_Negative_Real;
+               Left, Bottom              : Real;
+            when Perspective =>
+               Field_Of_View             : Non_Negative_Real;
+               Aspect_Ratio              : Non_Negative_Real;
+               Near, Far                 : Real;
+         end case;
       end record;
 
    overriding procedure Execute_Render

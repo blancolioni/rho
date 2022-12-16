@@ -38,6 +38,10 @@ package Rho.Nodes is
    function Up
      (Node : Root_Node_Type'Class)
       return Rho.Matrices.Normal_Vector_3;
+      
+   procedure Scale
+     (Node  : in out Root_Node_Type'Class;
+      X, Y, Z : Real);
 
    procedure Rotate_On_Axis
      (Node  : in out Root_Node_Type'Class;
