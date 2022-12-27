@@ -1,7 +1,5 @@
-abstract material Rho.Materials.Simple_Color
-  (Color      : Vector_4)
-is
+material Rho.Materials.Simple_Color (Color : Vector_4) is
 
-   function Surface_Color return Vector_4 is (Color);
+   shader Rho.Shaders.Single_Color;
 
 end Rho.Materials.Simple_Color;

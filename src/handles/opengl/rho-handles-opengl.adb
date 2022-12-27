@@ -26,10 +26,10 @@ with WL.String_Maps;
 with Rho.Buffers;
 with Rho.Color;
 with Rho.Matrices;
-with Rho.Shaders.Slices.Attributes;
-with Rho.Shaders.Slices.Main;
-with Rho.Shaders.Slices.Preamble;
-with Rho.Shaders.Slices.Uniforms;
+--  with Rho.Shaders.Slices.Attributes;
+--  with Rho.Shaders.Slices.Main;
+--  with Rho.Shaders.Slices.Preamble;
+--  with Rho.Shaders.Slices.Uniforms;
 with Rho.Shaders.Programs;
 with Rho.Shaders.Stages;
 with Rho.Shaders.Variables;
@@ -47,8 +47,8 @@ with Rho.Handles.OpenGL.Maps;
 
 with Rho.Logging;
 
-with Tau.Generators;
-with Tau.Shaders;
+--  with Tau.Generators;
+--  with Tau.Shaders;
 
 package body Rho.Handles.OpenGL is
 
@@ -87,16 +87,16 @@ package body Rho.Handles.OpenGL is
       Path      : String)
       return Rho.Assets.Texture_Access;
 
-   package Shader_Slices is
-     new Ada.Containers.Vectors
-       (Positive, Rho.Shaders.Slices.Slice_Type,
-        Rho.Shaders.Slices."=");
-
+   --  package Shader_Slices is
+   --    new Ada.Containers.Vectors
+   --      (Positive, Rho.Shaders.Slices.Slice_Type,
+   --       Rho.Shaders.Slices."=");
+   --
    package Shader_Vectors is
      new Ada.Containers.Vectors
        (Index_Type   => Positive,
-        Element_Type => Tau.Shaders.Tau_Shader,
-        "="          => Tau.Shaders."=");
+        Element_Type => Rho.Shaders.Programs.Program_Type,
+        "="          => Rho.Shaders.Programs."=");
 
    type OpenGL_Render_Target is
      new Rho.Signals.Signal_Dispatcher
@@ -108,7 +108,6 @@ package body Rho.Handles.OpenGL is
          Active_Model_View      : Rho.Matrices.Matrix_4;
          Active_Camera          : Rho.Matrices.Matrix_4;
          Active_Camera_Inverted : Rho.Matrices.Matrix_4;
-         Active_Fragments       : Shader_Slices.Vector;
          Active_Shaders         : Shader_Vectors.Vector;
          Active_Uniforms        : Uniform_Value_Maps.Map;
          Active_Variables       : Shader_Variable_Maps.Map;
@@ -129,17 +128,17 @@ package body Rho.Handles.OpenGL is
      (Target : OpenGL_Render_Target)
       return Rho.Render.Active_Shader_Array;
 
-   overriding function Active_Shader_Slices
-     (Target : OpenGL_Render_Target)
-      return Rho.Shaders.Slices.Slice_Array;
-
-   overriding procedure Add_Shader
-     (Target   : in out OpenGL_Render_Target;
-      Shader   : Tau.Shaders.Tau_Shader);
-
-   overriding procedure Add_Shader_Fragment
-     (Target   : in out OpenGL_Render_Target;
-      Slice : Rho.Shaders.Slices.Slice_Type);
+   --  overriding function Active_Shader_Slices
+   --    (Target : OpenGL_Render_Target)
+   --     return Rho.Shaders.Slices.Slice_Array;
+   --
+   --  overriding procedure Add_Shader
+   --    (Target   : in out OpenGL_Render_Target;
+   --     Shader   : Tau.Shaders.Tau_Shader);
+   --
+   --  overriding procedure Add_Shader_Fragment
+   --    (Target   : in out OpenGL_Render_Target;
+   --     Slice : Rho.Shaders.Slices.Slice_Type);
 
    overriding procedure Add_Uniform
      (Target  : in out OpenGL_Render_Target;
@@ -164,15 +163,20 @@ package body Rho.Handles.OpenGL is
       Shaders   : Rho.Shaders.Stages.Shader_Array)
       return Rho.Shaders.Programs.Program_Type;
 
+   overriding procedure Bind_Variable
+     (Target   : in out OpenGL_Render_Target;
+      Program  : Rho.Shaders.Programs.Program_Type;
+      Variable : Rho.Shaders.Variables.Variable_Type);
+
    overriding function Current_Shader
      (Target : OpenGL_Render_Target)
       return Rho.Shaders.Programs.Program_Type
    is (Target.Active_Program);
 
-   overriding function Generator
-     (Target : OpenGL_Render_Target)
-      return Tau.Generators.Root_Tau_Generator'Class
-   is (Tau.Generators.Null_Generator);
+   --  overriding function Generator
+   --    (Target : OpenGL_Render_Target)
+   --     return Tau.Generators.Root_Tau_Generator'Class
+   --  is (Tau.Generators.Null_Generator);
 
    overriding procedure Set_Projection_Matrix
      (Target : in out OpenGL_Render_Target;
@@ -205,7 +209,7 @@ package body Rho.Handles.OpenGL is
    overriding procedure Activate_Buffer
      (Target   : in out OpenGL_Render_Target;
       Buffer   : Rho.Buffers.Buffer_Type;
-      Argument : not null access
+      Argument : access
         Rho.Shaders.Variables.Root_Variable_Type'Class);
 
    procedure Bind_Uniform
@@ -350,31 +354,38 @@ package body Rho.Handles.OpenGL is
    overriding procedure Activate_Buffer
      (Target   : in out OpenGL_Render_Target;
       Buffer   : Rho.Buffers.Buffer_Type;
-      Argument : not null access
-        Rho.Shaders.Variables.Root_Variable_Type'Class)
+      Argument : access Rho.Shaders.Variables.Root_Variable_Type'Class)
    is
-      Buffer_Id : constant GL_Types.Uint := Target.Id_Map.Buffer_Id (Buffer);
    begin
-      if not Target.Id_Map.Has_Id (Argument) then
-         return;
-      end if;
+      if Argument /= null then
+         declare
+            Buffer_Id : constant GL_Types.Uint :=
+                          Target.Id_Map.Buffer_Id (Buffer);
+         begin
+            if not Target.Id_Map.Has_Id (Argument) then
+               return;
+            end if;
 
-      case Buffer.Contents is
-         when Rho.Buffers.Integer_Data =>
-            GL.Bind_Buffer (GL_Constants.GL_ELEMENT_ARRAY_BUFFER, Buffer_Id);
-            Target.Current_Count := Buffer.Element_Count;
-         when others =>
-            GL.Bind_Buffer (GL_Constants.GL_ARRAY_BUFFER, Buffer_Id);
-            GL.Vertex_Attribute_Pointer
-              (Index        => Target.Id_Map.Variable_Id (Argument),
-               Size         => GL_Types.Int (Argument.Element_Count),
-               Element_Type => GL_Constants.GL_FLOAT,
-               Normalized   => GL_Constants.GL_FALSE,
-               Stride       => 0,
-               Pointer      => 0);
-            GL.Enable_Vertex_Attribute_Array
-              (Target.Id_Map.Variable_Id (Argument));
-      end case;
+            case Buffer.Contents is
+               when Rho.Buffers.Integer_Data =>
+                  GL.Bind_Buffer (GL_Constants.GL_ELEMENT_ARRAY_BUFFER,
+                                  Buffer_Id);
+                  Target.Current_Count := Buffer.Element_Count;
+               when others =>
+                  GL.Bind_Buffer
+                    (GL_Constants.GL_ARRAY_BUFFER, Buffer_Id);
+                  GL.Vertex_Attribute_Pointer
+                    (Index        => Target.Id_Map.Variable_Id (Argument),
+                     Size         => GL_Types.Int (Argument.Element_Count),
+                     Element_Type => GL_Constants.GL_FLOAT,
+                     Normalized   => GL_Constants.GL_FALSE,
+                     Stride       => 0,
+                     Pointer      => 0);
+                  GL.Enable_Vertex_Attribute_Array
+                    (Target.Id_Map.Variable_Id (Argument));
+            end case;
+         end;
+      end if;
    end Activate_Buffer;
 
    ---------------------
@@ -388,6 +399,7 @@ package body Rho.Handles.OpenGL is
       use type Rho.Shaders.Programs.Program_Type;
    begin
       if Target.Active_Program /= Shader then
+         Rho.Logging.Log ("activating: " & Shader.Name);
          GL.Use_Program
            (Target.Id_Map.Program_Id (Shader));
          Target.Active_Program := Shader;
@@ -398,19 +410,19 @@ package body Rho.Handles.OpenGL is
    -- Active_Shader_Slices --
    -----------------------------
 
-   overriding function Active_Shader_Slices
-     (Target : OpenGL_Render_Target)
-      return Rho.Shaders.Slices.Slice_Array
-   is
-   begin
-      return Arr : Rho.Shaders.Slices.Slice_Array
-        (1 .. Target.Active_Fragments.Last_Index)
-      do
-         for I in Arr'Range loop
-            Arr (I) := Target.Active_Fragments (I);
-         end loop;
-      end return;
-   end Active_Shader_Slices;
+   --  overriding function Active_Shader_Slices
+   --    (Target : OpenGL_Render_Target)
+   --     return Rho.Shaders.Slices.Slice_Array
+   --  is
+   --  begin
+   --     return Arr : Rho.Shaders.Slices.Slice_Array
+   --       (1 .. Target.Active_Fragments.Last_Index)
+   --     do
+   --        for I in Arr'Range loop
+   --           Arr (I) := Target.Active_Fragments (I);
+   --        end loop;
+   --     end return;
+   --  end Active_Shader_Slices;
 
    --------------------
    -- Active_Shaders --
@@ -434,25 +446,25 @@ package body Rho.Handles.OpenGL is
    -- Add_Shader --
    ----------------
 
-   overriding procedure Add_Shader
-     (Target   : in out OpenGL_Render_Target;
-      Shader   : Tau.Shaders.Tau_Shader)
-   is
-   begin
-      Target.Active_Shaders.Append (Shader);
-   end Add_Shader;
+   --  overriding procedure Add_Shader
+   --    (Target   : in out OpenGL_Render_Target;
+   --     Shader   : Tau.Shaders.Tau_Shader)
+   --  is
+   --  begin
+   --     Target.Active_Shaders.Append (Shader);
+   --  end Add_Shader;
 
    -------------------------
    -- Add_Shader_Fragment --
    -------------------------
 
-   overriding procedure Add_Shader_Fragment
-     (Target   : in out OpenGL_Render_Target;
-      Slice : Rho.Shaders.Slices.Slice_Type)
-   is
-   begin
-      Target.Active_Fragments.Append (Slice);
-   end Add_Shader_Fragment;
+   --  overriding procedure Add_Shader_Fragment
+   --    (Target   : in out OpenGL_Render_Target;
+   --     Slice : Rho.Shaders.Slices.Slice_Type)
+   --  is
+   --  begin
+   --     Target.Active_Fragments.Append (Slice);
+   --  end Add_Shader_Fragment;
 
    -----------------
    -- Add_Uniform --
@@ -512,15 +524,24 @@ package body Rho.Handles.OpenGL is
      (Target : in out OpenGL_Render_Target;
       Shader : Rho.Shaders.Programs.Program_Type)
    is
+      function Uniform_Id (Binding : Rho.Shaders.Standard_Variable_Binding)
+                           return GL_Types.Uint
+      is (Target.Id_Map.Variable_Id
+          (Shader.Standard_Binding (Binding)));
+
+      View_Id : constant GL_Types.Uint :=
+                  Uniform_Id (Rho.Shaders.View_Uniform);
+      Model_Id : constant GL_Types.Uint :=
+                   Uniform_Id (Rho.Shaders.Model_Uniform);
    begin
       Target.Activate_Shader (Shader);
       GL.Uniform_Matrix
-        (Location  => Target.Id_Map.Variable_Id (Shader.Projection_Uniform),
+        (Location  => View_Id,
          Count     => 1,
          Transpose => GL_Constants.GL_FALSE,
          Matrix    => To_GL_Float_Array (Target.Active_Projection));
       GL.Uniform_Matrix
-        (Location  => Target.Id_Map.Variable_Id (Shader.Model_View_Uniform),
+        (Location  => Model_Id,
          Count     => 1,
          Transpose => GL_Constants.GL_FALSE,
          Matrix    => To_GL_Float_Array (Target.Active_Model_View));
@@ -540,22 +561,30 @@ package body Rho.Handles.OpenGL is
       --     end;
       --  end if;
 
-      declare
-      begin
+      for Position in Target.Active_Uniforms.Iterate loop
+         declare
+            Name     : constant String := Uniform_Value_Maps.Key (Position);
+            Value    : constant Rho.Values.Rho_Value :=
+                         Uniform_Value_Maps.Element (Position);
+         begin
+            if Shader.Has_Variable (Name) then
+               declare
+                  Variable : constant Rho.Shaders.Variables.Variable_Type :=
+                               Shader.Get_Variable (Name);
+               begin
+                  Target.Bind_Uniform (Variable, Value);
+               end;
+            else
+               if False then
+                  Rho.Logging.Log
+                    ("shader " & Shader.Name
+                     & " has no definition for active uniform "
+                     & Name);
+               end if;
+            end if;
+         end;
+      end loop;
 
-         for Position in Target.Active_Uniforms.Iterate loop
-            declare
-               Name     : constant String := Uniform_Value_Maps.Key (Position);
-               Value    : constant Rho.Values.Rho_Value :=
-                            Uniform_Value_Maps.Element (Position);
-               Variable : constant Rho.Shaders.Variables.Variable_Type :=
-                            Shader.Get_Variable (Name);
-            begin
-               Target.Bind_Uniform (Variable, Value);
-            end;
-         end loop;
-
-      end;
    end Bind_Shader;
 
    ------------------
@@ -596,11 +625,63 @@ package body Rho.Handles.OpenGL is
                    GL_Types.GLfloat (Rho.Matrices.Y (Vec_3)),
                    GL_Types.GLfloat (Rho.Matrices.Z (Vec_3))));
             end;
+         when Color_Value | Vector_4_Value =>
+            declare
+               Vec_4 : constant Rho.Matrices.Vector_4 :=
+                         Rho.Values.To_Vector_4 (Value);
+            begin
+               GL.Uniform
+                 (Id,
+                  (GL_Types.GLfloat (Rho.Matrices.X (Vec_4)),
+                   GL_Types.GLfloat (Rho.Matrices.Y (Vec_4)),
+                   GL_Types.GLfloat (Rho.Matrices.Z (Vec_4)),
+                   GL_Types.GLfloat (Rho.Matrices.W (Vec_4))));
+            end;
+
          when others =>
             raise Constraint_Error with
             Value.Of_Type'Image & " uniform not supported";
       end case;
    end Bind_Uniform;
+
+   -------------------
+   -- Bind_Variable --
+   -------------------
+
+   overriding procedure Bind_Variable
+     (Target   : in out OpenGL_Render_Target;
+      Program  : Rho.Shaders.Programs.Program_Type;
+      Variable : Rho.Shaders.Variables.Variable_Type)
+   is
+      use GL_Types;
+      use all type Rho.Shaders.Variable_Mode;
+      Variable_Id : Int := 0;
+      Program_Id  : constant Uint :=
+                      Target.Id_Map.Program_Id (Program);
+   begin
+
+      case Variable.Mode is
+         when In_Variable =>
+            Variable_Id :=
+              GL.Get_Attribute_Location (Program_Id, Variable.Name);
+            Rho.Logging.Log
+              (Program.Name & ": attribute " & Variable.Name
+               & " ->" & Variable_Id'Image);
+         when Uniform_Variable =>
+            Variable_Id :=
+              GL.Get_Uniform_Location (Program_Id, Variable.Name);
+            Rho.Logging.Log
+              (Program.Name & ": uniform " & Variable.Name
+               & " ->" & Variable_Id'Image);
+         when Out_Variable =>
+            raise Constraint_Error with
+              "cannot bind to out variable: " & Variable.Name;
+      end case;
+      if Variable_Id >= 0 then
+         Local_Render_Target.Id_Map.Define_Variable
+           (Variable, Variable_Id);
+      end if;
+   end Bind_Variable;
 
    --------------------
    -- Compile_Shader --
@@ -680,55 +761,64 @@ package body Rho.Handles.OpenGL is
       return Program : constant Rho.Shaders.Programs.Program_Type :=
         Rho.Shaders.Programs.Create_Program (Name)
       do
-         declare
-            procedure Bind_Variable
-              (Variable : not null access
-                 Rho.Shaders.Variables.Root_Variable_Type'Class);
-
-            -------------------
-            -- Bind_Variable --
-            -------------------
-
-            procedure Bind_Variable
-              (Variable : not null access
-                 Rho.Shaders.Variables.Root_Variable_Type'Class)
-            is
-               use GL_Types;
-               use all type Rho.Shaders.Binding_Type;
-               Variable_Id : Int := 0;
-            begin
-               case Variable.Binding is
-                  when Attribute_Binding =>
-                     Variable_Id :=
-                       GL.Get_Attribute_Location (Id, Variable.Name);
-                  when Uniform_Binding =>
-                     Variable_Id :=
-                       GL.Get_Uniform_Location (Id, Variable.Name);
-               end case;
-               if Variable_Id >= 0 then
-                  Local_Render_Target.Id_Map.Define_Variable
-                    (Variable, Variable_Id);
-               end if;
-            end Bind_Variable;
-
-         begin
-            Rho.Logging.Log (Program.Name & ": binding variables");
-
-            Program.Iterate_Variables (Bind_Variable'Access);
-
-            for Position in Target.Active_Uniforms.Iterate loop
-               declare
-                  Name : constant String := Uniform_Value_Maps.Key (Position);
-                  Variable : constant Rho.Shaders.Variables.Variable_Type :=
-                               Rho.Shaders.Variables.New_Uniform_Binding
-                                 (Program       => Program,
-                                  Name          => Name);
-               begin
-                  Program.Add_Variable (Variable);
-                  Bind_Variable (Variable);
-               end;
-            end loop;
-         end;
+         --  declare
+         --     procedure Bind_Variable
+         --       (Variable : not null access
+         --          Rho.Shaders.Variables.Root_Variable_Type'Class);
+         --
+         --     -------------------
+         --     -- Bind_Variable --
+         --     -------------------
+         --
+         --     procedure Bind_Variable
+         --       (Variable : not null access
+         --          Rho.Shaders.Variables.Root_Variable_Type'Class)
+         --     is
+         --        use GL_Types;
+         --        use all type Rho.Shaders.Variable_Mode;
+         --        Variable_Id : Int := 0;
+         --     begin
+         --
+         --        case Variable.Mode is
+         --           when In_Variable =>
+         --              Variable_Id :=
+         --                GL.Get_Attribute_Location (Id, Variable.Name);
+         --              Rho.Logging.Log
+         --                (Program.Name & ": attribute " & Variable.Name
+         --                 & " ->" & Variable_Id'Image);
+         --           when Uniform_Variable =>
+         --              Variable_Id :=
+         --                GL.Get_Uniform_Location (Id, Variable.Name);
+         --              Rho.Logging.Log
+         --                (Program.Name & ": uniform " & Variable.Name
+         --                 & " ->" & Variable_Id'Image);
+         --           when Out_Variable =>
+         --              raise Constraint_Error with
+         --                "cannot bind to out variable: " & Variable.Name;
+         --        end case;
+         --        if Variable_Id >= 0 then
+         --           Local_Render_Target.Id_Map.Define_Variable
+         --             (Variable, Variable_Id);
+         --        end if;
+         --     end Bind_Variable;
+         --
+         --  begin
+         --     Rho.Logging.Log (Program.Name & ": binding variables");
+         --
+         --     Program.Iterate_Variables (Bind_Variable'Access);
+         --
+         --     for Position in Target.Active_Uniforms.Iterate loop
+         --        declare
+         --     Name : constant String := Uniform_Value_Maps.Key (Position);
+         --      Variable : constant Rho.Shaders.Variables.Variable_Type :=
+         --                        Rho.Shaders.Variables.New_Uniform_Binding
+         --                          (Name => Name);
+         --        begin
+         --           Program.Add_Variable (Variable);
+         --           Bind_Variable (Variable);
+         --        end;
+         --     end loop;
+         --  end;
 
          Local_Render_Target.Id_Map.Define_Program (Program, Id);
       end return;
@@ -892,28 +982,28 @@ package body Rho.Handles.OpenGL is
         (Mode => GLUT.DOUBLE or GLUT.RGB or GLUT.DEPTH);
 
       Local_Handle.Assets := new OpenGL_Asset_Container;
-      Local_Render_Target.Add_Shader_Fragment
-        (Rho.Shaders.Slices.Preamble.Shader_Preamble (Vertex_Shader));
-      Local_Render_Target.Add_Shader_Fragment
-        (Rho.Shaders.Slices.Preamble.Shader_Preamble (Fragment_Shader));
-      Local_Render_Target.Add_Shader_Fragment
-        (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
-           (Vertex_Shader, "camera", "mat4"));
-      Local_Render_Target.Add_Shader_Fragment
-        (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
-           (Vertex_Shader, "model", "mat4"));
-      Local_Render_Target.Add_Shader_Fragment
-        (Rho.Shaders.Slices.Attributes.In_Attribute_Fragment
-           (Vertex_Shader, "position", "vec3"));
-      Local_Render_Target.Add_Shader_Fragment
-        (Rho.Shaders.Slices.Attributes.In_Attribute_Fragment
-           (Vertex_Shader, "vertexNormal", "vec3"));
-      Local_Render_Target.Add_Shader_Fragment
-        (Rho.Shaders.Slices.Main.Shader_Line
-           (Stage    => Vertex_Shader,
-            Priority => Rho.Shaders.Slices.Shader_Source_Priority'Last,
-            Name     => "Apply all matrix transformations to position",
-            Line     => "gl_Position = camera * model * vec4(position, 1)"));
+      --  Local_Render_Target.Add_Shader_Fragment
+      --    (Rho.Shaders.Slices.Preamble.Shader_Preamble (Vertex_Shader));
+      --  Local_Render_Target.Add_Shader_Fragment
+      --    (Rho.Shaders.Slices.Preamble.Shader_Preamble (Fragment_Shader));
+      --  Local_Render_Target.Add_Shader_Fragment
+      --    (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
+      --       (Vertex_Shader, "camera", "mat4"));
+      --  Local_Render_Target.Add_Shader_Fragment
+      --    (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
+      --       (Vertex_Shader, "model", "mat4"));
+      --  Local_Render_Target.Add_Shader_Fragment
+      --    (Rho.Shaders.Slices.Attributes.In_Attribute_Fragment
+      --       (Vertex_Shader, "position", "vec3"));
+      --  Local_Render_Target.Add_Shader_Fragment
+      --    (Rho.Shaders.Slices.Attributes.In_Attribute_Fragment
+      --       (Vertex_Shader, "vertexNormal", "vec3"));
+      --  Local_Render_Target.Add_Shader_Fragment
+      --    (Rho.Shaders.Slices.Main.Shader_Line
+      --       (Stage    => Vertex_Shader,
+      --        Priority => Rho.Shaders.Slices.Shader_Source_Priority'Last,
+      --        Name     => "Apply all matrix transformations to position",
+      --     Line     => "gl_Position = camera * model * vec4(position, 1)"));
 
       return Local_Handle'Access;
    end Get_Handle;

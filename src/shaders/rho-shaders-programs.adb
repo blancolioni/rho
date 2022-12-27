@@ -10,28 +10,21 @@ package body Rho.Shaders.Programs is
      (Program  : in out Root_Program_Type'Class;
       Variable : Variables.Variable_Type)
    is
+      Binding : constant Variable_Binding_Type := Variable.Binding;
    begin
       Rho.Logging.Log
-        ("adding " & Variable.Name & " to program " & Program.Name);
+        ("adding "
+         & Binding'Image
+         & " "
+         & Variable.Name
+         & " to program " & Program.Name);
       Program.Variable_Map.Insert (Variable.Name, Variable);
+
+      if Binding in Standard_Variable_Binding then
+         Program.Standard_Variables (Binding) := Variable;
+      end if;
+
    end Add_Variable;
-
-   ------------------------------
-   -- Create_Attribute_Binding --
-   ------------------------------
-
-   function Create_Attribute_Binding
-     (Program       : not null access Root_Program_Type'Class;
-      Name          : String;
-      Element_Count : Positive)
-      return Variables.Variable_Type
-   is
-   begin
-      return Rho.Shaders.Variables.New_Attribute_Binding
-        (Program       => Program,
-         Name          => Name,
-         Element_Count => Element_Count);
-   end Create_Attribute_Binding;
 
    --------------------
    -- Create_Program --
@@ -39,68 +32,51 @@ package body Rho.Shaders.Programs is
 
    function Create_Program (Name : String) return Program_Type is
 
-      procedure Check_Variable
-        (Program  : Program_Type;
-         Variable : Rho.Shaders.Variables.Variable_Type);
+      --  procedure Check_Variable
+      --    (Program  : Program_Type;
+      --     Variable : Rho.Shaders.Variables.Variable_Type);
 
       --------------------
       -- Check_Variable --
       --------------------
 
-      procedure Check_Variable
-        (Program  : Program_Type;
-         Variable : Rho.Shaders.Variables.Variable_Type)
-      is
-         use type Rho.Shaders.Variables.Variable_Type;
-      begin
-         if Variable /= null then
-            Program.Shader_Variables.Append (Variable);
-         end if;
-      end Check_Variable;
+      --  procedure Check_Variable
+      --    (Program  : Program_Type;
+      --     Variable : Rho.Shaders.Variables.Variable_Type)
+      --  is
+      --     use type Rho.Shaders.Variables.Variable_Type;
+      --  begin
+      --     if Variable /= null then
+      --        Program.Shader_Variables.Append (Variable);
+      --     end if;
+      --  end Check_Variable;
 
    begin
       return Program : constant Program_Type := new Root_Program_Type do
          Program.Set_Name (Name);
-         Program.Vertex_Position :=
-           Program.Create_Attribute_Binding ("position", 3);
-         Program.Vertex_Normal :=
-           Program.Create_Attribute_Binding ("vertexNormal", 3);
-         Program.Vertex_Texture :=
-           Program.Create_Attribute_Binding ("vertexTextureCoord", 2);
+         --  Program.Vertex_Position :=
+         --    Program.Create_Attribute_Binding ("position", 3);
+         --  Program.Vertex_Normal :=
+         --    Program.Create_Attribute_Binding ("vertexNormal", 3);
+         --  Program.Vertex_Texture :=
+         --    Program.Create_Attribute_Binding ("vertexTextureCoord", 2);
          --  Program.Vertex_Color :=
          --    Program.Create_Attribute_Binding ("color", 4);
-         Program.Model_View :=
-           Program.Create_Uniform_Binding ("model");
-         Program.Projection :=
-           Program.Create_Uniform_Binding ("camera");
+         --  Program.Model_View :=
+         --    Program.Create_Uniform_Binding ("model");
+         --  Program.Projection :=
+         --    Program.Create_Uniform_Binding ("camera");
          --  Program.Camera_Position :=
          --    Program.Create_Uniform_Binding ("cameraPosition");
-         Check_Variable (Program, Program.Vertex_Position);
-         Check_Variable (Program, Program.Vertex_Normal);
-         Check_Variable (Program, Program.Vertex_Texture);
+         --  Check_Variable (Program, Program.Vertex_Position);
+         --  Check_Variable (Program, Program.Vertex_Normal);
+         --  Check_Variable (Program, Program.Vertex_Texture);
          --  Check_Variable (Program, Program.Vertex_Color);
-         Check_Variable (Program, Program.Model_View);
-         Check_Variable (Program, Program.Projection);
-         Check_Variable (Program, Program.Camera_Position);
+         --  Check_Variable (Program, Program.Model_View);
+         --  Check_Variable (Program, Program.Projection);
+         --  Check_Variable (Program, Program.Camera_Position);
       end return;
    end Create_Program;
-
-   ----------------------------
-   -- Create_Uniform_Binding --
-   ----------------------------
-
-   function Create_Uniform_Binding
-     (Program : not null access Root_Program_Type'Class;
-      Name          : String;
-      Element_Count : Positive := 1)
-      return Variables.Variable_Type
-   is
-   begin
-      return Rho.Shaders.Variables.New_Uniform_Binding
-        (Program       => Program,
-         Name          => Name,
-         Element_Count => Element_Count);
-   end Create_Uniform_Binding;
 
    -----------------------
    -- Iterate_Variables --

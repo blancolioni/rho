@@ -1,0 +1,3 @@
+global:out vec4 fragmentColor;
+main,light:fragmentColor = vec4(litColor, 1.0);
+main,no-light:fragmentColor = surfaceColor;

@@ -1,0 +1,2 @@
+global:out vec3 fragmentPosition;
+main:fragmentPosition = vec3(model * vec4(position, 1.0));

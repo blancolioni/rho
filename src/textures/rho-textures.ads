@@ -2,7 +2,6 @@ private with Ada.Strings.Unbounded;
 
 with Rho.Objects;
 
-with Rho.Shaders.Slices;
 with Rho.Render;
 
 package Rho.Textures is
@@ -17,7 +16,6 @@ package Rho.Textures is
 
    type Root_Texture_Type is
      abstract new Rho.Objects.Root_Object_Type
-     and Rho.Shaders.Slices.Slice_Container_Interface
    with private;
 
    type Texture_Type is access all Root_Texture_Type'Class;
@@ -40,14 +38,6 @@ package Rho.Textures is
      (Texture : Root_Texture_Type;
       Target  : not null access Rho.Render.Render_Target'Class)
    is abstract;
-
-   overriding function Shader_Slices
-     (Texture : Root_Texture_Type)
-      return Rho.Shaders.Slices.Slice_Array;
-
-   overriding procedure Add_Slice
-     (Texture : in out Root_Texture_Type;
-      Slice : Rho.Shaders.Slices.Slice_Type);
 
    function Dimension_Count
      (Texture : Root_Texture_Type'Class)
@@ -79,12 +69,10 @@ package Rho.Textures is
 private
 
    type Root_Texture_Type is
-     abstract new Rho.Objects.Root_Object_Type
-     and Rho.Shaders.Slices.Slice_Container_Interface with
+     abstract new Rho.Objects.Root_Object_Type with
       record
          Identifier   : Ada.Strings.Unbounded.Unbounded_String;
          Dimensions   : Texture_Dimension_Count := 2;
-         Slices       : Rho.Shaders.Slices.Slice_Container;
          Width        : Positive;
          Height       : Positive;
          Depth        : Positive;
@@ -92,11 +80,6 @@ private
          T_Border     : Texture_Address_Mode;
          Mag_Filter   : Texture_Filter_Type;
       end record;
-
-   overriding function Shader_Slices
-     (Texture : Root_Texture_Type)
-      return Rho.Shaders.Slices.Slice_Array
-   is (Texture.Slices.Shader_Slices);
 
    function Dimension_Count
      (Texture : Root_Texture_Type'Class)

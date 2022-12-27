@@ -1,6 +1,4 @@
 with Rho.Matrices;
-with Rho.Shaders.Slices.Main;
-with Rho.Shaders.Slices.Uniforms;
 with Rho.Values;
 
 package body Rho.Lights.Ambient is
@@ -19,21 +17,6 @@ package body Rho.Lights.Ambient is
         new Root_Ambient_Light
       do
          Light.Initialize (Color, Intensity);
-         Light.Add_Slice
-           (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
-              (Fragment_Shader, "ambientColor", "vec3"));
-         Light.Add_Slice
-           (Rho.Shaders.Slices.Uniforms.Uniform_Fragment
-              (Fragment_Shader, "ambientCoefficient", "float"));
-         Light.Add_Slice
-           (Rho.Shaders.Slices.Main.Shader_Line
-              (Stage    => Fragment_Shader,
-               Priority => 10,
-               Name     => "adjust surface color with ambient light",
-               Line     =>
-                 "fragmentColor.rgb = "
-               & "ambientCoefficient * fragmentColor.rgb"
-               & " * ambientLightColor"));
       end return;
    end Ambient_Light;
 
@@ -48,10 +31,6 @@ package body Rho.Lights.Ambient is
    begin
       Root_Light_Type (Light).Load (Target);
 
-      Target.Add_Shader
-        (Target.Assets.Shader
-           ("rho-shaders-light-ambient"));
-
       Target.Add_Uniform
         (Name  => "ambientColor",
          Value =>
@@ -59,7 +38,7 @@ package body Rho.Lights.Ambient is
              (Rho.Matrices.To_Vector
                   (Light.Color.R, Light.Color.G, Light.Color.B)));
       Target.Add_Uniform
-        (Name  => "ambientCoeff",
+        (Name  => "ambientCoefficient",
          Value =>
            Rho.Values.Real_Value (Light.Intensity));
    end Load;

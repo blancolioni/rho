@@ -1,14 +1,14 @@
 with Rho.Assets;
 with Rho.Buffers;
 with Rho.Matrices;
-with Rho.Shaders.Slices;
 with Rho.Shaders.Programs;
 with Rho.Shaders.Stages;
+with Rho.Shaders.Variables;
 with Rho.Signals;
 with Rho.Values;
 
-with Tau.Generators;
-with Tau.Shaders;
+--  with Tau.Generators;
+--  with Tau.Shaders;
 
 package Rho.Render is
 
@@ -16,23 +16,23 @@ package Rho.Render is
      and Rho.Buffers.Buffer_Handler_Interface
      and Rho.Signals.Signal_Dispatch_Interface;
 
-   function Active_Shader_Slices
-     (Target : Render_Target)
-      return Rho.Shaders.Slices.Slice_Array
-      is abstract;
+   --  function Active_Shader_Slices
+   --    (Target : Render_Target)
+   --     return Rho.Shaders.Slices.Slice_Array
+   --     is abstract;
 
-   procedure Add_Shader_Fragment
-     (Target   : in out Render_Target;
-      Slice : Rho.Shaders.Slices.Slice_Type)
-   is abstract;
+   --  procedure Add_Shader_Fragment
+   --    (Target   : in out Render_Target;
+   --     Slice : Rho.Shaders.Slices.Slice_Type)
+   --  is abstract;
 
    procedure Add_Shader
      (Target : in out Render_Target;
-      Shader : Tau.Shaders.Tau_Shader)
+      Shader : Rho.Shaders.Programs.Program_Type)
    is null;
 
    type Active_Shader_Array is
-     array (Positive range <>) of Tau.Shaders.Tau_Shader;
+     array (Positive range <>) of Rho.Shaders.Programs.Program_Type;
 
    function Active_Shaders
      (Target : Render_Target)
@@ -87,6 +87,12 @@ package Rho.Render is
       return Rho.Shaders.Programs.Program_Type
       is abstract;
 
+   procedure Bind_Variable
+     (Render   : in out Render_Target;
+      Program  : Rho.Shaders.Programs.Program_Type;
+      Variable : Rho.Shaders.Variables.Variable_Type)
+   is abstract;
+
    procedure Activate_Shader
      (Render : in out Render_Target;
       Shader : Rho.Shaders.Programs.Program_Type)
@@ -102,10 +108,10 @@ package Rho.Render is
       return Rho.Shaders.Programs.Program_Type
       is abstract;
 
-   function Generator
-     (Render : Render_Target)
-      return Tau.Generators.Root_Tau_Generator'Class
-   is abstract;
+   --  function Generator
+   --    (Render : Render_Target)
+   --     return Tau.Generators.Root_Tau_Generator'Class
+   --  is abstract;
 
    function Assets
      (Render : Render_Target)

@@ -1,8 +1,7 @@
 with Ada.Directories;
 with Rho.Paths;
 
-with Tau.Objects;
-with Tau.Parser;
+with Rho.Shaders.Partial.Loader;
 
 package body Rho.Assets is
 
@@ -91,34 +90,28 @@ package body Rho.Assets is
       return Search (Rho.Paths.Config_Path);
    end Find_File;
 
-   ------------
-   -- Shader --
-   ------------
+   --------------------
+   -- Partial_Shader --
+   --------------------
 
-   function Shader
+   function Partial_Shader
      (Container : in out Root_Asset_Container_Type;
-      Name      : String)
-      return Tau.Shaders.Tau_Shader
+      Name      : String;
+      Stage     : Shader_Stage)
+      return Rho.Shaders.Partial.Partial_Shader_Type
    is
-      Asset_Class : Root_Asset_Container_Type'Class renames
-                      Root_Asset_Container_Type'Class (Container);
-      Path        : constant String :=
-                      Asset_Class.Find_File (Name, "rho");
+      Extension : constant String :=
+                    (case Stage is
+                        when Vertex_Shader => "vertex",
+                        when Fragment_Shader => "fragment");
+      Path      : constant String := Container.Find_File (Name, Extension);
    begin
       if Path = "" then
-         raise Constraint_Error with
-           "cannot find shader file " & Name & ".rho";
+         return null;
       end if;
 
-      declare
-         Object  : constant Tau.Objects.Tau_Object :=
-                     Tau.Parser.Load_File (Path);
-         Shader  : constant Tau.Shaders.Tau_Shader :=
-                     Tau.Shaders.Tau_Shader (Object);
-      begin
-         return Shader;
-      end;
-   end Shader;
+      return Rho.Shaders.Partial.Loader.Load_Partial_Shader (Stage, Path);
+   end Partial_Shader;
 
    -------------
    -- Texture --

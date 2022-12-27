@@ -1,5 +1,6 @@
 with Rho.Lights.Ambient;
 with Rho.Material.Basic;
+with Rho.Material.Simple;
 
 with Rho.Demos.Rotating_Cube;
 
@@ -41,7 +42,7 @@ package body Rho.Demos.Texture_Demo is
       Window : Rho.Windows.Window_Type)
    is
       Side : constant Rho.Material.Material_Type :=
-               Rho.Material.Basic.Create_Basic_Material
+               Rho.Material.Simple.Create_Simple_Material
                  (Handle.Assets.Create_Texture_From_Image
                     ("config/images/grass_block_side"));
       Top  : constant Rho.Material.Material_Type :=

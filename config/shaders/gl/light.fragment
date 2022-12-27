@@ -1,0 +1,2 @@
+global:in vec3 fragmentNormal;
+local:vec3 litColor = vec3(0,0,0);

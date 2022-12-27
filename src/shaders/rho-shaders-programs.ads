@@ -16,33 +16,44 @@ package Rho.Shaders.Programs is
         procedure (Variable : not null access
                      Variables.Root_Variable_Type'Class));
 
-   function Projection_Uniform
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type;
+   function Has_Standard_Binding
+     (Program : Root_Program_Type'Class;
+      Binding : Standard_Variable_Binding)
+      return Boolean;
 
-   function Model_View_Uniform
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type;
-
-   function Camera_Position_Uniform
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type;
-
-   function Vertex_Position_Attribute
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type;
-
-   function Vertex_Normal_Attribute
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type;
-
-   function Vertex_Texture_Attribute
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type;
-
-   function Vertex_Color_Attribute
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type;
+   function Standard_Binding
+     (Program : Root_Program_Type'Class;
+      Binding : Standard_Variable_Binding)
+      return Variables.Variable_Type
+     with Pre => Program.Has_Standard_Binding (Binding);
+   --
+   --  function Projection_Uniform
+   --    (Program : Root_Program_Type'Class)
+   --     return Variables.Variable_Type;
+   --
+   --  function Model_View_Uniform
+   --    (Program : Root_Program_Type'Class)
+   --     return Variables.Variable_Type;
+   --
+   --  function Camera_Position_Uniform
+   --    (Program : Root_Program_Type'Class)
+   --     return Variables.Variable_Type;
+   --
+   --  function Vertex_Position_Attribute
+   --    (Program : Root_Program_Type'Class)
+   --     return Variables.Variable_Type;
+   --
+   --  function Vertex_Normal_Attribute
+   --    (Program : Root_Program_Type'Class)
+   --     return Variables.Variable_Type;
+   --
+   --  function Vertex_Texture_Attribute
+   --    (Program : Root_Program_Type'Class)
+   --     return Variables.Variable_Type;
+   --
+   --  function Vertex_Color_Attribute
+   --    (Program : Root_Program_Type'Class)
+   --     return Variables.Variable_Type;
 
    function Has_Variable
      (Program : Root_Program_Type'Class;
@@ -77,17 +88,14 @@ private
      new WL.String_Maps (Rho.Shaders.Variables.Variable_Type,
                          Rho.Shaders.Variables."=");
 
+   type Standard_Variable_Array is
+     array (Standard_Variable_Binding) of Variables.Variable_Type;
+
    type Root_Program_Type is new Rho.Objects.Root_Object_Type with
       record
-         Shader_Variables : Shader_Variable_Lists.List;
-         Variable_Map     : Shader_Variable_Maps.Map;
-         Vertex_Position  : Variables.Variable_Type;
-         Vertex_Normal    : Variables.Variable_Type;
-         Vertex_Color     : Variables.Variable_Type;
-         Vertex_Texture   : Variables.Variable_Type;
-         Model_View       : Variables.Variable_Type;
-         Projection       : Variables.Variable_Type;
-         Camera_Position  : Variables.Variable_Type;
+         Shader_Variables   : Shader_Variable_Lists.List;
+         Variable_Map       : Shader_Variable_Maps.Map;
+         Standard_Variables : Standard_Variable_Array;
       end record;
 
    overriding function Class_Name
@@ -95,52 +103,17 @@ private
       return String
    is ("program");
 
-   function Create_Attribute_Binding
-     (Program       : not null access Root_Program_Type'Class;
-      Name          : String;
-      Element_Count : Positive)
-      return Variables.Variable_Type;
+   function Has_Standard_Binding
+     (Program : Root_Program_Type'Class;
+      Binding : Standard_Variable_Binding)
+      return Boolean
+   is (Variables."/=" (Program.Standard_Variables (Binding), null));
 
-   function Create_Uniform_Binding
-     (Program       : not null access Root_Program_Type'Class;
-      Name          : String;
-      Element_Count : Positive := 1)
-      return Variables.Variable_Type;
-
-   function Vertex_Position_Attribute
-     (Program : Root_Program_Type'Class)
+   function Standard_Binding
+     (Program : Root_Program_Type'Class;
+      Binding : Standard_Variable_Binding)
       return Variables.Variable_Type
-   is (Program.Vertex_Position);
-
-   function Vertex_Normal_Attribute
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type
-   is (Program.Vertex_Normal);
-
-   function Vertex_Texture_Attribute
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type
-   is (Program.Vertex_Texture);
-
-   function Vertex_Color_Attribute
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type
-   is (Program.Vertex_Color);
-
-   function Projection_Uniform
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type
-   is (Program.Projection);
-
-   function Model_View_Uniform
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type
-   is (Program.Model_View);
-
-   function Camera_Position_Uniform
-     (Program : Root_Program_Type'Class)
-      return Variables.Variable_Type
-   is (Program.Camera_Position);
+   is (Program.Standard_Variables (Binding));
 
    function Has_Variable
      (Program : Root_Program_Type'Class;

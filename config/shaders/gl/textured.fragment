@@ -1,0 +1,3 @@
+global:uniform sampler2D tex;
+global:in vec2 fragTexCoord;
+local:vec4 surfaceColor = texture(tex,fragTexCoord);

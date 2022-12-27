@@ -1,3 +1,5 @@
+with Rho.Shaders.Variables;
+
 package body Rho.Geometry is
 
    -----------------
@@ -136,21 +138,33 @@ package body Rho.Geometry is
       Render_Material   : not null access
         procedure (Index : Material_Index))
    is
+      use Rho.Shaders;
+
+      function Attribute
+        (Binding : Standard_Attribute_Binding)
+         return Rho.Shaders.Variables.Variable_Type
+      is (Target.Current_Shader.Standard_Binding (Binding));
+
    begin
       for Group of Geometry.Groups loop
          Activate_Material (Group.Material);
+
          Target.Activate_Buffer
            (Geometry.Vertices,
-            Target.Current_Shader.Vertex_Position_Attribute);
+            Attribute (Position_Attribute));
+
          Target.Activate_Buffer
            (Geometry.Normals,
-            Target.Current_Shader.Vertex_Normal_Attribute);
+            Attribute (Vertex_Normal_Attribute));
+
          Target.Activate_Buffer
            (Geometry.UVs,
-            Target.Current_Shader.Vertex_Texture_Attribute);
+            Attribute (Vertex_Texture_Coord_Attribute));
+
          Target.Activate_Buffer
            (Buffer   => Group.Faces,
-            Argument => Target.Current_Shader.Vertex_Position_Attribute);
+            Argument => Attribute (Position_Attribute));
+
          Render_Material (Group.Material);
          Target.Render_Current_Buffers;
       end loop;

@@ -1,6 +1,3 @@
-with Rho.Shaders.Slices.Attributes;
-with Rho.Shaders.Slices.Main;
-
 package body Rho.Material.Simple is
 
    ----------------------------
@@ -16,17 +13,11 @@ package body Rho.Material.Simple is
       return Material : constant Material_Type :=
         new Root_Material_Type
       do
-         Material.Add_Shader ("rho-shaders-material-textured");
-
-         Material.Add_Slice
-           (Rho.Shaders.Slices.Attributes.Out_Attribute_Fragment
-              (Fragment_Shader, "finalColor", "vec4"));
-         Material.Add_Slice
-           (Rho.Shaders.Slices.Main.Shader_Line
-              (Stage    => Fragment_Shader,
-               Priority => Rho.Shaders.Slices.Shader_Source_Priority'Last,
-               Name     => "set final color",
-               Line     => "finalColor = fragmentColor"));
+         Material.Default_Shaders;
+         Material.Shader_Names.Include ("light");
+         Material.Shader_Names.Include ("ambient");
+         Material.Shader_Names.Include ("spot");
+         Material.Shader_Names.Include ("textured");
          Material.Textures.Append (Rho.Textures.Texture_Type (Texture));
       end return;
    end Create_Simple_Material;

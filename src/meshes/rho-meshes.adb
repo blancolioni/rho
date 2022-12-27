@@ -38,8 +38,8 @@ package body Rho.Meshes is
       Rho.Nodes.Root_Node_Type (Mesh).Compile (Target);
 
       for Material of Mesh.Material loop
-         Material.Add_Shader
-           (Target.Assets.Shader ("rho-shaders-node"));
+         --  Material.Add_Shader
+         --    (Target.Assets.Shader ("node"));
          Material.Compile (Target);
       end loop;
    end Compile;

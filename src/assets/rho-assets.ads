@@ -1,10 +1,9 @@
 private with WL.String_Maps;
 
 with Rho.Objects;
+with Rho.Shaders.Partial;
 
 limited with Rho.Textures;
-
-with Tau.Shaders;
 
 package Rho.Assets is
 
@@ -29,10 +28,11 @@ package Rho.Assets is
       return String
       is abstract;
 
-   function Shader
+   function Partial_Shader
      (Container : in out Root_Asset_Container_Type;
-      Name      : String)
-      return Tau.Shaders.Tau_Shader;
+      Name      : String;
+      Stage     : Shader_Stage)
+      return Rho.Shaders.Partial.Partial_Shader_Type;
 
    --  function Texture
    --    (Container : in out Root_Asset_Container_Type;

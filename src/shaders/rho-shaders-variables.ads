@@ -1,5 +1,3 @@
-limited with Rho.Shaders.Programs;
-
 with Rho.Objects;
 
 package Rho.Shaders.Variables is
@@ -9,38 +7,37 @@ package Rho.Shaders.Variables is
 
    type Variable_Type is access all Root_Variable_Type'Class;
 
+   function Mode
+     (Variable : Root_Variable_Type'Class)
+      return Variable_Mode;
+
    function Binding
      (Variable : Root_Variable_Type'Class)
-      return Binding_Type;
+      return Variable_Binding_Type;
 
    function Element_Count
      (Variable : Root_Variable_Type'Class)
       return Positive;
 
    function New_Attribute_Binding
-     (Program       : not null access
-        Rho.Shaders.Programs.Root_Program_Type'Class;
-      Name          : String;
+     (Name          : String;
+      Binding       : Variable_Binding_Type := No_Standard_Binding;
       Element_Count : Positive := 1)
       return Variable_Type;
 
    function New_Uniform_Binding
-     (Program       : not null access
-        Rho.Shaders.Programs.Root_Program_Type'Class;
-      Name          : String;
+     (Name          : String;
+      Binding       : Variable_Binding_Type := No_Standard_Binding;
       Element_Count : Positive := 1)
       return Variable_Type;
 
 private
 
-   type Program_Access is
-     access all Rho.Shaders.Programs.Root_Program_Type'Class;
-
    type Root_Variable_Type is
      new Rho.Objects.Root_Object_Type with
       record
-         Program       : Program_Access;
-         Binding       : Binding_Type;
+         Mode          : Variable_Mode;
+         Binding       : Variable_Binding_Type;
          Element_Count : Positive := 1;
       end record;
 
@@ -56,7 +53,12 @@ private
 
    function Binding
      (Variable : Root_Variable_Type'Class)
-      return Binding_Type
+      return Variable_Binding_Type
    is (Variable.Binding);
+
+   function Mode
+     (Variable : Root_Variable_Type'Class)
+      return Variable_Mode
+   is (Variable.Mode);
 
 end Rho.Shaders.Variables;

@@ -26,7 +26,7 @@ package body Rho.Values is
          when Matrix_4_Value =>
             return (Matrix_4_Value, Rho.Matrices.Zero);
          when Color_Value =>
-            return (Color_Value, Rho.Color.Black);
+            return Color_Value (Rho.Color.Black);
       end case;
    end Default_Value;
 

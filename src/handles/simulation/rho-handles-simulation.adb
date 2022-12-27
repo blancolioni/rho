@@ -8,7 +8,6 @@ with Rho.Shaders;
 with Rho.Signals;
 
 with Rho.Shaders.Programs;
-with Rho.Shaders.Slices;
 with Rho.Shaders.Stages;
 with Rho.Shaders.Variables;
 
@@ -17,8 +16,6 @@ with Rho.Values;
 with Rho.Matrices.Logs;
 
 with Rho.Version;
-
-with Tau.Generators;
 
 package body Rho.Handles.Simulation is
 
@@ -91,15 +88,16 @@ package body Rho.Handles.Simulation is
       Shaders   : Rho.Shaders.Stages.Shader_Array)
       return Rho.Shaders.Programs.Program_Type;
 
+   overriding procedure Bind_Variable
+     (Target   : in out Simulation_Render_Target;
+      Program  : Rho.Shaders.Programs.Program_Type;
+      Variable : Rho.Shaders.Variables.Variable_Type)
+   is null;
+
    overriding function Current_Shader
      (Target : Simulation_Render_Target)
       return Rho.Shaders.Programs.Program_Type
    is (Target.Active_Program);
-
-   overriding function Generator
-     (Target : Simulation_Render_Target)
-      return Tau.Generators.Root_Tau_Generator'Class
-   is (Tau.Generators.Null_Generator);
 
    overriding procedure Set_Projection_Matrix
      (Target : in out Simulation_Render_Target;
@@ -135,20 +133,8 @@ package body Rho.Handles.Simulation is
    overriding procedure Activate_Buffer
      (Target   : in out Simulation_Render_Target;
       Buffer   : Rho.Buffers.Buffer_Type;
-      Argument : not null access
+      Argument : access
         Rho.Shaders.Variables.Root_Variable_Type'Class);
-
-   overriding procedure Add_Shader_Fragment
-     (Target   : in out Simulation_Render_Target;
-      Slice    : Rho.Shaders.Slices.Slice_Type)
-   is null;
-
-   No_Fragments : Rho.Shaders.Slices.Slice_Array (1 .. 0);
-
-   overriding function Active_Shader_Slices
-     (Target   : Simulation_Render_Target)
-      return Rho.Shaders.Slices.Slice_Array
-   is (No_Fragments);
 
    Local_Render_Target : aliased Simulation_Render_Target :=
      Simulation_Render_Target'
@@ -205,11 +191,11 @@ package body Rho.Handles.Simulation is
    overriding procedure Activate_Buffer
      (Target   : in out Simulation_Render_Target;
       Buffer   : Rho.Buffers.Buffer_Type;
-      Argument : not null access
-        Rho.Shaders.Variables.Root_Variable_Type'Class)
+      Argument : access Rho.Shaders.Variables.Root_Variable_Type'Class)
    is
    begin
-      case Buffer.Contents is
+      if Argument /= null then
+         case Buffer.Contents is
          when Rho.Buffers.Integer_Data =>
             Target.Active_Int_Buffer := Buffer;
          when others =>
@@ -219,7 +205,8 @@ package body Rho.Handles.Simulation is
             else
                Target.Bound_Variables.Insert (Argument.Name, Buffer);
             end if;
-      end case;
+         end case;
+      end if;
    end Activate_Buffer;
 
    ---------------------

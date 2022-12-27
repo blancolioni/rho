@@ -1,42 +1,25 @@
-private with Ada.Containers.Vectors;
 private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
-
-private with Tau.Compiler;
+private with Ada.Containers.Vectors;
+private with Ada.Strings.Unbounded;
+private with WL.String_Sets;
 
 with Rho.Objects;
 with Rho.Render;
 with Rho.Renderable;
+with Rho.Values;
 
-with Rho.Shaders.Slices;
+with Rho.Shaders.Partial;
 with Rho.Shaders.Programs;
 
 with Rho.Textures;
-
-with Tau.Shaders;
 
 package Rho.Material is
 
    type Root_Material_Type is
      new Rho.Objects.Root_Object_Type
      and Rho.Renderable.Renderable_Interface
-     and Rho.Shaders.Slices.Slice_Container_Interface
+     and Rho.Shaders.Partial.Partial_Shader_Source
    with private;
-
-   overriding function Shader_Slices
-     (Material : Root_Material_Type)
-      return Rho.Shaders.Slices.Slice_Array;
-
-   overriding procedure Add_Slice
-     (Material : in out Root_Material_Type;
-      Slice : Rho.Shaders.Slices.Slice_Type);
-
-   procedure Add_Shader
-     (Material : in out Root_Material_Type'Class;
-      Shader   : Tau.Shaders.Tau_Shader);
-
-   procedure Add_Shader
-     (Material    : in out Root_Material_Type'Class;
-      Shader_Name : String);
 
    type Material_Type is access all Root_Material_Type'Class;
 
@@ -50,22 +33,30 @@ private
         Element_Type => Rho.Textures.Texture_Type,
         "="          => Rho.Textures."=");
 
-   package Shader_Name_Lists is
-     new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
+   type Static_Binding (Of_Type : Rho.Values.Value_Type) is
+      record
+         Name  : Ada.Strings.Unbounded.Unbounded_String;
+         Value : Rho.Values.Rho_Value (Of_Type);
+      end record;
+
+   package Static_Binding_Lists is
+     new Ada.Containers.Indefinite_Doubly_Linked_Lists (Static_Binding);
 
    type Root_Material_Type is
      new Rho.Objects.Root_Object_Type
      and Rho.Renderable.Renderable_Interface
-     and Rho.Shaders.Slices.Slice_Container_Interface with
+     and Rho.Shaders.Partial.Partial_Shader_Source with
       record
-         Program      : Rho.Shaders.Programs.Program_Type;
-         Textures     : Texture_Vectors.Vector;
-         Slices       : Rho.Shaders.Slices.Slice_Container;
-         Shader_Names : Shader_Name_Lists.List;
-         Compiler     : Tau.Compiler.Tau_Compiler;
-         Loaded       : Boolean := False;
-         Compiled     : Boolean := False;
+         Program         : Rho.Shaders.Programs.Program_Type;
+         Textures        : Texture_Vectors.Vector;
+         Shader_Names    : WL.String_Sets.Set;
+         Partials        : Rho.Shaders.Partial.Partial_Shader_Container;
+         Static_Bindings : Static_Binding_Lists.List;
+         Loaded          : Boolean := False;
+         Compiled        : Boolean := False;
       end record;
+
+   procedure Default_Shaders (This : in out Root_Material_Type'Class);
 
    overriding procedure Compile
      (Material : in out Root_Material_Type;
@@ -88,9 +79,10 @@ private
       return String
    is ("material");
 
-   overriding function Shader_Slices
-     (Material : Root_Material_Type)
-      return Rho.Shaders.Slices.Slice_Array
-   is (Material.Slices.Shader_Slices);
+   overriding procedure Iterate
+     (Material   : Root_Material_Type;
+      Stage      : Shader_Stage;
+      Process    : not null access
+        procedure (Partial : Rho.Shaders.Partial.Partial_Shader_Type));
 
 end Rho.Material;

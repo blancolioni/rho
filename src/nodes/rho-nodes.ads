@@ -5,14 +5,11 @@ with Rho.Matrices;
 with Rho.Renderable;
 with Rho.Render;
 
-with Rho.Shaders.Slices;
-
 package Rho.Nodes is
 
    type Root_Node_Type is
      new Rho.Objects.Root_Object_Type
      and Rho.Renderable.Renderable_Interface
-     and Rho.Shaders.Slices.Slice_Container_Interface
    with private;
 
    type Node_Type is access all Root_Node_Type'Class;
@@ -110,13 +107,13 @@ package Rho.Nodes is
 
    function Show (Node : Root_Node_Type) return String;
 
-   overriding function Shader_Slices
-     (Node : Root_Node_Type)
-      return Rho.Shaders.Slices.Slice_Array;
-
-   overriding procedure Add_Slice
-     (Node  : in out Root_Node_Type;
-      Slice : Rho.Shaders.Slices.Slice_Type);
+   --  overriding function Shader_Slices
+   --    (Node : Root_Node_Type)
+   --     return Rho.Shaders.Slices.Slice_Array;
+   --
+   --  overriding procedure Add_Slice
+   --    (Node  : in out Root_Node_Type;
+   --     Slice : Rho.Shaders.Slices.Slice_Type);
 
    function Create_Node return Node_Type;
 
@@ -132,12 +129,10 @@ private
 
    type Root_Node_Type is
      new Rho.Objects.Root_Object_Type
-     and Rho.Renderable.Renderable_Interface
-       and Rho.Shaders.Slices.Slice_Container_Interface with
+     and Rho.Renderable.Renderable_Interface with
       record
          Parent            : Node_Type;
          Children          : Node_Lists.List;
-         Slices            : Rho.Shaders.Slices.Slice_Container;
          Position          : Rho.Matrices.Vector_3;
          Up                : Rho.Matrices.Normal_Vector_3 :=
                                Rho.Matrices.To_Vector (0.0, 1.0, 0.0);
@@ -190,9 +185,9 @@ private
       return Rho.Matrices.Normal_Vector_3
    is (Node.Up);
 
-   overriding function Shader_Slices
-     (Node : Root_Node_Type)
-      return Rho.Shaders.Slices.Slice_Array
-   is (Node.Slices.Shader_Slices);
-
+   --  overriding function Shader_Slices
+   --    (Node : Root_Node_Type)
+   --     return Rho.Shaders.Slices.Slice_Array
+   --  is (Node.Slices.Shader_Slices);
+   --
 end Rho.Nodes;

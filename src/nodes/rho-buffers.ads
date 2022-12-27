@@ -59,8 +59,7 @@ package Rho.Buffers is
    procedure Activate_Buffer
      (Handler  : in out Buffer_Handler_Interface;
       Buffer   : Buffer_Type;
-      Argument : not null access
-        Rho.Shaders.Variables.Root_Variable_Type'Class)
+      Argument : access Rho.Shaders.Variables.Root_Variable_Type'Class)
    is abstract;
 
    procedure Iterate

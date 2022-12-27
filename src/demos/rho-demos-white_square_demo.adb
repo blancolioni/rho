@@ -1,7 +1,4 @@
-with Tau.Shaders.Library;
-
 with Rho.Cameras;
-with Rho.Color;
 with Rho.Geometry.Box;
 with Rho.Material.Basic;
 with Rho.Meshes;
@@ -12,7 +9,7 @@ package body Rho.Demos.White_Square_Demo is
    type White_Square_Demo_Type is
      new Root_Demo_Type with
       record
-         Shader : Tau.Shaders.Tau_Shader;
+         null;
       end record;
 
    overriding function Category
@@ -84,10 +81,7 @@ package body Rho.Demos.White_Square_Demo is
       return new White_Square_Demo_Type'
         (Frame_Count => 0,
          Elapsed     => 0.0,
-         Camera      => null,
-         Shader      =>
-           Tau.Shaders.Library.Single_Color_Shader
-             (Color => Rho.Color.White));
+         Camera      => null);
    end Load;
 
 end Rho.Demos.White_Square_Demo;

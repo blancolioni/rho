@@ -26,18 +26,6 @@ package body Rho.Nodes is
       Node.Children.Append (Node_Type (Child));
    end Add;
 
-   ---------------
-   -- Add_Slice --
-   ---------------
-
-   overriding procedure Add_Slice
-     (Node  : in out Root_Node_Type;
-      Slice : Rho.Shaders.Slices.Slice_Type)
-   is
-   begin
-      Node.Slices.Add_Slice (Slice);
-   end Add_Slice;
-
    ------------------
    -- After_Render --
    ------------------

@@ -67,14 +67,12 @@ private
                Vector_2_Val : Rho.Matrices.Vector_2;
             when Vector_3_Value =>
                Vector_3_Val : Rho.Matrices.Vector_3;
-            when Vector_4_Value =>
+            when Vector_4_Value | Color_Value =>
                Vector_4_Val : Rho.Matrices.Vector_4;
             when Matrix_3_Value =>
                Matrix_3_Val   : Rho.Matrices.Matrix_3;
             when Matrix_4_Value =>
                Matrix_4_Val   : Rho.Matrices.Matrix_4;
-            when Color_Value =>
-               Color_Val    : Rho.Color.Color_Type;
          end case;
       end record;
 
@@ -101,13 +99,14 @@ private
    function Color_Value
      (Color : Rho.Color.Color_Type)
       return Rho_Value
-   is (Color_Value, Color);
+   is (Color_Value,
+       Rho.Matrices.To_Vector (Color.R, Color.G, Color.B, Color.A));
 
    function Color_Value
      (Red, Green, Blue : Unit_Real;
       Alpha            : Unit_Real := 1.0)
       return Rho_Value
-   is (Color_Value, (Red, Green, Blue, Alpha));
+   is (Color_Value, Rho.Matrices.To_Vector (Red, Green, Blue, Alpha));
 
    function To_Real (Value : Rho_Value) return Real is (Value.Real_Val);
 

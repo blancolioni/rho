@@ -1,9 +1,9 @@
 package body Rho.Shaders.Variables is
 
    function New_Variable
-     (Program : not null access Rho.Shaders.Programs.Root_Program_Type'Class;
-      Name          : String;
-      Binding       : Binding_Type;
+     (Name          : String;
+      Mode          : Variable_Mode;
+      Binding       : Variable_Binding_Type := No_Standard_Binding;
       Element_Count : Positive := 1)
       return Variable_Type;
 
@@ -12,14 +12,13 @@ package body Rho.Shaders.Variables is
    ---------------------------
 
    function New_Attribute_Binding
-     (Program       : not null access
-        Rho.Shaders.Programs.Root_Program_Type'Class;
-      Name          : String;
+     (Name          : String;
+      Binding       : Variable_Binding_Type := No_Standard_Binding;
       Element_Count : Positive := 1)
       return Variable_Type
    is
    begin
-      return New_Variable (Program, Name, Attribute_Binding, Element_Count);
+      return New_Variable (Name, In_Variable, Binding, Element_Count);
    end New_Attribute_Binding;
 
    -------------------------
@@ -27,14 +26,13 @@ package body Rho.Shaders.Variables is
    -------------------------
 
    function New_Uniform_Binding
-     (Program       : not null access
-        Rho.Shaders.Programs.Root_Program_Type'Class;
-      Name          : String;
+     (Name          : String;
+      Binding       : Variable_Binding_Type := No_Standard_Binding;
       Element_Count : Positive := 1)
       return Variable_Type
    is
    begin
-      return New_Variable (Program, Name, Uniform_Binding, Element_Count);
+      return New_Variable (Name, Uniform_Variable, Binding, Element_Count);
    end New_Uniform_Binding;
 
    ------------------
@@ -42,16 +40,16 @@ package body Rho.Shaders.Variables is
    ------------------
 
    function New_Variable
-     (Program : not null access Rho.Shaders.Programs.Root_Program_Type'Class;
-      Name          : String;
-      Binding       : Binding_Type;
+     (Name          : String;
+      Mode          : Variable_Mode;
+      Binding       : Variable_Binding_Type := No_Standard_Binding;
       Element_Count : Positive := 1)
       return Variable_Type
    is
       Variable : constant Variable_Type :=
                    new Root_Variable_Type'
                      (Rho.Objects.Root_Object_Type with
-                      Program       => Program_Access (Program),
+                      Mode          => Mode,
                       Binding       => Binding,
                       Element_Count => Element_Count);
    begin
