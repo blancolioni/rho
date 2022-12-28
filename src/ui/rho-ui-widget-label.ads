@@ -1,6 +1,6 @@
 with Partoe.DOM;
 
-with Rho.UI.Properties;
+with Rho.Properties;
 
 package Rho.UI.Widget.Label is
 
@@ -19,7 +19,15 @@ package Rho.UI.Widget.Label is
         Partoe.DOM.Root_Partoe_Node'Class)
       return Rho.UI.Widget.Reference;
 
-   Label_Property : constant Rho.UI.Properties.String_Property;
+   Label_Property : constant Rho.Properties.Property;
+
+   function Get_Label
+     (This : Any_Instance)
+      return String;
+
+   procedure Set_Label
+     (This  : in out Any_Instance;
+      Value : String);
 
 private
 
@@ -30,7 +38,10 @@ private
          null;
       end record;
 
-   Label_Property : constant Rho.UI.Properties.String_Property :=
-                      Rho.UI.Properties.Create_Property ("label");
+   Label_Properties : Widget_Property_Maps.Instance;
+
+   Label_Property : constant Rho.Properties.Property :=
+                      Label_Properties.Create_Property
+                        ("label", On_Property_Change_Resize'Access, "");
 
 end Rho.UI.Widget.Label;

@@ -230,6 +230,19 @@ package body Rho.Material is
       Target.Bind_Shader (Material.Program);
    end Execute_Render;
 
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   overriding function Get_Value
+     (This : Root_Material_Type;
+      Prop : Rho.Properties.Property)
+      return String
+   is
+   begin
+      return This.Property_Bag.Get_Value (Prop);
+   end Get_Value;
+
    -------------
    -- Iterate --
    -------------
@@ -282,5 +295,18 @@ package body Rho.Material is
       Material.Loaded := True;
 
    end Load;
+
+   ---------------
+   -- Set_Value --
+   ---------------
+
+   overriding procedure Set_Value
+     (This  : not null access Root_Material_Type;
+      Prop  : Rho.Properties.Property;
+      Value : String)
+   is
+   begin
+      This.Property_Bag.Set_Value (Prop, Value);
+   end Set_Value;
 
 end Rho.Material;

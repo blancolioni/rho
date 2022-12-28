@@ -1,5 +1,7 @@
 private with Ada.Strings.Unbounded;
 private with WL.Guids;
+private with Rho.Properties.Bags;
+private with Rho.Properties.Maps;
 
 with Ada.Containers.Doubly_Linked_Lists;
 
@@ -8,6 +10,7 @@ with Partoe.DOM;
 with Cairo;
 with Css;
 
+with Rho.Properties;
 with Rho.Rectangles;
 with Rho.Nodes;
 
@@ -16,6 +19,7 @@ package Rho.UI.Widget is
    subtype Parent is UI.Instance;
 
    type Instance is abstract new Parent
+     and Rho.Properties.Property_Value_List
      and Css.Css_Element_Interface
    with private;
 
@@ -26,6 +30,9 @@ package Rho.UI.Widget is
      (This : in out Instance;
       Node : not null access constant Partoe.DOM.Root_Partoe_Node'Class);
 
+   procedure Finalize
+     (This : in out Instance);
+
    procedure Configure
      (This : not null access Instance);
 
@@ -35,6 +42,12 @@ package Rho.UI.Widget is
         Rho.Rectangles.Rectangle_Interface'Class);
 
    procedure Show
+     (This : not null access Instance);
+
+   procedure Queue_Redraw
+     (This : not null access Instance);
+
+   procedure Queue_Resize
      (This : not null access Instance);
 
    procedure Add_Child
@@ -77,6 +90,14 @@ package Rho.UI.Widget is
                   Cr   : Cairo.Cairo_Context)
       return Boolean);
 
+   procedure On_Property_Change_Resize
+     (This  : not null access Instance'Class;
+      Value : String);
+
+   procedure On_Property_Change_Redraw
+     (This  : not null access Instance'Class;
+      Value : String);
+
 private
 
    function "+" (S : String) return Ada.Strings.Unbounded.Unbounded_String
@@ -90,7 +111,10 @@ private
 
    subtype Dispatch is Instance'Class;
 
+   type Property_Bag_Access is access Rho.Properties.Bags.Instance;
+
    type Instance is abstract new Parent
+     and Rho.Properties.Property_Value_List
      and Css.Css_Element_Interface with
       record
          Guid         : WL.Guids.Guid := WL.Guids.New_Guid;
@@ -98,6 +122,7 @@ private
          Id           : Ada.Strings.Unbounded.Unbounded_String;
          File_Path    : Ada.Strings.Unbounded.Unbounded_String;
          Classes      : Ada.Strings.Unbounded.Unbounded_String;
+         Property_Bag : Property_Bag_Access;
          Parent       : Reference;
          Children     : Widget_Lists.List;
          Style_Map    : Css.Css_Style_Map;
@@ -184,6 +209,16 @@ private
       Name : String)
       return Css.Css_Element_Value;
 
+   overriding function Get_Value
+     (This : Instance;
+      Prop : Rho.Properties.Property)
+      return String;
+
+   overriding procedure Set_Value
+     (This  : not null access Instance;
+      Prop  : Rho.Properties.Property;
+      Value : String);
+
    function Children
      (This : Instance'Class)
       return Widget_Lists.List
@@ -201,5 +236,8 @@ private
      (This       : Instance)
       return Css.Layout_Size
    is (This.Content_Size);
+
+   package Widget_Property_Maps is
+     new Rho.Properties.Maps (Instance);
 
 end Rho.UI.Widget;

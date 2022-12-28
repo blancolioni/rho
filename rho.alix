@@ -17,6 +17,7 @@ source_dir = src/matrices
 source_dir = src/material
 source_dir = src/meshes
 source_dir = src/nodes
+source_dir = src/properties
 source_dir = src/render
 source_dir = src/scenes
 source_dir = src/shaders

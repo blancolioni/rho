@@ -2,8 +2,10 @@ private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 private with Ada.Containers.Vectors;
 private with Ada.Strings.Unbounded;
 private with WL.String_Sets;
+private with Rho.Properties.Bags;
 
 with Rho.Objects;
+with Rho.Properties;
 with Rho.Render;
 with Rho.Renderable;
 with Rho.Values;
@@ -17,6 +19,7 @@ package Rho.Material is
 
    type Root_Material_Type is
      new Rho.Objects.Root_Object_Type
+     and Rho.Properties.Property_Value_List
      and Rho.Renderable.Renderable_Interface
      and Rho.Shaders.Partial.Partial_Shader_Source
    with private;
@@ -42,8 +45,11 @@ private
    package Static_Binding_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists (Static_Binding);
 
+   type Property_Bag_Access is access Rho.Properties.Bags.Instance;
+
    type Root_Material_Type is
      new Rho.Objects.Root_Object_Type
+     and Rho.Properties.Property_Value_List
      and Rho.Renderable.Renderable_Interface
      and Rho.Shaders.Partial.Partial_Shader_Source with
       record
@@ -52,6 +58,7 @@ private
          Shader_Names    : WL.String_Sets.Set;
          Partials        : Rho.Shaders.Partial.Partial_Shader_Container;
          Static_Bindings : Static_Binding_Lists.List;
+         Property_Bag    : Property_Bag_Access;
          Loaded          : Boolean := False;
          Compiled        : Boolean := False;
       end record;
@@ -73,6 +80,16 @@ private
    overriding procedure Execute_Render
      (Material   : in out Root_Material_Type;
       Target     : not null access Rho.Render.Render_Target'Class);
+
+   overriding function Get_Value
+     (This : Root_Material_Type;
+      Prop : Rho.Properties.Property)
+      return String;
+
+   overriding procedure Set_Value
+     (This  : not null access Root_Material_Type;
+      Prop  : Rho.Properties.Property;
+      Value : String);
 
    overriding function Class_Name
      (Material : Root_Material_Type)

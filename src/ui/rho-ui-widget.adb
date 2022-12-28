@@ -1,4 +1,5 @@
 with Ada.Text_IO;
+with Ada.Unchecked_Deallocation;
 
 --  with WL.String_Maps;
 
@@ -135,6 +136,20 @@ package body Rho.UI.Widget is
       return Css.Default_Style_Value (Name);
    end Default_Style_Value;
 
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize
+     (This : in out Instance)
+   is
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+          (Rho.Properties.Bags.Instance, Property_Bag_Access);
+   begin
+      Free (This.Property_Bag);
+   end Finalize;
+
    ----------
    -- Find --
    ----------
@@ -219,6 +234,19 @@ package body Rho.UI.Widget is
       return This.Size;
    end Get_Layout_Size;
 
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   overriding function Get_Value
+     (This : Instance;
+      Prop : Rho.Properties.Property)
+      return String
+   is
+   begin
+      return This.Property_Bag.Get_Value (Prop);
+   end Get_Value;
+
    ----------------
    -- Initialize --
    ----------------
@@ -245,6 +273,7 @@ package body Rho.UI.Widget is
       This.Id := +Attr ("id");
       This.Tag := +Node.Name;
       This.Classes := +Attr ("class");
+      This.Property_Bag := new Rho.Properties.Bags.Instance;
    end Initialize;
 
    ---------------------------------
@@ -338,6 +367,32 @@ package body Rho.UI.Widget is
          return Boolean)
    is null;
 
+   -------------------------------
+   -- On_Property_Change_Redraw --
+   -------------------------------
+
+   procedure On_Property_Change_Redraw
+     (This  : not null access Instance'Class;
+      Value : String)
+   is
+      pragma Unreferenced (Value);
+   begin
+      This.Queue_Redraw;
+   end On_Property_Change_Redraw;
+
+   -------------------------------
+   -- On_Property_Change_Resize --
+   -------------------------------
+
+   procedure On_Property_Change_Resize
+     (This  : not null access Instance'Class;
+      Value : String)
+   is
+      pragma Unreferenced (Value);
+   begin
+      This.Queue_Resize;
+   end On_Property_Change_Resize;
+
    --------------------
    -- Parent_Element --
    --------------------
@@ -349,6 +404,24 @@ package body Rho.UI.Widget is
    begin
       return This.Parent;
    end Parent_Element;
+
+   ------------------
+   -- Queue_Redraw --
+   ------------------
+
+   procedure Queue_Redraw
+     (This : not null access Instance)
+   is
+   begin
+      null;
+   end Queue_Redraw;
+
+   procedure Queue_Resize
+     (This : not null access Instance)
+   is
+   begin
+      null;
+   end Queue_Resize;
 
    -------------------------
    -- Required_Parent_Tag --
@@ -435,6 +508,19 @@ package body Rho.UI.Widget is
       This.Log ("set: " & Name);
       This.Style_Map.Set_Style (Name, State, Value);
    end Set_Style;
+
+   ---------------
+   -- Set_Value --
+   ---------------
+
+   overriding procedure Set_Value
+     (This  : not null access Instance;
+      Prop  : Rho.Properties.Property;
+      Value : String)
+   is
+   begin
+      This.Property_Bag.Set_Value (Prop, Value);
+   end Set_Value;
 
    ----------
    -- Show --
