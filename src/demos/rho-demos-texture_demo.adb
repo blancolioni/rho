@@ -41,12 +41,12 @@ package body Rho.Demos.Texture_Demo is
       Handle : Rho.Handles.Handle;
       Window : Rho.Windows.Window_Type)
    is
-      Side : constant Rho.Material.Material_Type :=
-               Rho.Material.Simple.Create_Simple_Material
+      Side : constant Rho.Material.Reference :=
+               Rho.Material.Simple.Create
                  (Handle.Assets.Create_Texture_From_Image
                     ("config/images/grass_block_side"));
-      Top  : constant Rho.Material.Material_Type :=
-               Rho.Material.Basic.Create_Basic_Material
+      Top  : constant Rho.Material.Reference :=
+               Rho.Material.Basic.Create
                  (Handle.Assets.Create_Texture_From_Image
                     ("config/images/grass_block_top"))
         with Unreferenced;

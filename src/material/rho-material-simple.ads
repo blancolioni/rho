@@ -2,9 +2,9 @@ with Rho.Textures;
 
 package Rho.Material.Simple is
 
-   function Create_Simple_Material
+   function Create
      (Texture : not null access
         Rho.Textures.Root_Texture_Type'Class)
-      return Material_Type;
+      return Reference;
 
 end Rho.Material.Simple;

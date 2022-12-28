@@ -1,6 +1,6 @@
 package Rho.Material.Depth is
 
-   function Create_Depth_Material
+   function Create
      (Near, Far : Real)
       return Material_Type;
 

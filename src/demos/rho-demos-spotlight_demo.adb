@@ -43,16 +43,16 @@ package body Rho.Demos.Spotlight_Demo is
       Handle : Rho.Handles.Handle;
       Window : Rho.Windows.Window_Type)
    is
-      Side : constant Rho.Material.Material_Type :=
-               Rho.Material.Simple.Create_Simple_Material
+      Side : constant Rho.Material.Reference :=
+               Rho.Material.Simple.Create
                  (Handle.Assets.Create_Texture_From_Image
                     ("config/images/tnt_side"));
-      Top  : constant Rho.Material.Material_Type :=
-               Rho.Material.Simple.Create_Simple_Material
+      Top  : constant Rho.Material.Reference :=
+               Rho.Material.Simple.Create
                  (Handle.Assets.Create_Texture_From_Image
                     ("config/images/tnt_top"));
-      Bottom  : constant Rho.Material.Material_Type :=
-               Rho.Material.Simple.Create_Simple_Material
+      Bottom  : constant Rho.Material.Reference :=
+               Rho.Material.Simple.Create
                  (Handle.Assets.Create_Texture_From_Image
                     ("config/images/tnt_bottom"));
    begin

@@ -3,13 +3,13 @@ with Rho.Textures;
 
 package Rho.Material.Basic is
 
-   function Create_Basic_Material
+   function Create
      (Color : Rho.Color.Color_Type)
-      return Material_Type;
+      return Reference;
 
-   function Create_Basic_Material
+   function Create
      (Texture : not null access
         Rho.Textures.Root_Texture_Type'Class)
-      return Material_Type;
+      return Reference;
 
 end Rho.Material.Basic;

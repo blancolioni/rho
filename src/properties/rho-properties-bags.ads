@@ -6,6 +6,8 @@ package Rho.Properties.Bags is
 
    type Instance is new Parent with private;
 
+   type Reference is access all Instance'Class;
+
 private
 
    package Value_Maps is

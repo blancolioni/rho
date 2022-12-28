@@ -51,8 +51,8 @@ package body Rho.Demos.White_Square_Demo is
            Far           => 100.0);
       Geometry : constant Rho.Geometry.Geometry_Type :=
         Rho.Geometry.Box.Box_Geometry;
-      Material : constant Rho.Material.Material_Type :=
-        Rho.Material.Basic.Create_Basic_Material
+      Material : constant Rho.Material.Reference :=
+        Rho.Material.Basic.Create
           (Color => (1.0, 1.0, 1.0, 1.0));
       Mesh     : constant Rho.Meshes.Mesh_Type :=
         Rho.Meshes.Create_Mesh (Geometry, Material);

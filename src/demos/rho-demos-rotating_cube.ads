@@ -11,16 +11,13 @@ package Rho.Demos.Rotating_Cube is
      (Demo     : not null access Rotating_Cube_Demo'Class;
       Handle   : Rho.Handles.Handle;
       Window   : Rho.Windows.Window_Type;
-      Material : Rho.Material.Material_Type);
-
-   type Material_Array is
-     array (Positive range <>) of Rho.Material.Material_Type;
+      Material : Rho.Material.Reference);
 
    procedure Initialize
      (Demo     : not null access Rotating_Cube_Demo'Class;
       Handle   : Rho.Handles.Handle;
       Window   : Rho.Windows.Window_Type;
-      Material : Material_Array);
+      Material : Rho.Material.Reference_Array);
 
    procedure Start
      (Demo     : not null access Rotating_Cube_Demo'Class);

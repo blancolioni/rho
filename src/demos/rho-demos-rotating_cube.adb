@@ -18,7 +18,7 @@ package body Rho.Demos.Rotating_Cube is
      (Demo     : not null access Rotating_Cube_Demo'Class;
       Handle   : Rho.Handles.Handle;
       Window   : Rho.Windows.Window_Type;
-      Material : Rho.Material.Material_Type)
+      Material : Rho.Material.Reference)
    is
    begin
       Demo.Initialize (Handle, Window, (1 => Material));
@@ -32,7 +32,7 @@ package body Rho.Demos.Rotating_Cube is
      (Demo     : not null access Rotating_Cube_Demo'Class;
       Handle   : Rho.Handles.Handle;
       Window   : Rho.Windows.Window_Type;
-      Material : Material_Array)
+      Material : Rho.Material.Reference_Array)
    is
       Scene    : constant Rho.Scenes.Scene_Type :=
         Rho.Scenes.Create_Scene;

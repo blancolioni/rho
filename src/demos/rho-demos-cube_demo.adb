@@ -39,8 +39,8 @@ package body Rho.Demos.Cube_Demo is
       Handle : Rho.Handles.Handle;
       Window : Rho.Windows.Window_Type)
    is
-      Material : constant Rho.Material.Material_Type :=
-        Rho.Material.Basic.Create_Basic_Material
+      Material : constant Rho.Material.Reference :=
+        Rho.Material.Basic.Create
           (Color => (0.0, 1.0, 0.0, 1.0));
    begin
       Demo.Initialize (Handle, Window, Material);

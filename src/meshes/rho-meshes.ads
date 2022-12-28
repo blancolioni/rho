@@ -29,11 +29,11 @@ package Rho.Meshes is
 
    procedure Add_Material
      (Mesh     : in out Root_Mesh_Type;
-      Material : Rho.Material.Material_Type);
+      Material : Rho.Material.Reference);
 
    procedure Remove_Material
      (Mesh     : in out Root_Mesh_Type;
-      Material : Rho.Material.Material_Type);
+      Material : Rho.Material.Reference);
 
    type Mesh_Type is access all Root_Mesh_Type'Class;
 
@@ -43,14 +43,14 @@ package Rho.Meshes is
 
    function Create_Mesh
      (Geometry : Rho.Geometry.Geometry_Type;
-      Material : Rho.Material.Material_Type)
+      Material : Rho.Material.Reference)
       return Mesh_Type;
 
 private
 
    package Material_Vectors is
      new Ada.Containers.Vectors (Rho.Geometry.Material_Index,
-                                 Rho.Material.Material_Type,
+                                 Rho.Material.Reference,
                                  Rho.Material."=");
 
    type Root_Mesh_Type is

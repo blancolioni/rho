@@ -97,8 +97,8 @@ package body Rho.Demos.Earth is
                       Near          => 0.1,
                       Far           => 100.0);
 
-      Material : constant Rho.Material.Material_Type :=
-                   Rho.Material.Simple.Create_Simple_Material
+      Material : constant Rho.Material.Reference :=
+                   Rho.Material.Simple.Create
                      (Handle.Assets.Create_Texture_From_Image
                         (Rho.Paths.Config_File
                            ("images/earth-physical")));

@@ -75,12 +75,12 @@ package body Rho.Demos.Cobra_Demo is
            Near          => 10.0,
            Far           => 400.0);
 
-      Mat_1 : constant Rho.Material.Material_Type :=
-                Rho.Material.Simple.Create_Simple_Material
+      Mat_1 : constant Rho.Material.Reference :=
+                Rho.Material.Simple.Create
                   (Handle.Assets.Create_Texture_From_Image
                      ("config/textures/oolite_cobra3_diffuse"));
-      Mat_2 : constant Rho.Material.Material_Type :=
-                Rho.Material.Simple.Create_Simple_Material
+      Mat_2 : constant Rho.Material.Reference :=
+                Rho.Material.Simple.Create
                   (Handle.Assets.Create_Texture_From_Image
                      ("config/textures/oolite_cobra3_subents"));
 

@@ -311,7 +311,7 @@ package body Rho.UI.Widget is
                Rho.Meshes.Create_Mesh
                  (Geometry => Square_Geometry,
                   Material =>
-                    Rho.Material.Custom.Create_Custom_Material
+                    Rho.Material.Custom.Create
                       (Shaders => (Vertex_Shader, Fragment_Shader)));
    begin
       This.Surface := Render_Surface (Surface);

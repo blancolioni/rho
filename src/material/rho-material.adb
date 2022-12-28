@@ -13,7 +13,7 @@ package body Rho.Material is
    -------------------
 
    overriding procedure Before_Render
-     (Material   : in out Root_Material_Type;
+     (Material   : in out Instance;
       Target     : not null access Rho.Render.Render_Target'Class)
    is
    begin
@@ -28,7 +28,7 @@ package body Rho.Material is
    -------------
 
    overriding procedure Compile
-     (Material : in out Root_Material_Type;
+     (Material : in out Instance;
       Target   : not null access Rho.Render.Render_Target'Class)
    is
 
@@ -213,7 +213,7 @@ package body Rho.Material is
    -- Default_Shaders --
    ---------------------
 
-   procedure Default_Shaders (This : in out Root_Material_Type'Class) is
+   procedure Default_Shaders (This : in out Instance'Class) is
    begin
       This.Shader_Names.Include ("node");
    end Default_Shaders;
@@ -223,7 +223,7 @@ package body Rho.Material is
    --------------------
 
    overriding procedure Execute_Render
-     (Material   : in out Root_Material_Type;
+     (Material   : in out Instance;
       Target     : not null access Rho.Render.Render_Target'Class)
    is
    begin
@@ -235,7 +235,7 @@ package body Rho.Material is
    ---------------
 
    overriding function Get_Value
-     (This : Root_Material_Type;
+     (This : Instance;
       Prop : Rho.Properties.Property)
       return String
    is
@@ -248,7 +248,7 @@ package body Rho.Material is
    -------------
 
    overriding procedure Iterate
-     (Material   : Root_Material_Type;
+     (Material   : Instance;
       Stage      : Shader_Stage;
       Process    : not null access
         procedure (Partial : Rho.Shaders.Partial.Partial_Shader_Type))
@@ -262,7 +262,7 @@ package body Rho.Material is
    ----------
 
    overriding procedure Load
-     (Material : in out Root_Material_Type;
+     (Material : in out Instance;
       Target   : not null access Rho.Render.Render_Target'Class)
    is
    begin
@@ -301,7 +301,7 @@ package body Rho.Material is
    ---------------
 
    overriding procedure Set_Value
-     (This  : not null access Root_Material_Type;
+     (This  : not null access Instance;
       Prop  : Rho.Properties.Property;
       Value : String)
    is

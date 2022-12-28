@@ -1,36 +1,13 @@
 with Ada.Text_IO;
 
-with Ada.Containers.Doubly_Linked_Lists;
-
 package body Rho.Material.Custom is
-
-   package Shader_Lists is
-     new Ada.Containers.Doubly_Linked_Lists
-       (Rho.Shaders.Stages.Shader_Type, Rho.Shaders.Stages."=");
-
-   type Custom_Material_Type is
-     new Root_Material_Type with
-      record
-         Shaders : Shader_Lists.List;
-      end record;
-
-   type Custom_Material_Access is
-     access all Custom_Material_Type'Class;
-
-   overriding procedure Load
-     (Material : in out Custom_Material_Type;
-      Target   : not null access Rho.Render.Render_Target'Class);
-
-   overriding procedure Compile
-     (Material : in out Custom_Material_Type;
-      Target   : not null access Rho.Render.Render_Target'Class);
 
    -------------
    -- Compile --
    -------------
 
    overriding procedure Compile
-     (Material : in out Custom_Material_Type;
+     (Material : in out Instance;
       Target   : not null access Rho.Render.Render_Target'Class)
    is
    begin
@@ -58,23 +35,24 @@ package body Rho.Material.Custom is
    -- Create_Custom_Material --
    ----------------------------
 
-   function Create_Custom_Material
-     (Shaders : Rho.Shaders.Stages.Shader_Array) return Material_Type
+   function Create
+     (Shaders : Rho.Shaders.Stages.Shader_Array)
+      return Rho.Material.Reference
    is
-      Result : constant Custom_Material_Access := new Custom_Material_Type;
+      Result : constant Reference := new Instance;
    begin
       for Shader of Shaders loop
          Result.Shaders.Append (Shader);
       end loop;
-      return Material_Type (Result);
-   end Create_Custom_Material;
+      return Rho.Material.Reference (Result);
+   end Create;
 
    ----------
    -- Load --
    ----------
 
    overriding procedure Load
-     (Material : in out Custom_Material_Type;
+     (Material : in out Instance;
       Target   : not null access Rho.Render.Render_Target'Class)
    is
    begin

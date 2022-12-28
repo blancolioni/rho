@@ -17,16 +17,19 @@ with Rho.Textures;
 
 package Rho.Material is
 
-   type Root_Material_Type is
-     new Rho.Objects.Root_Object_Type
+   subtype Parent is Rho.Objects.Root_Object_Type;
+
+   type Instance is new Parent
      and Rho.Properties.Property_Value_List
      and Rho.Renderable.Renderable_Interface
      and Rho.Shaders.Partial.Partial_Shader_Source
    with private;
 
-   type Material_Type is access all Root_Material_Type'Class;
+   subtype Any_Instance is Instance'Class;
 
-   type Material_Array is array (Positive range <>) of Material_Type;
+   type Reference is access all Instance'Class;
+
+   type Reference_Array is array (Positive range <>) of Reference;
 
 private
 
@@ -45,10 +48,7 @@ private
    package Static_Binding_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists (Static_Binding);
 
-   type Property_Bag_Access is access Rho.Properties.Bags.Instance;
-
-   type Root_Material_Type is
-     new Rho.Objects.Root_Object_Type
+   type Instance is new Parent
      and Rho.Properties.Property_Value_List
      and Rho.Renderable.Renderable_Interface
      and Rho.Shaders.Partial.Partial_Shader_Source with
@@ -58,46 +58,46 @@ private
          Shader_Names    : WL.String_Sets.Set;
          Partials        : Rho.Shaders.Partial.Partial_Shader_Container;
          Static_Bindings : Static_Binding_Lists.List;
-         Property_Bag    : Property_Bag_Access;
+         Property_Bag    : Rho.Properties.Bags.Reference;
          Loaded          : Boolean := False;
          Compiled        : Boolean := False;
       end record;
 
-   procedure Default_Shaders (This : in out Root_Material_Type'Class);
+   procedure Default_Shaders (This : in out Instance'Class);
 
    overriding procedure Compile
-     (Material : in out Root_Material_Type;
+     (Material : in out Instance;
       Target   : not null access Rho.Render.Render_Target'Class);
 
    overriding procedure Load
-     (Material : in out Root_Material_Type;
+     (Material : in out Instance;
       Target   : not null access Rho.Render.Render_Target'Class);
 
    overriding procedure Before_Render
-     (Material   : in out Root_Material_Type;
+     (Material   : in out Instance;
       Target     : not null access Rho.Render.Render_Target'Class);
 
    overriding procedure Execute_Render
-     (Material   : in out Root_Material_Type;
+     (Material   : in out Instance;
       Target     : not null access Rho.Render.Render_Target'Class);
 
    overriding function Get_Value
-     (This : Root_Material_Type;
+     (This : Instance;
       Prop : Rho.Properties.Property)
       return String;
 
    overriding procedure Set_Value
-     (This  : not null access Root_Material_Type;
+     (This  : not null access Instance;
       Prop  : Rho.Properties.Property;
       Value : String);
 
    overriding function Class_Name
-     (Material : Root_Material_Type)
+     (Material : Instance)
       return String
    is ("material");
 
    overriding procedure Iterate
-     (Material   : Root_Material_Type;
+     (Material   : Instance;
       Stage      : Shader_Stage;
       Process    : not null access
         procedure (Partial : Rho.Shaders.Partial.Partial_Shader_Type));

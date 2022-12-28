@@ -6,7 +6,7 @@ package body Rho.Meshes is
 
    procedure Add_Material
      (Mesh     : in out Root_Mesh_Type;
-      Material : Rho.Material.Material_Type)
+      Material : Rho.Material.Reference)
    is
    begin
       Mesh.Material.Append (Material);
@@ -65,7 +65,7 @@ package body Rho.Meshes is
 
    function Create_Mesh
      (Geometry : Rho.Geometry.Geometry_Type;
-      Material : Rho.Material.Material_Type)
+      Material : Rho.Material.Reference)
       return Mesh_Type
    is
    begin
@@ -87,7 +87,7 @@ package body Rho.Meshes is
 
       function Get_Material
         (Index : Rho.Geometry.Material_Index)
-         return Rho.Material.Material_Type;
+         return Rho.Material.Reference;
 
       -----------------------
       -- Activate_Material --
@@ -104,14 +104,14 @@ package body Rho.Meshes is
 
       function Get_Material
         (Index : Rho.Geometry.Material_Index)
-         return Rho.Material.Material_Type
+         return Rho.Material.Reference
       is
          use Rho.Geometry;
          Real_Index : constant Material_Index :=
                         Material_Index ((Natural (Index) - 1)
                                         mod Natural (Mesh.Material.Last_Index)
                                         + 1);
-         Material   : constant Rho.Material.Material_Type :=
+         Material   : constant Rho.Material.Reference :=
                         Mesh.Material.Element (Real_Index);
       begin
          return Material;
@@ -164,7 +164,7 @@ package body Rho.Meshes is
 
    procedure Remove_Material
      (Mesh     : in out Root_Mesh_Type;
-      Material : Rho.Material.Material_Type)
+      Material : Rho.Material.Reference)
    is
       use Material_Vectors;
       Position : Cursor := Mesh.Material.Find (Material);
