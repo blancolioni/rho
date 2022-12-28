@@ -140,18 +140,6 @@ package body Rho.Material is
                  Rho.Shaders.Standard_Binding_Element_Count (Binding));
          end loop;
 
-         --  Check_Attribute ("position", Position_Attribute, 3);
-         --  Check_Attribute ("vertexNormal", Vertex_Normal_Attribute, 3);
-         --  Check_Attribute ("texCoord", Vertex_Texture_Coord_Attribute, 2);
-         --
-         --  Check_Uniform ("model", Model_Uniform);
-         --  Check_Uniform ("camera", View_Uniform);
-         --  Check_Uniform ("cameraPosition", Camera_Position_Uniform);
-         --  Check_Uniform ("ambientColor", Ambient_Color_Uniform);
-         --  Check_Uniform ("ambientCoefficient", Ambient_Coefficient_Uniform);
-         --  Check_Uniform ("spotColor", Spot_Color_Uniform);
-         --  --  Check_Uniform ("attenuation", Spot_Attenuation_Uniform);
-
          declare
             Shader : constant Rho.Shaders.Stages.Shader_Type :=
                        Rho.Shaders.Stages.Create

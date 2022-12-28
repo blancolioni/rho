@@ -399,7 +399,6 @@ package body Rho.Handles.OpenGL is
       use type Rho.Shaders.Programs.Program_Type;
    begin
       if Target.Active_Program /= Shader then
-         Rho.Logging.Log ("activating: " & Shader.Name);
          GL.Use_Program
            (Target.Id_Map.Program_Id (Shader));
          Target.Active_Program := Shader;

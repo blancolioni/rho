@@ -153,13 +153,21 @@ package body Rho.Geometry is
            (Geometry.Vertices,
             Attribute (Position_Attribute));
 
-         Target.Activate_Buffer
-           (Geometry.Normals,
-            Attribute (Vertex_Normal_Attribute));
+         if Target.Current_Shader.Has_Standard_Binding
+           (Vertex_Normal_Attribute)
+         then
+            Target.Activate_Buffer
+              (Geometry.Normals,
+               Attribute (Vertex_Normal_Attribute));
+         end if;
 
-         Target.Activate_Buffer
-           (Geometry.UVs,
-            Attribute (Vertex_Texture_Coord_Attribute));
+         if Target.Current_Shader.Has_Standard_Binding
+           (Vertex_Texture_Coord_Attribute)
+         then
+            Target.Activate_Buffer
+              (Geometry.UVs,
+               Attribute (Vertex_Texture_Coord_Attribute));
+         end if;
 
          Target.Activate_Buffer
            (Buffer   => Group.Faces,

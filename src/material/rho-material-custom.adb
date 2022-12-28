@@ -1,5 +1,8 @@
 with Ada.Text_IO;
 
+with Rho.Shaders.Variables;
+with Rho.Logging;
+
 package body Rho.Material.Custom is
 
    -------------
@@ -10,6 +13,29 @@ package body Rho.Material.Custom is
      (Material : in out Instance;
       Target   : not null access Rho.Render.Render_Target'Class)
    is
+      procedure Bind
+        (Binding : Rho.Shaders.Standard_Variable_Binding;
+         Count   : Positive := 1);
+
+      ----------
+      -- Bind --
+      ----------
+
+      procedure Bind
+        (Binding : Rho.Shaders.Standard_Variable_Binding;
+         Count   : Positive := 1)
+      is
+         V : constant Rho.Shaders.Variables.Variable_Type :=
+               Rho.Shaders.Variables.New_Binding
+                 (Rho.Shaders.Standard_Binding_Name (Binding),
+                  Binding,
+                  Count);
+      begin
+         Rho.Logging.Log ("binding: " & V.Name);
+         Material.Program.Add_Variable (V);
+         Target.Bind_Variable (Material.Program, V);
+      end Bind;
+
    begin
       if Material.Compiled then
          return;
@@ -26,6 +52,10 @@ package body Rho.Material.Custom is
            Shaders =>
              (Material.Shaders.First_Element,
               Material.Shaders.Last_Element));
+
+      Bind (Rho.Shaders.Model_Uniform);
+      Bind (Rho.Shaders.View_Uniform);
+      Bind (Rho.Shaders.Position_Attribute, 3);
 
       Material.Compiled := True;
 

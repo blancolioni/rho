@@ -21,6 +21,24 @@ package body Rho.Shaders.Variables is
       return New_Variable (Name, In_Variable, Binding, Element_Count);
    end New_Attribute_Binding;
 
+   -----------------
+   -- New_Binding --
+   -----------------
+
+   function New_Binding
+     (Name          : String;
+      Binding       : Standard_Variable_Binding;
+      Element_Count : Positive := 1)
+      return Variable_Type
+   is
+      Mode : constant Variable_Mode :=
+               (if Binding in Standard_Uniform_Binding
+                then Uniform_Variable
+                else In_Variable);
+   begin
+      return New_Variable (Name, Mode, Binding, Element_Count);
+   end New_Binding;
+
    -------------------------
    -- New_Uniform_Binding --
    -------------------------

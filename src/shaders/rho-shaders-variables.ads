@@ -19,6 +19,12 @@ package Rho.Shaders.Variables is
      (Variable : Root_Variable_Type'Class)
       return Positive;
 
+   function New_Binding
+     (Name          : String;
+      Binding       : Standard_Variable_Binding;
+      Element_Count : Positive := 1)
+      return Variable_Type;
+
    function New_Attribute_Binding
      (Name          : String;
       Binding       : Variable_Binding_Type := No_Standard_Binding;
