@@ -39,7 +39,7 @@ package Rho.Render is
       return Active_Shader_Array
       is abstract;
 
-   procedure Add_Uniform
+   procedure Set_Uniform
      (Target  : in out Render_Target;
       Name    : String;
       Value   : Rho.Values.Rho_Value)

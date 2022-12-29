@@ -140,7 +140,7 @@ package body Rho.Handles.OpenGL is
    --    (Target   : in out OpenGL_Render_Target;
    --     Slice : Rho.Shaders.Slices.Slice_Type);
 
-   overriding procedure Add_Uniform
+   overriding procedure Set_Uniform
      (Target  : in out OpenGL_Render_Target;
       Name    : String;
       Value   : Rho.Values.Rho_Value);
@@ -464,21 +464,6 @@ package body Rho.Handles.OpenGL is
    --  begin
    --     Target.Active_Fragments.Append (Slice);
    --  end Add_Shader_Fragment;
-
-   -----------------
-   -- Add_Uniform --
-   -----------------
-
-   overriding procedure Add_Uniform
-     (Target  : in out OpenGL_Render_Target;
-      Name    : String;
-      Value   : Rho.Values.Rho_Value)
-   is
-   begin
-      Rho.Logging.Log
-        ("new active uniform: " & Name);
-      Target.Active_Uniforms.Insert (Name, Value);
-   end Add_Uniform;
 
    ------------------
    -- After_Render --
@@ -1468,6 +1453,25 @@ package body Rho.Handles.OpenGL is
    begin
       GL.Viewport (0, 0, GL_Types.Sizei (Width), GL_Types.Sizei (Height));
    end Set_Size;
+
+   -----------------
+   -- Set_Uniform --
+   -----------------
+
+   overriding procedure Set_Uniform
+     (Target  : in out OpenGL_Render_Target;
+      Name    : String;
+      Value   : Rho.Values.Rho_Value)
+   is
+   begin
+      Rho.Logging.Log
+        ("set uniform: " & Name);
+      if Target.Active_Uniforms.Contains (Name) then
+         Target.Active_Uniforms.Replace (Name, Value);
+      else
+         Target.Active_Uniforms.Insert (Name, Value);
+      end if;
+   end Set_Uniform;
 
    -------------------------
    -- Special_Key_Handler --

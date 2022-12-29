@@ -14,17 +14,17 @@ package body Rho.Lights.Spot is
    begin
       Root_Light_Type (Light).Load (Target);
 
-      Target.Add_Uniform
+      Target.Set_Uniform
         (Name  => "spotPosition",
          Value =>
            Rho.Values.Vector_Value (Light.Position));
-      Target.Add_Uniform
+      Target.Set_Uniform
         (Name  => "spotColor",
          Value =>
            Rho.Values.Vector_Value
              (Rho.Matrices.To_Vector
                   (Light.Color.R, Light.Color.G, Light.Color.B)));
-      Target.Add_Uniform
+      Target.Set_Uniform
         (Name  => "attenuation",
          Value =>
            Rho.Values.Real_Value (Light.Decay));

@@ -4,10 +4,13 @@ with Ada.Unchecked_Deallocation;
 --  with WL.String_Maps;
 
 with Rho.Geometry;
-with Rho.Material.Custom;
+with Rho.Handles;
+with Rho.Material.Basic;
 with Rho.Matrices;
 with Rho.Meshes;
 with Rho.Shaders.Stages;
+
+with Rho.UI.Main;
 
 with Rho.Paths;
 
@@ -18,12 +21,19 @@ package body Rho.UI.Widget is
    Local_Fragment_Shader : Rho.Shaders.Stages.Shader_Type;
 
    function Square_Geometry return Rho.Geometry.Geometry_Type;
-   function Vertex_Shader return Rho.Shaders.Stages.Shader_Type;
-   function Fragment_Shader return Rho.Shaders.Stages.Shader_Type;
+   function Vertex_Shader return Rho.Shaders.Stages.Shader_Type
+     with Unreferenced;
+
+   function Fragment_Shader return Rho.Shaders.Stages.Shader_Type
+     with Unreferenced;
 
    function Load_Standard_Shader_Source
      (Name : String)
       return String;
+
+   function Get_Color_Material
+     (From : Css.Css_Element_Value)
+      return Rho.Material.Reference;
 
    overriding function Classes  (This : Instance) return String
    is (-This.Classes);
@@ -45,6 +55,7 @@ package body Rho.UI.Widget is
    begin
       This.Children.Append (Reference (Child));
       Child.Parent := Reference (This);
+      Child.Z_Index := This.Z_Index + 0.0001;
    end Add_Child;
 
    --------------------
@@ -210,6 +221,41 @@ package body Rho.UI.Widget is
       return Local_Fragment_Shader;
    end Fragment_Shader;
 
+   ------------------------
+   -- Get_Color_Material --
+   ------------------------
+
+   function Get_Color_Material
+     (From : Css.Css_Element_Value)
+      return Rho.Material.Reference
+   is
+   begin
+      if Css.Is_String (From) then
+         declare
+            Css_Color : constant Css.Css_Color :=
+                          Css.To_Color (From);
+         begin
+            return Rho.Material.Basic.Create
+              (Color => (Real (Css_Color.Red) / 255.0,
+                         Real (Css_Color.Green) / 255.0,
+                         Real (Css_Color.Blue) / 255.0,
+                         Real (Css_Color.Alpha) / 255.0));
+         end;
+      else
+         declare
+            Handle : constant Rho.Handles.Handle :=
+                       Rho.UI.Main.UI_Handle;
+         begin
+            return Rho.Material.Basic.Create
+              (Texture =>
+                 Handle.Assets.Create_Texture_From_Image
+                   (Rho.Paths.Config_File
+                        ("images/unknown")));
+         end;
+      end if;
+
+   end Get_Color_Material;
+
    -------------------------
    -- Get_Layout_Position --
    -------------------------
@@ -311,23 +357,17 @@ package body Rho.UI.Widget is
                Rho.Meshes.Create_Mesh
                  (Geometry => Square_Geometry,
                   Material =>
-                    Rho.Material.Custom.Create
-                      (Shaders => (Vertex_Shader, Fragment_Shader)));
+                    Get_Color_Material (This.Style ("background")));
    begin
       This.Surface := Render_Surface (Surface);
       This.Node := Rho.Nodes.Node_Type (Mesh);
 
-      if This.Parent /= null then
-         declare
-            W : Reference := This.Parent;
-         begin
-            while W.Parent /= null loop
-               W := W.Parent;
-            end loop;
-            W.Node.Add (This.Node);
-         end;
-      end if;
+      This.Node.Set_Name (This.Short_Description);
+      This.Top_Node.Add (This.Node);
+      This.Log (This.Node.Name & " --> " & This.Top_Node.Name);
+
       for Child of Dispatch (This.all).Children loop
+         Child.Top_Node := This.Top_Node;
          Child.Map (Surface);
       end loop;
    end Map;
@@ -460,7 +500,7 @@ package body Rho.UI.Widget is
       This.Node.Set_Position
         (Real (Position.X),
          This.Surface.Height - Real (Position.Y) - Real (This.Size.Height),
-         0.0);
+         This.Z_Index);
    end Set_Layout_Position;
 
    ---------------------

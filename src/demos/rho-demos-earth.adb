@@ -11,7 +11,6 @@ with Rho.Signals.Buttons;
 with Rho.Signals.Pointer;
 with Rho.Signals;
 with Rho.UI.Builder;
-with Rho.UI.Main;
 
 with Rho.Paths;
 
@@ -212,7 +211,6 @@ package body Rho.Demos.Earth is
 
    function Load return Demo_Type is
    begin
-      Rho.UI.Main.Init;
       return new Earth_Demo_Type;
    end Load;
 

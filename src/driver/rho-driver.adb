@@ -15,6 +15,8 @@ with Rho.Logging;
 with Rho.Options;
 with Rho.Paths;
 
+with Rho.UI.Main;
+
 procedure Rho.Driver is
 begin
 
@@ -99,6 +101,8 @@ begin
          Ada.Command_Line.Set_Exit_Status (2);
          return;
       end if;
+
+      Rho.UI.Main.Init (Handle);
 
       declare
          Window : constant Rho.Windows.Window_Type :=

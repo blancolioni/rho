@@ -21,6 +21,16 @@ package body Rho.Material is
       for Texture of Material.Textures loop
          Texture.Activate (Target);
       end loop;
+      for Static_Binding of Material.Static_Bindings loop
+         declare
+            Name    : constant String :=
+                        Ada.Strings.Unbounded.To_String
+                          (Static_Binding.Name);
+         begin
+            Target.Set_Uniform (Name, Static_Binding.Value);
+         end;
+      end loop;
+
    end Before_Render;
 
    -------------
@@ -182,7 +192,6 @@ package body Rho.Material is
             Rho.Logging.Log ("binding: " & Binding.Name);
             Material.Program.Add_Variable (Binding);
             Target.Bind_Variable (Material.Program, Binding);
-            Target.Add_Uniform (Name, Static_Binding.Value);
          end;
       end loop;
 

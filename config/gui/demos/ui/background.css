@@ -2,6 +2,10 @@
 	background: red;
 }
 
+.green {
+	background: green;
+}
+
 .rectangle {
 	width: 100px;
 	height: 50px;

@@ -132,6 +132,8 @@ private
          Rules        : Css.Css_Rule;
          Surface      : Render_Surface;
          Node         : Rho.Nodes.Node_Type;
+         Top_Node     : Rho.Nodes.Node_Type;
+         Z_Index      : Unit_Real := 0.0;
       end record;
 
    overriding function Tag (This : Instance) return String;

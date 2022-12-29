@@ -1,3 +1,5 @@
+with Rho.Logging;
+
 package body Rho.Material.Basic is
 
    ------------
@@ -12,6 +14,9 @@ package body Rho.Material.Basic is
       return Material : constant Reference := new Instance do
          Material.Default_Shaders;
          Material.Shader_Names.Include ("single-color");
+         Rho.Logging.Log ("surfaceColor: "
+                          & Rho.Color.To_Shader_Value (Color));
+
          Material.Static_Bindings.Append
            (Static_Binding'
               (Rho.Values.Color_Value,

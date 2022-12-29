@@ -222,6 +222,18 @@ package body Rho.Matrices is
         & "," & W'Image & ")";
    end Image;
 
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Vector : Vector_3) return String is
+      X : constant Real := Vector.Vector (1);
+      Y : constant Real := Vector.Vector (2);
+      Z : constant Real := Vector.Vector (3);
+   begin
+      return "(" & X'Image & "," & Y'Image & "," & Z'Image & ")";
+   end Image;
+
    --------------------
    -- Look_At_Matrix --
    --------------------

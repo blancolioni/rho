@@ -31,13 +31,13 @@ package body Rho.Lights.Ambient is
    begin
       Root_Light_Type (Light).Load (Target);
 
-      Target.Add_Uniform
+      Target.Set_Uniform
         (Name  => "ambientColor",
          Value =>
            Rho.Values.Vector_Value
              (Rho.Matrices.To_Vector
                   (Light.Color.R, Light.Color.G, Light.Color.B)));
-      Target.Add_Uniform
+      Target.Set_Uniform
         (Name  => "ambientCoefficient",
          Value =>
            Rho.Values.Real_Value (Light.Intensity));

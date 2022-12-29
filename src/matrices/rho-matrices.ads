@@ -76,6 +76,8 @@ package Rho.Matrices is
    function "*" (Left, Right : Vector_3) return Vector_3;
    function "*" (Left, Right : Vector_3) return Real;
 
+   function Image (Vector : Vector_3) return String;
+
    function X (Vector : Vector_4) return Real;
    function Y (Vector : Vector_4) return Real;
    function Z (Vector : Vector_4) return Real;

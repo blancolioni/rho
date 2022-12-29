@@ -67,7 +67,7 @@ package body Rho.Handles.Simulation is
       return Rho.Render.Active_Shader_Array
    is (No_Active_Shaders);
 
-   overriding procedure Add_Uniform
+   overriding procedure Set_Uniform
      (Target  : in out Simulation_Render_Target;
       Name    : String;
       Value   : Rho.Values.Rho_Value)
