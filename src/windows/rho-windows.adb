@@ -1,7 +1,15 @@
 with Rho.Handles;
+with Rho.UI.Events;
 with Rho.UI.Surface;
 
+with Rho.Signals.Pointer;
+
 package body Rho.Windows is
+
+   procedure On_Mouse_Move
+     (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
+      Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
 
    ------------
    -- Add_UI --
@@ -33,13 +41,67 @@ package body Rho.Windows is
    -----------------------
 
    procedure Initialize_Window
-     (Window        : in out Root_Window_Type'Class;
+     (Window        : not null access Root_Window_Type'Class;
       X, Y          : Real;
       Width, Height : Non_Negative_Real)
    is
    begin
       Window.Initialize_Rectangle (X, Y, Width, Height);
+      Window.Mouse_Move_Handler :=
+        Window.Render_Target.Add_Handler
+          (Object => Window,
+           Signal  => Rho.Signals.Pointer.Move_Signal,
+           Handler => On_Mouse_Move'Access,
+           Data    => Rho.Signals.No_Signal_Data);
    end Initialize_Window;
+
+   -------------------
+   -- On_Mouse_Move --
+   -------------------
+
+   procedure On_Mouse_Move
+     (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
+      Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+   is
+      pragma Unreferenced (User_Data);
+      use Rho.UI.Widget;
+      Window : constant Window_Type := Window_Type (Object);
+      Data   : constant Rho.Signals.Pointer.Signal_Data :=
+                 Rho.Signals.Pointer.Signal_Data (Signal_Data);
+      X      : constant Real := Real (Data.X);
+      Y      : constant Real := Real (Data.Y);
+      Old_W  : constant Rho.UI.Widget.Reference := Window.Current_Widget;
+   begin
+
+      Window.Current_Widget := null;
+
+      for UI of Window.UIs loop
+         declare
+            W : constant Reference :=
+                  UI.Get_Widget_At_Point (X, Y);
+         begin
+            if W /= null then
+               Window.Current_Widget := W;
+               if Old_W /= W then
+                  if Old_W /= null then
+                     Old_W.Send (Rho.UI.Events.Leave_Notify_Event (X, Y));
+                  end if;
+                  W.Send (Rho.UI.Events.Enter_Notify_Event (X, Y));
+               else
+                  if X /= Window.Pointer_X or else Y /= Window.Pointer_Y then
+                     W.Send (Rho.UI.Events.Motion_Notify_Event (X, Y));
+                     Window.Pointer_X := X;
+                     Window.Pointer_Y := Y;
+                  end if;
+               end if;
+
+               exit;
+            end if;
+         end;
+      end loop;
+
+   end On_Mouse_Move;
 
    ---------------
    -- Remove_UI --

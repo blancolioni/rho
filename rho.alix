@@ -5,6 +5,7 @@ source_dir = src/camera
 source_dir = src/controls
 source_dir = src/controls/orbit
 source_dir = src/demos
+source_dir = src/devices
 source_dir = src/driver
 source_dir = src/fonts
 source_dir = src/geometry

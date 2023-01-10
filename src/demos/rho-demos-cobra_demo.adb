@@ -1,5 +1,6 @@
 with Rho.Cameras;
 with Rho.Color;
+with Rho.Devices.Keyboard;
 with Rho.Lights.Ambient;
 with Rho.Lights.Spot;
 with Rho.Material.Simple;
@@ -168,11 +169,11 @@ package body Rho.Demos.Cobra_Demo is
                Event_User_Data (User_Data).Demo;
    begin
       case Data.Key is
-         when Rho.Signals.Keyboard.Up =>
+         when Rho.Devices.Keyboard.Up =>
             Demo.Look_At :=
               Demo.Look_At + To_Vector (0.0, 1.0, 0.0);
             Demo.Camera.Look_At (Demo.Look_At);
-         when Rho.Signals.Keyboard.Down =>
+         when Rho.Devices.Keyboard.Down =>
             Demo.Look_At :=
               Demo.Look_At + To_Vector (0.0, -1.0, 0.0);
             Demo.Camera.Look_At (Demo.Look_At);

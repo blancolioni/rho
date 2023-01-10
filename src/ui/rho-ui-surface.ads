@@ -1,4 +1,5 @@
 private with Cairo;
+private with WL.Guids;
 
 private with Rho.Tiled_Regions;
 private with Rho.Nodes;
@@ -9,11 +10,14 @@ with Rho.Bitmaps;
 with Rho.Color;
 with Rho.Rectangles;
 with Rho.Render;
+with Rho.Signals;
 
 package Rho.UI.Surface is
 
    type Instance is
-     new Rho.Rectangles.Rectangle_Interface with private;
+     new Rho.Rectangles.Rectangle_Interface
+     and Rho.Signals.Signal_Object_Interface
+   with private;
 
    subtype Any_Instance is Instance'Class;
    type Reference is access all Instance'Class;
@@ -89,13 +93,20 @@ private
      new Rho.Tiled_Regions (Rho.Meshes.Mesh_Type);
 
    type Instance is
-     new Rho.Rectangles.Root_Rectangle_Type with
+     new Rho.Rectangles.Root_Rectangle_Type
+     and Rho.Signals.Signal_Object_Interface with
       record
+         Guid    : WL.Guids.Guid;
          Scene   : Rho.Scenes.Scene_Type;
          Top     : Rho.Nodes.Node_Type;
          Tiles   : Mesh_Tiles.Tiled_Region;
          Surface : Cairo.Cairo_Surface;
       end record;
+
+   overriding function Guid
+     (This : Instance)
+      return WL.Guids.Guid
+   is (This.Guid);
 
    type Draw_Primitive is abstract tagged null record;
 

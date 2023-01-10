@@ -65,6 +65,7 @@ package body Rho.UI.Surface is
       return Surface : constant Reference :=
         new Instance'
           (Rho.Rectangles.Root_Rectangle_Type with
+             Guid  => WL.Guids.New_Guid,
              Scene => Rho.Scenes.Create_Scene,
              Top   => Rho.Nodes.Create_Node,
              Tiles => <>,

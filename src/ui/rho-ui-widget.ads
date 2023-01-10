@@ -1,3 +1,4 @@
+private with Ada.Containers.Indefinite_Holders;
 private with WL.Guids;
 private with Rho.Geometry;
 private with Rho.Color;
@@ -16,6 +17,7 @@ with Rho.Fonts;
 with Rho.Properties;
 with Rho.Render;
 
+with Rho.UI.Events;
 with Rho.UI.Surface;
 
 package Rho.UI.Widget is
@@ -69,6 +71,23 @@ package Rho.UI.Widget is
      (This  : not null access Instance;
       Child : not null access Instance'Class);
 
+   type Handler_Type is access
+     function (Widget    : not null access Instance'Class;
+               Event     : Rho.UI.Events.Event;
+               User_Data : Rho.UI.Events.Event_User_Data'Class)
+               return Rho.UI.Events.Handler_Result;
+
+   function Add_Handler
+     (This      : not null access Instance'Class;
+      For_Event : Rho.UI.Events.Event_Type;
+      User_Data : Rho.UI.Events.Event_User_Data'Class;
+      Handler   : Handler_Type)
+      return Rho.UI.Events.Handler_Id;
+
+   procedure Send
+     (This  : not null access Instance'Class;
+      Event : Rho.UI.Events.Event);
+
    package Widget_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Reference);
 
@@ -85,6 +104,11 @@ package Rho.UI.Widget is
    function Find_By_Id
      (Top : not null access Instance'Class;
       Id  : String)
+      return Reference;
+
+   function Get_Widget_At_Point
+     (This : not null access Instance'Class;
+      X, Y : Real)
       return Reference;
 
    procedure Set_Size
@@ -119,6 +143,23 @@ package Rho.UI.Widget is
 
 private
 
+   package Data_Holder is
+     new Ada.Containers.Indefinite_Holders
+       (Rho.UI.Events.Event_User_Data'Class,
+        Rho.UI.Events."=");
+
+   type Handler_Record is
+      record
+         Handler : Handler_Type;
+         Data    : Data_Holder.Holder;
+      end record;
+
+   package Handler_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Handler_Record);
+
+   type Event_Handler_Array is
+     array (Rho.UI.Events.Event_Type) of Handler_Lists.List;
+
    subtype Dispatch is Instance'Class;
 
    type Property_Bag_Access is access Rho.Properties.Bags.Instance;
@@ -142,6 +183,7 @@ private
          Rules        : Css.Css_Rule;
          Surface      : Rho.UI.Surface.Reference;
          Context      : Rho.UI.Surface.Context;
+         Handlers     : Event_Handler_Array;
          Meta_Element : Boolean := True;
       end record;
 

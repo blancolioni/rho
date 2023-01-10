@@ -25,13 +25,10 @@ with WL.String_Maps;
 
 with Rho.Buffers;
 with Rho.Color;
+with Rho.Devices.Keyboard;
 with Rho.Fonts;
 with Rho.Formats;
 with Rho.Matrices;
---  with Rho.Shaders.Slices.Attributes;
---  with Rho.Shaders.Slices.Main;
---  with Rho.Shaders.Slices.Preamble;
---  with Rho.Shaders.Slices.Uniforms;
 with Rho.Shaders.Programs;
 with Rho.Shaders.Stages;
 with Rho.Shaders.Variables;
@@ -48,9 +45,6 @@ with Rho.Real_Arrays;
 with Rho.Handles.OpenGL.Maps;
 
 with Rho.Logging;
-
---  with Tau.Generators;
---  with Tau.Shaders;
 
 package body Rho.Handles.OpenGL is
 
@@ -367,7 +361,7 @@ package body Rho.Handles.OpenGL is
 
    function To_Rho_Key
      (Glut_Key : Integer)
-      return Rho.Signals.Keyboard.Key_Type;
+      return Rho.Devices.Keyboard.Key_Type;
 
    --------------
    -- Activate --
@@ -1103,13 +1097,13 @@ package body Rho.Handles.OpenGL is
      (Key  : GLUT.Key_Type;
       X, Y : Integer)
    is
-      Rho_Key : constant Rho.Signals.Keyboard.Key_Type :=
-                  Rho.Signals.Keyboard.Key_Type (Key);
+      use Rho.Devices.Keyboard;
+      Rho_Key : constant Key_Type := Key_Type (Key);
       Signal  : constant Rho.Signals.Signal_Type :=
                   Rho.Signals.Keyboard.Press_Signal;
    begin
       Local_Handle.Current_Renderer.Emit_Signal
-        (Object => Local_Handle.Active_Window.Scene,
+        (Object => Local_Handle.Active_Window,
          Signal => Signal,
          Data   => Rho.Signals.Keyboard.Signal_Data'
            (Rho_Key, X, Y));
@@ -1123,13 +1117,13 @@ package body Rho.Handles.OpenGL is
      (Key  : GLUT.Key_Type;
       X, Y : Integer)
    is
-      Rho_Key : constant Rho.Signals.Keyboard.Key_Type :=
-                  Rho.Signals.Keyboard.Key_Type (Key);
+      use Rho.Devices.Keyboard;
+      Rho_Key : constant Key_Type := Key_Type (Key);
       Signal  : constant Rho.Signals.Signal_Type :=
                   Rho.Signals.Keyboard.Release_Signal;
    begin
       Local_Handle.Current_Renderer.Emit_Signal
-        (Object => Local_Handle.Active_Window.Scene,
+        (Object => Local_Handle.Active_Window,
          Signal => Signal,
          Data   => Rho.Signals.Keyboard.Signal_Data'
            (Rho_Key, X, Y));
@@ -1394,7 +1388,7 @@ package body Rho.Handles.OpenGL is
                            else Rho.Signals.Buttons.Release_Signal);
             begin
                Local_Handle.Current_Renderer.Emit_Signal
-                 (Object => Local_Handle.Active_Window.Scene,
+                 (Object => Local_Handle.Active_Window,
                   Signal => Signal,
                   Data   =>
                     Rho.Signals.Buttons.Signal_Data'
@@ -1415,7 +1409,7 @@ package body Rho.Handles.OpenGL is
    is
    begin
       Local_Handle.Current_Renderer.Emit_Signal
-        (Object => Local_Handle.Active_Window.Scene,
+        (Object => Local_Handle.Active_Window,
          Signal => Rho.Signals.Pointer.Move_Signal,
          Data   =>
            Rho.Signals.Pointer.Signal_Data'(X, Y));
@@ -1578,8 +1572,8 @@ package body Rho.Handles.OpenGL is
      (Key  : Integer;
       X, Y : Integer)
    is
-      Rho_Key : constant Rho.Signals.Keyboard.Key_Type :=
-                  To_Rho_Key (Key);
+      use Rho.Devices.Keyboard;
+      Rho_Key : constant Key_Type := To_Rho_Key (Key);
       Data    : constant Rho.Signals.Keyboard.Signal_Data :=
                   (Rho_Key, X, Y);
    begin
@@ -1721,9 +1715,9 @@ package body Rho.Handles.OpenGL is
 
    function To_Rho_Key
      (Glut_Key : Integer)
-      return Rho.Signals.Keyboard.Key_Type
+      return Rho.Devices.Keyboard.Key_Type
    is
-      use Rho.Signals.Keyboard;
+      use Rho.Devices.Keyboard;
    begin
       case Glut_Key is
          when GLUT.KEY_LEFT =>

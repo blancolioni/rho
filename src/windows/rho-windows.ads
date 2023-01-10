@@ -1,18 +1,25 @@
 private with Ada.Calendar;
 private with Ada.Containers.Doubly_Linked_Lists;
 
+with WL.Guids;
+
 with Rho.Cameras;
 with Rho.Color;
 with Rho.Rectangles;
 with Rho.Render;
 with Rho.Scenes;
+with Rho.Signals;
 
 with Rho.UI.Widget;
 
 package Rho.Windows is
 
    type Root_Window_Type is
-     abstract new Rho.Rectangles.Root_Rectangle_Type with private;
+     abstract new Rho.Rectangles.Root_Rectangle_Type
+     and Rho.Signals.Signal_Object_Interface
+   with private;
+
+   overriding function Guid (This : Root_Window_Type) return WL.Guids.Guid;
 
    function Render_Target
      (Window : Root_Window_Type)
@@ -28,7 +35,7 @@ package Rho.Windows is
    is null;
 
    procedure Initialize_Window
-     (Window        : in out Root_Window_Type'Class;
+     (Window        : not null access Root_Window_Type'Class;
       X, Y          : Real;
       Width, Height : Non_Negative_Real);
 
@@ -80,19 +87,28 @@ private
        (Rho.UI.Widget.Reference, Rho.UI.Widget."=");
 
    type Root_Window_Type is
-     abstract new Rho.Rectangles.Root_Rectangle_Type with
+     abstract new Rho.Rectangles.Root_Rectangle_Type
+     and Rho.Signals.Signal_Object_Interface with
       record
-         Clear_Color        : Rho.Color.Color_Type :=
-           (0.0, 0.0, 0.0, 1.0);
-         Camera             : Rho.Cameras.Camera_Type;
-         UI_Camera          : Rho.Cameras.Camera_Type;
-         Scene              : Rho.Scenes.Scene_Type;
-         Wireframe_Changed  : Boolean := True;
-         Current_Wireframe  : Boolean := False;
-         Before_Render_Time : Ada.Calendar.Time := Ada.Calendar.Clock;
-         After_Render_Time  : Ada.Calendar.Time := Ada.Calendar.Clock;
-         UIs                : Rho_Widget_Lists.List;
+         Guid                 : WL.Guids.Guid := WL.Guids.New_Guid;
+         Clear_Color          : Rho.Color.Color_Type :=
+                                  (0.0, 0.0, 0.0, 1.0);
+         Camera               : Rho.Cameras.Camera_Type;
+         UI_Camera            : Rho.Cameras.Camera_Type;
+         Scene                : Rho.Scenes.Scene_Type;
+         Wireframe_Changed    : Boolean := True;
+         Current_Wireframe    : Boolean := False;
+         Before_Render_Time   : Ada.Calendar.Time := Ada.Calendar.Clock;
+         After_Render_Time    : Ada.Calendar.Time := Ada.Calendar.Clock;
+         UIs                  : Rho_Widget_Lists.List;
+         Mouse_Move_Handler   : Rho.Signals.Handler_Id;
+         Current_Widget       : Rho.UI.Widget.Reference;
+         Current_Focus        : Rho.UI.Widget.Reference;
+         Pointer_X, Pointer_Y : Real := 0.0;
       end record;
+
+   overriding function Guid (This : Root_Window_Type) return WL.Guids.Guid
+   is (This.Guid);
 
    function Clear_Color
      (Window : Root_Window_Type'Class)

@@ -59,6 +59,23 @@ package body Rho.UI.Widget is
       Child.Parent := Reference (This);
    end Add_Child;
 
+   -----------------
+   -- Add_Handler --
+   -----------------
+
+   function Add_Handler
+     (This      : not null access Instance'Class;
+      For_Event : Rho.UI.Events.Event_Type;
+      User_Data : Rho.UI.Events.Event_User_Data'Class;
+      Handler   : Handler_Type)
+      return Rho.UI.Events.Handler_Id
+   is
+   begin
+      This.Handlers (For_Event).Append
+        ((Handler, Data_Holder.To_Holder (User_Data)));
+      return Rho.UI.Events.Null_Handler_Id;
+   end Add_Handler;
+
    --------------------
    -- Child_Elements --
    --------------------
@@ -320,6 +337,39 @@ package body Rho.UI.Widget is
       return This.Property_Bag.Get_Value (Prop);
    end Get_Value;
 
+   -------------------------
+   -- Get_Widget_At_Point --
+   -------------------------
+
+   function Get_Widget_At_Point
+     (This : not null access Instance'Class;
+      X, Y : Real)
+      return Reference
+   is
+      Left : constant Real := Real (This.Position.X);
+      Top  : constant Real := Real (This.Position.Y);
+      Right : constant Real := Left + Real (This.Size.Width);
+      Bottom : constant Real := Top + Real (This.Size.Height);
+   begin
+      if X in Left .. Right
+        and then Y in Top .. Bottom
+      then
+         for Child of This.Children loop
+            declare
+               W : constant Reference :=
+                     Child.Get_Widget_At_Point (X - Left, Y - Top);
+            begin
+               if W /= null then
+                  return W;
+               end if;
+            end;
+         end loop;
+         return Reference (This);
+      else
+         return null;
+      end if;
+   end Get_Widget_At_Point;
+
    ----------------
    -- Initialize --
    ----------------
@@ -560,6 +610,29 @@ package body Rho.UI.Widget is
    begin
       return "";
    end Required_Parent_Tag;
+
+   ----------
+   -- Send --
+   ----------
+
+   procedure Send
+     (This  : not null access Instance'Class;
+      Event : Rho.UI.Events.Event)
+   is
+   begin
+      Ada.Text_IO.Put_Line
+        (This.Short_Description & ": send " & Event.Class'Image);
+
+      for Rec of This.Handlers (Event.Class) loop
+         declare
+            use Rho.UI.Events;
+            Result : constant Handler_Result :=
+                       Rec.Handler (This, Event, Rec.Data.Element);
+         begin
+            exit when Result = Stop;
+         end;
+      end loop;
+   end Send;
 
    ------------------------------
    -- Set_Contents_Layout_Size --
