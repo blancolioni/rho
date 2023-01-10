@@ -1,5 +1,17 @@
 package body Rho.UI.Widget.Main_Root is
 
+   ---------------
+   -- Configure --
+   ---------------
+
+   overriding procedure Configure
+     (This : not null access Instance)
+   is
+   begin
+      Parent (This.all).Configure;
+      Css.Apply_Layout (This);
+   end Configure;
+
    ------------
    -- Create --
    ------------
@@ -14,18 +26,25 @@ package body Rho.UI.Widget.Main_Root is
    ---------
 
    overriding procedure Map
-     (This    : not null access Instance;
-      Surface : not null access constant Rho.Rectangles.Rectangle_Interface'
-        Class)
+     (This : not null access Instance;
+      Surface : not null access
+        Rho.UI.Surface.Instance'Class)
    is
    begin
-      This.Z_Index := 0.0;
-      This.Scene := Rho.Scenes.Create_Scene;
-      This.Scene.Set_Name ("scene: " & This.Short_Description);
-      This.Top_Node := Rho.Nodes.Create_Node;
-      This.Scene.Add (This.Top_Node);
       Parent (This.all).Map (Surface);
-      Css.Apply_Layout (This);
    end Map;
+
+   ----------
+   -- Show --
+   ----------
+
+   overriding procedure Show
+     (This   : not null access Instance;
+      Target : not null access Rho.Render.Render_Target'Class)
+   is
+   begin
+      Parent (This.all).Show (Target);
+      This.Surface.Render (Target);
+   end Show;
 
 end Rho.UI.Widget.Main_Root;

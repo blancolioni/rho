@@ -20,6 +20,14 @@ package Rho.Nodes is
      (Node : Root_Node_Type'Class)
       return Rho.Matrices.Vector_3;
 
+   function Scale
+     (Node : Root_Node_Type'Class)
+      return Rho.Matrices.Vector_3;
+
+   function Scale_X (Node : Root_Node_Type'Class) return Real;
+   function Scale_Y (Node : Root_Node_Type'Class) return Real;
+   function Scale_Z (Node : Root_Node_Type'Class) return Real;
+
    function World_Position
      (Node : in out Root_Node_Type'Class)
       return Rho.Matrices.Vector_3;
@@ -138,7 +146,7 @@ private
                                Rho.Matrices.To_Vector (0.0, 1.0, 0.0);
          Quaternion        : Rho.Matrices.Quaternion;
          Scale             : Rho.Matrices.Vector_3 :=
-           Rho.Matrices.To_Vector (1.0, 1.0, 1.0);
+                               Rho.Matrices.To_Vector (1.0, 1.0, 1.0);
          M_Local           : Rho.Matrices.Matrix_4;
          M_World           : Rho.Matrices.Matrix_4;
          Local_Out_Of_Date : Boolean := False;
@@ -173,6 +181,20 @@ private
      (Node : Root_Node_Type'Class)
       return Rho.Matrices.Vector_3
    is (Node.Position);
+
+   function Scale
+     (Node : Root_Node_Type'Class)
+      return Rho.Matrices.Vector_3
+   is (Node.Scale);
+
+   function Scale_X (Node : Root_Node_Type'Class) return Real
+   is (Rho.Matrices.X (Node.Scale));
+
+   function Scale_Y (Node : Root_Node_Type'Class) return Real
+   is (Rho.Matrices.Y (Node.Scale));
+
+   function Scale_Z (Node : Root_Node_Type'Class) return Real
+   is (Rho.Matrices.Z (Node.Scale));
 
    procedure Invalidate_World_Matrix
      (Node : in out Root_Node_Type'Class);

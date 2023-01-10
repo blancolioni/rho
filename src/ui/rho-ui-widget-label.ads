@@ -1,3 +1,5 @@
+private with Rho.Meshes;
+
 with Partoe.DOM;
 
 with Rho.Properties;
@@ -9,10 +11,6 @@ package Rho.UI.Widget.Label is
    type Instance is new Parent with private;
    subtype Any_Instance is Instance'Class;
    type Reference is access all Instance'Class;
-
-   function Create
-     (Text    : String)
-      return Reference;
 
    function Create_From_Node
      (Element : not null access constant
@@ -31,12 +29,37 @@ package Rho.UI.Widget.Label is
 
 private
 
+   type Glyph_Mesh is
+     new Rho.Meshes.Root_Mesh_Type with
+      record
+         X, Y          : Non_Negative_Real;
+         Width, Height : Non_Negative_Real;
+      end record;
+
+   type Glyph_Mesh_Access is access all Glyph_Mesh'Class;
+
+   package Glyph_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Glyph_Mesh_Access);
+
    subtype Dispatch is Parent'Class;
 
    type Instance is new Parent with
       record
-         null;
+         Glyphs : Glyph_Lists.List;
       end record;
+
+   overriding function Minimum_Size
+     (This       : Instance;
+      Constraint : Css.Layout_Size)
+      return Css.Layout_Size;
+
+   overriding procedure Map
+     (This    : not null access Instance;
+      Surface : not null access Rho.UI.Surface.Instance'Class);
+
+   overriding procedure Set_Layout_Position
+     (This     : in out Instance;
+      Position : Css.Layout_Position);
 
    Label_Properties : Widget_Property_Maps.Instance;
 

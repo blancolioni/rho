@@ -1,26 +1,32 @@
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
---  with WL.String_Maps;
+with Css.Logging;
+with Css.Parser;
 
-with Rho.Geometry;
 with Rho.Handles;
-with Rho.Material.Basic;
-with Rho.Matrices;
-with Rho.Meshes;
 with Rho.Shaders.Stages;
 
 with Rho.UI.Main;
 
+with Rho.Images;
 with Rho.Paths;
 
 package body Rho.UI.Widget is
 
-   Local_Square_Geometry : Rho.Geometry.Geometry_Type;
+   use Rho.Strings;
+
    Local_Vertex_Shader   : Rho.Shaders.Stages.Shader_Type;
    Local_Fragment_Shader : Rho.Shaders.Stages.Shader_Type;
 
-   function Square_Geometry return Rho.Geometry.Geometry_Type;
+   package Style_Maps is
+     new WL.String_Maps (Css.Css_Element_Value, Css."=");
+
+   Default_Style_Map : Style_Maps.Map;
+
+   procedure Load_Default_Styles;
+
    function Vertex_Shader return Rho.Shaders.Stages.Shader_Type
      with Unreferenced;
 
@@ -30,10 +36,6 @@ package body Rho.UI.Widget is
    function Load_Standard_Shader_Source
      (Name : String)
       return String;
-
-   function Get_Color_Material
-     (From : Css.Css_Element_Value)
-      return Rho.Material.Reference;
 
    overriding function Classes  (This : Instance) return String
    is (-This.Classes);
@@ -55,7 +57,6 @@ package body Rho.UI.Widget is
    begin
       This.Children.Append (Reference (Child));
       Child.Parent := Reference (This);
-      Child.Z_Index := This.Z_Index + 0.0001;
    end Add_Child;
 
    --------------------
@@ -116,6 +117,7 @@ package body Rho.UI.Widget is
      (This : not null access Instance)
    is
    begin
+      This.Log ("configure");
       Css.Current_Style_Sheet.Load_Style_Rules (This.all);
       for Child of This.Children loop
          Child.Configure;
@@ -144,7 +146,11 @@ package body Rho.UI.Widget is
       return Css.Css_Element_Value
    is
    begin
-      return Css.Default_Style_Value (Name);
+      if Default_Style_Map.Contains (Name) then
+         return Default_Style_Map.Element (Name);
+      else
+         return Css.Default_Style_Value (Name);
+      end if;
    end Default_Style_Value;
 
    --------------
@@ -221,13 +227,13 @@ package body Rho.UI.Widget is
       return Local_Fragment_Shader;
    end Fragment_Shader;
 
-   ------------------------
-   -- Get_Color_Material --
-   ------------------------
+   ---------------
+   -- Get_Color --
+   ---------------
 
-   function Get_Color_Material
+   function Get_Color
      (From : Css.Css_Element_Value)
-      return Rho.Material.Reference
+      return Rho.Color.Color_Type
    is
    begin
       if Css.Is_String (From) then
@@ -235,26 +241,47 @@ package body Rho.UI.Widget is
             Css_Color : constant Css.Css_Color :=
                           Css.To_Color (From);
          begin
-            return Rho.Material.Basic.Create
-              (Color => (Real (Css_Color.Red) / 255.0,
-                         Real (Css_Color.Green) / 255.0,
-                         Real (Css_Color.Blue) / 255.0,
-                         Real (Css_Color.Alpha) / 255.0));
+            Css.Logging.Log ("color: " & Css.To_String (From));
+            return (Real (Css_Color.Red) / 255.0,
+                    Real (Css_Color.Green) / 255.0,
+                    Real (Css_Color.Blue) / 255.0,
+                    Real (Css_Color.Alpha) / 255.0);
          end;
       else
-         declare
-            Handle : constant Rho.Handles.Handle :=
-                       Rho.UI.Main.UI_Handle;
-         begin
-            return Rho.Material.Basic.Create
-              (Texture =>
-                 Handle.Assets.Create_Texture_From_Image
-                   (Rho.Paths.Config_File
-                        ("images/unknown")));
-         end;
+         return (1.0, 0.0, 1.0, 1.0);
       end if;
 
-   end Get_Color_Material;
+   end Get_Color;
+
+   --------------
+   -- Get_Font --
+   --------------
+
+   function Get_Font
+     (This : Instance'Class)
+      return Rho.Fonts.Reference
+   is
+
+      function Get (Tag : String) return String
+      is (This.Style_To_String (Tag));
+
+      Font_Family : constant String := Get ("font-family");
+      --  Font_Size   : constant String := Get ("font-size");
+      --  Font_Weight : constant String := Get ("font-weight");
+      --  Font_Style  : constant String := Get ("font-style");
+
+      Pixel_Size  : constant Css.Css_Float :=
+                      This.Measure (This.Style ("font-size"),
+                                    This.Size.Width);
+   begin
+      return Rho.Fonts.Load
+        (Name         => Font_Family,
+         Pixel_Height => Natural (Pixel_Size),
+         Weight       => Rho.Fonts.Normal,
+         Style        => Rho.Fonts.Normal,
+         Loader       => Rho.UI.Main.UI_Handle.Assets.all,
+         Textures     => Rho.UI.Main.UI_Handle.Assets.all);
+   end Get_Font;
 
    -------------------------
    -- Get_Layout_Position --
@@ -322,6 +349,50 @@ package body Rho.UI.Widget is
       This.Property_Bag := new Rho.Properties.Bags.Instance;
    end Initialize;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (This    : in out Instance;
+      Id      : String;
+      Tag     : String;
+      Classes : String)
+   is
+   begin
+      This.Id := +Id;
+      This.Tag := +Tag;
+      This.Classes := +Classes;
+      This.Property_Bag := new Rho.Properties.Bags.Instance;
+   end Initialize;
+
+   -------------------------
+   -- Load_Default_Styles --
+   -------------------------
+
+   procedure Load_Default_Styles is
+
+      procedure Add (Name : String;
+                     Value : String);
+
+      ---------
+      -- Add --
+      ---------
+
+      procedure Add (Name  : String;
+                     Value : String)
+      is
+      begin
+         Default_Style_Map.Insert (Name, Css.Parser.Parse_Value (Value));
+      end Add;
+
+   begin
+      Add ("background-color", "transparent");
+      Add ("color", "black");
+      Add ("font-family", "SegoeUI");
+      Add ("font-size", "48px");
+   end Load_Default_Styles;
+
    ---------------------------------
    -- Load_Standard_Shader_Source --
    ---------------------------------
@@ -350,24 +421,39 @@ package body Rho.UI.Widget is
 
    procedure Map
      (This : not null access Instance;
-      Surface : not null access constant
-        Rho.Rectangles.Rectangle_Interface'Class)
+      Surface : not null access
+        Rho.UI.Surface.Instance'Class)
    is
-      Mesh : constant Rho.Meshes.Mesh_Type :=
-               Rho.Meshes.Create_Mesh
-                 (Geometry => Square_Geometry,
-                  Material =>
-                    Get_Color_Material (This.Style ("background")));
+      Pos    : constant Css.Layout_Position := This.Get_Layout_Position;
+      Size   : constant Css.Layout_Size := This.Get_Layout_Size;
+      Width  : constant Real := Real (Size.Width);
+      Height : constant Real := Real (Size.Height);
    begin
-      This.Surface := Render_Surface (Surface);
-      This.Node := Rho.Nodes.Node_Type (Mesh);
+      This.Surface := Rho.UI.Surface.Reference (Surface);
 
-      This.Node.Set_Name (This.Short_Description);
-      This.Top_Node.Add (This.Node);
-      This.Log (This.Node.Name & " --> " & This.Top_Node.Name);
+      if This.Parent = null then
+         This.Context :=
+           Rho.UI.Surface.Create
+             (This.Surface, 0.0, 0.0, Surface.Width, Surface.Height);
+      else
+         This.Context :=
+           This.Parent.Context.Create
+             (Real (Pos.X), Real (Pos.Y),
+              Real (Size.Width), Real (Size.Height));
+      end if;
+
+      if Width > 0.0 and then Height > 0.0 then
+         This.Context.Draw_Color
+           (Get_Color (This.Style ("background-color")));
+         This.Context.Rectangle (Width, Height, null);
+
+         This.Log ("draw rectangle: "
+                   & Rho.Images.Image (Width)
+                   & " "
+                   & Rho.Images.Image (Height));
+      end if;
 
       for Child of Dispatch (This.all).Children loop
-         Child.Top_Node := This.Top_Node;
          Child.Map (Surface);
       end loop;
    end Map;
@@ -496,11 +582,26 @@ package body Rho.UI.Widget is
       Position : Css.Layout_Position)
    is
    begin
+      if Rho.Strings."-" (This.Tag) = "label" then
+         This.Log ("setting label position");
+      end if;
+
       This.Position := Position;
-      This.Node.Set_Position
-        (Real (Position.X),
-         This.Surface.Height - Real (Position.Y) - Real (This.Size.Height),
-         This.Z_Index);
+
+      --  declare
+      --     Container_Y : constant Real :=
+      --                     (if This.Parent = null
+      --                      then This.Surface.Height
+      --                      else Real (This.Parent.Get_Layout_Size.Height));
+      --  begin
+      --     This.Node.Set_Position
+      --       (Real (Position.X),
+      --        Container_Y - Real (Position.Y) - Real (This.Size.Height),
+      --        This.Z_Index);
+      --  end;
+      --
+      --  This.Log ("set layout position: "
+      --            & Rho.Matrices.Image (This.Node.Position));
    end Set_Layout_Position;
 
    ---------------------
@@ -513,12 +614,6 @@ package body Rho.UI.Widget is
    is
    begin
       This.Size := Size;
-      This.Node.Scale
-        (Real (Size.Width), Real (Size.Height), 1.0);
-      This.Node.Set_Position
-        (Rho.Matrices.X (This.Node.Position),
-         This.Surface.Height - Real (This.Position.Y) - Real (Size.Height),
-         0.0);
    end Set_Layout_Size;
 
    --------------
@@ -567,11 +662,12 @@ package body Rho.UI.Widget is
    ----------
 
    procedure Show
-     (This : not null access Instance)
+     (This   : not null access Instance;
+      Target : not null access Rho.Render.Render_Target'Class)
    is
    begin
       for Child of This.Children loop
-         Child.Show;
+         Child.Show (Target);
       end loop;
    end Show;
 
@@ -579,52 +675,38 @@ package body Rho.UI.Widget is
    -- Square_Geometry --
    ---------------------
 
-   function Square_Geometry return Rho.Geometry.Geometry_Type is
+   function Square_Geometry
+     (Width, Height : Non_Negative_Real)
+      return Rho.Geometry.Geometry_Type
+   is
+      use Rho.Geometry;
+      Geometry     : constant Geometry_Type := Create_Geometry;
 
-      procedure Create;
+      procedure Point (X, Y : Non_Negative_Real);
 
-      ------------
-      -- Create --
-      ------------
+      -----------
+      -- Point --
+      -----------
 
-      procedure Create is
-         use Rho.Geometry;
-         Geometry     : constant Geometry_Type := Create_Geometry;
-
-         procedure Point (X, Y : Unit_Real);
-
-         -----------
-         -- Point --
-         -----------
-
-         procedure Point (X, Y : Unit_Real) is
-         begin
-            Geometry.Vertex (X, Y, 0.0);
-            Geometry.Texture (X, Y);
-            Geometry.Normal (0.0, 0.0, 1.0);
-         end Point;
-
+      procedure Point (X, Y : Non_Negative_Real) is
       begin
+         Geometry.Vertex (X, Y, 0.0);
+         Geometry.Texture ((if X = 0.0 then 0.0 else 1.0),
+                           (if Y = 0.0 then 0.0 else 1.0));
+         Geometry.Normal (0.0, 0.0, 1.0);
+      end Point;
 
-         Point (0.0, 0.0);
-         Point (1.0, 0.0);
-         Point (1.0, 1.0);
-         Point (0.0, 1.0);
-
-         Geometry.Face (1, 3, 2);
-         Geometry.Face (3, 4, 1);
-
-         Local_Square_Geometry := Geometry;
-
-      end Create;
-
-      use type Rho.Geometry.Geometry_Type;
    begin
-      if Local_Square_Geometry = null then
-         Create;
-      end if;
 
-      return Local_Square_Geometry;
+      Point (0.0, 0.0);
+      Point (Width, 0.0);
+      Point (Width, Height);
+      Point (0.0, Height);
+
+      Geometry.Face (1, 3, 2);
+      Geometry.Face (3, 4, 1);
+
+      return Geometry;
    end Square_Geometry;
 
    -----------
@@ -636,8 +718,15 @@ package body Rho.UI.Widget is
       Name : String)
       return Css.Css_Element_Value
    is
+      use Css;
+      Value : constant Css_Element_Value :=
+                This.Style_Map.Style (Name);
    begin
-      return This.Style_Map.Style (Name);
+      if Value = Null_Element_Value then
+         return Dispatch (This).Default_Style_Value (Name);
+      else
+         return Value;
+      end if;
    end Style;
 
    -------------------
@@ -658,4 +747,6 @@ package body Rho.UI.Widget is
       return Local_Vertex_Shader;
    end Vertex_Shader;
 
+begin
+   Load_Default_Styles;
 end Rho.UI.Widget;

@@ -1,7 +1,10 @@
+with Ada.Strings.Fixed;
+
 with WL.String_Maps;
 
 with Rho.UI.Widget.Div;
 with Rho.UI.Widget.Head;
+with Rho.UI.Widget.Label;
 with Rho.UI.Widget.Link;
 with Rho.UI.Widget.Main_Root;
 with Rho.UI.Widget.Title;
@@ -51,8 +54,26 @@ package body Rho.UI.Builder is
       Root   : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
       return Rho.UI.Widget.Reference
    is
+      Text : constant String :=
+               Ada.Strings.Fixed.Trim
+                 (Root.Text, Ada.Strings.Both);
+
+      function Has_Ancestor_With_Tag
+        (Element : access constant Partoe.DOM.Root_Partoe_Node'Class;
+         Tag     : String)
+         return Boolean
+      is (Element /= null
+          and then (Element.Has_Name (Tag)
+            or else Has_Ancestor_With_Tag (Element.Parent, Tag)));
+
    begin
       Parent.Initialize (Root);
+      if Text /= ""
+        and then Has_Ancestor_With_Tag (Root, "body")
+      then
+         Parent.Add_Child
+           (Rho.UI.Widget.Label.Create_From_Node (Root));
+      end if;
       for Child_Node of Root.Children loop
          declare
             use type Rho.UI.Widget.Reference;

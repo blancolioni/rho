@@ -1,7 +1,9 @@
-private with Ada.Strings.Unbounded;
 private with WL.Guids;
+private with Rho.Geometry;
+private with Rho.Color;
 private with Rho.Properties.Bags;
 private with Rho.Properties.Maps;
+private with Rho.Strings;
 
 with Ada.Containers.Doubly_Linked_Lists;
 
@@ -10,9 +12,11 @@ with Partoe.DOM;
 with Cairo;
 with Css;
 
+with Rho.Fonts;
 with Rho.Properties;
-with Rho.Rectangles;
-with Rho.Nodes;
+with Rho.Render;
+
+with Rho.UI.Surface;
 
 package Rho.UI.Widget is
 
@@ -26,6 +30,16 @@ package Rho.UI.Widget is
    subtype Any_Instance is Instance'Class;
    type Reference is access all Instance'Class;
 
+   function Container_Widget
+     (This : Instance'Class)
+      return Reference;
+
+   procedure Initialize
+     (This    : in out Instance;
+      Id      : String;
+      Tag     : String;
+      Classes : String);
+
    procedure Initialize
      (This : in out Instance;
       Node : not null access constant Partoe.DOM.Root_Partoe_Node'Class);
@@ -38,11 +52,12 @@ package Rho.UI.Widget is
 
    procedure Map
      (This : not null access Instance;
-      Surface : not null access constant
-        Rho.Rectangles.Rectangle_Interface'Class);
+      Surface : not null access
+        Rho.UI.Surface.Instance'Class);
 
    procedure Show
-     (This : not null access Instance);
+     (This   : not null access Instance;
+      Target : not null access Rho.Render.Render_Target'Class);
 
    procedure Queue_Redraw
      (This : not null access Instance);
@@ -98,16 +113,11 @@ package Rho.UI.Widget is
      (This  : not null access Instance'Class;
       Value : String);
 
+   function Get_Font
+     (This : Instance'Class)
+      return Rho.Fonts.Reference;
+
 private
-
-   function "+" (S : String) return Ada.Strings.Unbounded.Unbounded_String
-                 renames Ada.Strings.Unbounded.To_Unbounded_String;
-
-   function "-" (S : Ada.Strings.Unbounded.Unbounded_String) return String
-                 renames Ada.Strings.Unbounded.To_String;
-
-   type Render_Surface is access constant
-     Rho.Rectangles.Rectangle_Interface'Class;
 
    subtype Dispatch is Instance'Class;
 
@@ -118,10 +128,10 @@ private
      and Css.Css_Element_Interface with
       record
          Guid         : WL.Guids.Guid := WL.Guids.New_Guid;
-         Tag          : Ada.Strings.Unbounded.Unbounded_String;
-         Id           : Ada.Strings.Unbounded.Unbounded_String;
-         File_Path    : Ada.Strings.Unbounded.Unbounded_String;
-         Classes      : Ada.Strings.Unbounded.Unbounded_String;
+         Tag          : Rho.Strings.Rho_String;
+         Id           : Rho.Strings.Rho_String;
+         File_Path    : Rho.Strings.Rho_String;
+         Classes      : Rho.Strings.Rho_String;
          Property_Bag : Property_Bag_Access;
          Parent       : Reference;
          Children     : Widget_Lists.List;
@@ -130,10 +140,9 @@ private
          Size         : Css.Layout_Size;
          Content_Size : Css.Layout_Size;
          Rules        : Css.Css_Rule;
-         Surface      : Render_Surface;
-         Node         : Rho.Nodes.Node_Type;
-         Top_Node     : Rho.Nodes.Node_Type;
-         Z_Index      : Unit_Real := 0.0;
+         Surface      : Rho.UI.Surface.Reference;
+         Context      : Rho.UI.Surface.Context;
+         Meta_Element : Boolean := True;
       end record;
 
    overriding function Tag (This : Instance) return String;
@@ -239,7 +248,20 @@ private
       return Css.Layout_Size
    is (This.Content_Size);
 
+   function Container_Widget
+     (This : Instance'Class)
+      return Reference
+   is (This.Parent);
+
    package Widget_Property_Maps is
      new Rho.Properties.Maps (Instance);
+
+   function Square_Geometry
+     (Width, Height : Non_Negative_Real)
+     return Rho.Geometry.Geometry_Type;
+
+   function Get_Color
+     (From : Css.Css_Element_Value)
+      return Rho.Color.Color_Type;
 
 end Rho.UI.Widget;

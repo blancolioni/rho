@@ -18,8 +18,8 @@ private
 
    type Instance is new Parent with
       record
-         Relation : Ada.Strings.Unbounded.Unbounded_String;
-         Href     : Ada.Strings.Unbounded.Unbounded_String;
+         Relation : Rho.Strings.Rho_String;
+         Href     : Rho.Strings.Rho_String;
       end record;
 
 end Rho.UI.Widget.Link;

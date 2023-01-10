@@ -134,6 +134,20 @@ package body Rho.Meshes is
          Render_Material   => Render_Material'Access);
    end Execute_Render;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (This     : in out Root_Mesh_Type;
+      Geometry : Rho.Geometry.Geometry_Type;
+      Material : Rho.Material.Reference)
+   is
+   begin
+      This.Geometry := Geometry;
+      This.Add_Material (Material);
+   end Initialize;
+
    ----------
    -- Load --
    ----------
@@ -173,5 +187,17 @@ package body Rho.Meshes is
          Mesh.Material.Delete (Position);
       end if;
    end Remove_Material;
+
+   ------------------
+   -- Set_Geometry --
+   ------------------
+
+   procedure Set_Geometry
+     (Mesh     : in out Root_Mesh_Type;
+      Geometry : Rho.Geometry.Geometry_Type)
+   is
+   begin
+      Mesh.Geometry := Geometry;
+   end Set_Geometry;
 
 end Rho.Meshes;

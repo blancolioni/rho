@@ -1,12 +1,34 @@
 .red {
-	background: red;
+	background-color: red;
+}
+
+.white {
+	background-color: white;
 }
 
 .green {
-	background: green;
+	background-color: green;
+}
+
+.blue {
+	background-color: blue;
+}
+
+.cyan {
+	background-color: cyan;
+}
+
+.text {
+	font-family: SegoeUI;
+	font-size: 32px;
 }
 
 .rectangle {
 	width: 100px;
 	height: 50px;
+}
+
+.smallRectangle {
+	width: 10px;
+	height: 11px;
 }

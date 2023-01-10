@@ -8,8 +8,8 @@ package body Rho.Textures is
      (Texture    : in out Root_Texture_Type'Class;
       Identifier : String;
       Order      : Texture_Dimension_Count;
-      Width      : Positive;
-      Height     : Positive;
+      Width      : Natural;
+      Height     : Natural;
       Depth      : Positive := 1;
       S_Border   : Texture_Address_Mode := Wrap;
       T_Border   : Texture_Address_Mode := Wrap;

@@ -43,6 +43,18 @@ package Rho.Textures is
      (Texture : Root_Texture_Type'Class)
       return Texture_Dimension_Count;
 
+   function Width
+     (Texture : Root_Texture_Type'Class)
+      return Natural;
+
+   function Height
+     (Texture : Root_Texture_Type'Class)
+      return Natural;
+
+   function Depth
+     (Texture : Root_Texture_Type'Class)
+      return Natural;
+
    function S_Border
      (Texture : Root_Texture_Type'Class)
      return Texture_Address_Mode;
@@ -59,8 +71,8 @@ package Rho.Textures is
      (Texture    : in out Root_Texture_Type'Class;
       Identifier : String;
       Order      : Texture_Dimension_Count;
-      Width      : Positive;
-      Height     : Positive;
+      Width      : Natural;
+      Height     : Natural;
       Depth      : Positive := 1;
       S_Border   : Texture_Address_Mode := Wrap;
       T_Border   : Texture_Address_Mode := Wrap;
@@ -73,8 +85,8 @@ private
       record
          Identifier   : Ada.Strings.Unbounded.Unbounded_String;
          Dimensions   : Texture_Dimension_Count := 2;
-         Width        : Positive;
-         Height       : Positive;
+         Width        : Natural;
+         Height       : Natural;
          Depth        : Positive;
          S_Border     : Texture_Address_Mode;
          T_Border     : Texture_Address_Mode;
@@ -100,5 +112,20 @@ private
      (Texture : Root_Texture_Type'Class)
       return Texture_Filter_Type
    is (Texture.Mag_Filter);
+
+   function Width
+     (Texture : Root_Texture_Type'Class)
+      return Natural
+   is (Texture.Width);
+
+   function Height
+     (Texture : Root_Texture_Type'Class)
+      return Natural
+   is (Texture.Height);
+
+   function Depth
+     (Texture : Root_Texture_Type'Class)
+      return Natural
+   is (Texture.Depth);
 
 end Rho.Textures;

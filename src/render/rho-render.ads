@@ -1,4 +1,4 @@
-with Rho.Assets;
+limited with Rho.Assets;
 with Rho.Buffers;
 with Rho.Matrices;
 with Rho.Shaders.Programs;

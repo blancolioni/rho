@@ -1,8 +1,11 @@
 with Ada.Text_IO;
+with System.Storage_Elements;
 
 with WL.String_Maps;
 
 with Rho.Buffers;
+with Rho.Fonts;
+with Rho.Formats;
 with Rho.Matrices;
 with Rho.Shaders;
 with Rho.Signals;
@@ -10,6 +13,7 @@ with Rho.Signals;
 with Rho.Shaders.Programs;
 with Rho.Shaders.Stages;
 with Rho.Shaders.Variables;
+with Rho.Textures;
 
 with Rho.Values;
 
@@ -36,7 +40,33 @@ package body Rho.Handles.Simulation is
    overriding function Create_Texture_From_Image
      (Container : in out Simulation_Asset_Container;
       Identifier : String)
-      return Rho.Assets.Texture_Access;
+      return Rho.Textures.Texture_Type;
+
+   overriding function Create_Texture
+     (Container     : in out Simulation_Asset_Container;
+      Image_Buffer  : System.Address;
+      Buffer_Length : System.Storage_Elements.Storage_Count;
+      Width, Height : Natural;
+      Offset        : System.Storage_Elements.Storage_Offset;
+      Stride        : System.Storage_Elements.Storage_Count;
+      Format        : Rho.Formats.Image_Format;
+      Flip_Vertical : Boolean)
+      return Rho.Textures.Texture_Type;
+
+   overriding function Create_Packed_Greyscale
+     (This          : Simulation_Asset_Container;
+      Width, Height : Positive;
+      Bitmap        : System.Address)
+      return Rho.Textures.Texture_Type
+   is (null);
+
+   overriding function Font
+     (Container  : in out Simulation_Asset_Container;
+      Family     : String;
+      Size       : String;
+      Style      : String;
+      Weight     : String)
+      return Rho.Fonts.Reference;
 
    type Simulation_Render_Target is
      new Rho.Signals.Signal_Dispatcher
@@ -269,6 +299,25 @@ package body Rho.Handles.Simulation is
         Rho.Shaders.Programs.Create_Program (Name);
    end Create_Program;
 
+   --------------------
+   -- Create_Texture --
+   --------------------
+
+   overriding function Create_Texture
+     (Container     : in out Simulation_Asset_Container;
+      Image_Buffer  : System.Address;
+      Buffer_Length : System.Storage_Elements.Storage_Count;
+      Width, Height : Natural;
+      Offset        : System.Storage_Elements.Storage_Offset;
+      Stride        : System.Storage_Elements.Storage_Count;
+      Format        : Rho.Formats.Image_Format;
+      Flip_Vertical : Boolean)
+      return Rho.Textures.Texture_Type
+   is
+   begin
+      return null;
+   end Create_Texture;
+
    -------------------------------
    -- Create_Texture_From_Image --
    -------------------------------
@@ -276,7 +325,7 @@ package body Rho.Handles.Simulation is
    overriding function Create_Texture_From_Image
      (Container : in out Simulation_Asset_Container;
       Identifier : String)
-      return Rho.Assets.Texture_Access
+      return Rho.Textures.Texture_Type
    is
    begin
       return null;
@@ -312,6 +361,22 @@ package body Rho.Handles.Simulation is
       end return;
 
    end Create_Window;
+
+   ----------
+   -- Font --
+   ----------
+
+   overriding function Font
+     (Container  : in out Simulation_Asset_Container;
+      Family     : String;
+      Size       : String;
+      Style      : String;
+      Weight     : String)
+      return Rho.Fonts.Reference
+   is
+   begin
+      return null;
+   end Font;
 
    ----------------
    -- Get_Handle --

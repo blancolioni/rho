@@ -1,5 +1,6 @@
 with WL.Guids;
 
+with Rho.Logging;
 with Rho.Matrices.Logs;
 
 package body Rho.Nodes is
@@ -78,6 +79,8 @@ package body Rho.Nodes is
 --          (Node.Show,
 --           Node.Local_Matrix);
 
+      Rho.Logging.Log ("render: " & Root_Node_Type'Class (Node).Class_Name
+                       & " " & Node.Name);
       Target.Set_Model_View_Matrix (Node.World_Matrix);
    end Execute_Render;
 
@@ -343,6 +346,10 @@ package body Rho.Nodes is
       Node.Position := Position;
       Node.Local_Out_Of_Date := True;
       Node.Invalidate_World_Matrix;
+      Rho.Logging.Log
+        (Node.Name
+         & ": "
+         & Rho.Matrices.Image (Node.Position));
    end Set_Position;
 
    ----------------------
@@ -383,7 +390,6 @@ package body Rho.Nodes is
       Node.M_Local :=
         Rho.Matrices.Compose (Node.Position, Node.Quaternion,
                               Node.Scale);
-
       if False then
          Rho.Matrices.Logs.Log_State
            (Node.Name, Node.Position, Node.Quaternion, Node.Scale,

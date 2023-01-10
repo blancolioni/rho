@@ -5,7 +5,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
-with System;
+with System.Storage_Elements;
 with Interfaces.C;
 with Interfaces.C.Strings;
 
@@ -25,6 +25,8 @@ with WL.String_Maps;
 
 with Rho.Buffers;
 with Rho.Color;
+with Rho.Fonts;
+with Rho.Formats;
 with Rho.Matrices;
 --  with Rho.Shaders.Slices.Attributes;
 --  with Rho.Shaders.Slices.Main;
@@ -85,13 +87,34 @@ package body Rho.Handles.OpenGL is
    overriding function Create_Texture_From_Image
      (Container : in out OpenGL_Asset_Container;
       Path      : String)
-      return Rho.Assets.Texture_Access;
+      return Rho.Textures.Texture_Type;
 
-   --  package Shader_Slices is
-   --    new Ada.Containers.Vectors
-   --      (Positive, Rho.Shaders.Slices.Slice_Type,
-   --       Rho.Shaders.Slices."=");
-   --
+   overriding function Create_Texture
+     (Container     : in out OpenGL_Asset_Container;
+      Image_Buffer  : System.Address;
+      Buffer_Length : System.Storage_Elements.Storage_Count;
+      Width, Height : Natural;
+      Offset        : System.Storage_Elements.Storage_Offset;
+      Stride        : System.Storage_Elements.Storage_Count;
+      Format        : Rho.Formats.Image_Format;
+      Flip_Vertical : Boolean)
+      return Rho.Textures.Texture_Type;
+
+   overriding function Create_Packed_Greyscale
+     (This          : OpenGL_Asset_Container;
+      Width, Height : Positive;
+      Bitmap        : System.Address)
+      return Rho.Textures.Texture_Type
+   is (null);
+
+   overriding function Font
+     (Container  : in out OpenGL_Asset_Container;
+      Family     : String;
+      Size       : String;
+      Style      : String;
+      Weight     : String)
+      return Rho.Fonts.Reference;
+
    package Shader_Vectors is
      new Ada.Containers.Vectors
        (Index_Type   => Positive,
@@ -233,8 +256,13 @@ package body Rho.Handles.OpenGL is
    type OpenGL_Texture_Type is
      new Rho.Textures.Root_Texture_Type with
       record
-         Id           : Natural;
-         Surface      : Cairo.Cairo_Surface;
+         Id            : Natural;
+         Image_Buffer  : System.Address;
+         Buffer_Length : System.Storage_Elements.Storage_Count;
+         Offset        : System.Storage_Elements.Storage_Offset;
+         Stride        : System.Storage_Elements.Storage_Count;
+         Format        : Rho.Formats.Image_Format;
+         Flip_Vertical : Boolean;
       end record;
 
    type Texture_Access is access all OpenGL_Texture_Type'Class;
@@ -328,7 +356,13 @@ package body Rho.Handles.OpenGL is
       return GL_Types.Float_Matrix_4x4;
 
    function To_Color_Array
-     (From_Surface : Cairo.Cairo_Surface)
+     (Image_Buffer  : System.Address;
+      Buffer_Length : System.Storage_Elements.Storage_Count;
+      Width, Height : Natural;
+      Offset        : System.Storage_Elements.Storage_Offset;
+      Stride        : System.Storage_Elements.Storage_Count;
+      Format        : Rho.Formats.Image_Format;
+      Flip_Vertical : Boolean)
       return Aliased_Ubyte_Array_Access;
 
    function To_Rho_Key
@@ -808,6 +842,37 @@ package body Rho.Handles.OpenGL is
       end return;
    end Create_Program;
 
+   --------------------
+   -- Create_Texture --
+   --------------------
+
+   overriding function Create_Texture
+     (Container     : in out OpenGL_Asset_Container;
+      Image_Buffer  : System.Address;
+      Buffer_Length : System.Storage_Elements.Storage_Count;
+      Width, Height : Natural;
+      Offset        : System.Storage_Elements.Storage_Offset;
+      Stride        : System.Storage_Elements.Storage_Count;
+      Format        : Rho.Formats.Image_Format;
+      Flip_Vertical : Boolean)
+      return Rho.Textures.Texture_Type
+   is
+      Texture : constant Texture_Access := new OpenGL_Texture_Type;
+   begin
+      Texture.Initialize
+        (Identifier => "",
+         Order      => 2,
+         Width      => Width,
+         Height     => Height);
+      Texture.Image_Buffer := Image_Buffer;
+      Texture.Buffer_Length := Buffer_Length;
+      Texture.Offset := Offset;
+      Texture.Stride := Stride;
+      Texture.Format := Format;
+      Texture.Flip_Vertical := Flip_Vertical;
+      return Rho.Textures.Texture_Type (Texture);
+   end Create_Texture;
+
    -------------------------------
    -- Create_Texture_From_Image --
    -------------------------------
@@ -815,7 +880,7 @@ package body Rho.Handles.OpenGL is
    overriding function Create_Texture_From_Image
      (Container : in out OpenGL_Asset_Container;
       Path      : String)
-      return Rho.Assets.Texture_Access
+      return Rho.Textures.Texture_Type
    is
       Surface : Cairo.Cairo_Surface;
    begin
@@ -829,19 +894,28 @@ package body Rho.Handles.OpenGL is
       case Cairo.Surface.Status (Surface) is
          when Cairo.Cairo_Status_Success =>
             declare
+               use Cairo.Image_Surface;
+               use System.Storage_Elements;
                Width : constant Glib.Gint :=
                          Cairo.Image_Surface.Get_Width (Surface);
                Height : constant Glib.Gint :=
                          Cairo.Image_Surface.Get_Height (Surface);
-               Texture : constant Texture_Access := new OpenGL_Texture_Type;
+               Stride   : constant Storage_Offset :=
+                            Storage_Offset (Get_Stride (Surface));
+               Offset   : constant Storage_Count := 0;
+               Texture  : constant Rho.Textures.Texture_Type :=
+                            Container.Create_Texture
+                              (Image_Buffer  => Get_Data_Generic (Surface),
+                               Buffer_Length =>
+                                 Stride * Storage_Count (Height),
+                               Width         => Natural (Width),
+                               Height        => Natural (Height),
+                               Offset        => Offset,
+                               Stride        => Stride,
+                               Format        => Rho.Formats.ARGB,
+                               Flip_Vertical => True);
             begin
-               Texture.Initialize
-                 (Identifier => Path,
-                  Order      => 2,
-                  Width      => Natural (Width),
-                  Height     => Natural (Height));
-               Texture.Surface := Surface;
-               return Rho.Assets.Texture_Access (Texture);
+               return Texture;
             end;
 
          when Cairo.Cairo_Status_File_Not_Found =>
@@ -929,7 +1003,11 @@ package body Rho.Handles.OpenGL is
          GL.Enable (GL_Constants.GL_DEPTH_TEST);
 --           GL.Depth_Function (GL_Constants.GL_LEQUAL);
 --           GL.Clear_Depth (1.0);
---
+
+         GL.Enable (GL_Constants.GL_BLEND);
+         GL.Blend_Func (GL_Constants.GL_SRC_ALPHA,
+                        GL_Constants.GL_ONE_MINUS_SRC_ALPHA);
+
          --  GL.Enable_Debug;
 
       end return;
@@ -953,6 +1031,22 @@ package body Rho.Handles.OpenGL is
             Ada.Exceptions.Exception_Message (E));
          GLUT.Leave_Main_Loop;
    end Display_Handler;
+
+   ----------
+   -- Font --
+   ----------
+
+   overriding function Font
+     (Container  : in out OpenGL_Asset_Container;
+      Family     : String;
+      Size       : String;
+      Style      : String;
+      Weight     : String)
+      return Rho.Fonts.Reference
+   is
+   begin
+      return null;
+   end Font;
 
    ----------------
    -- Get_Handle --
@@ -1078,13 +1172,18 @@ package body Rho.Handles.OpenGL is
       Texture.Id := Natural (Id (1));
 
       declare
-         use Glib;
-         Width  : constant Gint :=
-                    Cairo.Image_Surface.Get_Width (Texture.Surface);
-         Height : constant Gint :=
-                     Cairo.Image_Surface.Get_Height (Texture.Surface);
+         Width  : constant Natural := Texture.Width;
+         Height : constant Natural := Texture.Height;
          Data : Aliased_Ubyte_Array_Access :=
-                  To_Color_Array (Texture.Surface);
+                    To_Color_Array
+                      (Image_Buffer  => Texture.Image_Buffer,
+                       Buffer_Length => Texture.Buffer_Length,
+                       Width         => Width,
+                       Height        => Height,
+                       Offset        => Texture.Offset,
+                       Stride        => Texture.Stride,
+                       Format        => Texture.Format,
+                       Flip_Vertical => Texture.Flip_Vertical);
       begin
          if Width > 0 and then Height > 0 and then Data /= null then
             OpenGL_Render_Target_Access (Target).Load_Texture_Data
@@ -1464,8 +1563,6 @@ package body Rho.Handles.OpenGL is
       Value   : Rho.Values.Rho_Value)
    is
    begin
-      Rho.Logging.Log
-        ("set uniform: " & Name);
       if Target.Active_Uniforms.Contains (Name) then
          Target.Active_Uniforms.Replace (Name, Value);
       else
@@ -1501,83 +1598,102 @@ package body Rho.Handles.OpenGL is
    --------------------
 
    function To_Color_Array
-     (From_Surface : Cairo.Cairo_Surface)
+     (Image_Buffer  : System.Address;
+      Buffer_Length : System.Storage_Elements.Storage_Count;
+      Width, Height : Natural;
+      Offset        : System.Storage_Elements.Storage_Offset;
+      Stride        : System.Storage_Elements.Storage_Count;
+      Format        : Rho.Formats.Image_Format;
+      Flip_Vertical : Boolean)
       return Aliased_Ubyte_Array_Access
    is
-      use Glib;
+      pragma Unreferenced (Format);
       use GL_Types;
-      Data       : constant System.Address :=
-                     Cairo.Image_Surface.Get_Data_Generic (From_Surface);
-      Stride     : constant Glib.Gint :=
-                     Cairo.Image_Surface.Get_Stride (From_Surface);
-      Src_Width  : constant Gint :=
-                     Cairo.Image_Surface.Get_Width (From_Surface);
-      Src_Height : constant Gint :=
-                     Cairo.Image_Surface.Get_Height (From_Surface);
-      Start_X    : constant Gint := 0;
-      Start_Y    : constant Gint := 0;
-      Width      : constant Int := Int (Src_Width);
-      Height     : constant Int := Int (Src_Height);
+      use System.Storage_Elements;
 
-      type Source_Data_Array is array (Gint range <>) of aliased Ubyte;
-      Source_Data : Source_Data_Array (0 .. Stride * Src_Height - 1);
+      Data       : constant System.Address := Image_Buffer;
+
+      Max   : constant Storage_Count :=
+                Offset + Stride * Storage_Count (Height) - 1;
+      Max_X : constant Storage_Count :=
+                (Stride - Offset mod Stride) / 4;
+      Source_Data  : Storage_Array (0 .. Max);
       for Source_Data'Address use Data;
       Dest_Data : Aliased_Ubyte_Array_Access;
 
-      procedure Set_Dest (Source_Index : Gint;
-                          X, Y         : Int);
+      procedure Set_Dest
+        (Row_Offset : Storage_Offset;
+         Src_X      : Storage_Count;
+         X, Y       : Int);
 
       --------------
       -- Set_Dest --
       --------------
 
-      procedure Set_Dest (Source_Index : Gint;
-                          X, Y         : Int)
+      procedure Set_Dest
+        (Row_Offset : Storage_Offset;
+         Src_X      : Storage_Count;
+         X, Y       : Int)
       is
+         Source_Index : constant Storage_Offset :=
+                          Row_Offset + Src_X * 4;
+         Dest_Y : constant Int :=
+                    (if Flip_Vertical then Int (Height) - Y - 1 else Y);
          Dest_Index : constant Int :=
-                        4 * X + (Height - Y - 1) * Width * 4;
+                        4 * X + Dest_Y * Int (Width) * 4;
       begin
-         if Source_Index < 0 then
-            Dest_Data (Dest_Index .. Dest_Index + 3) := (others => 0);
+         if Source_Index < 0 or else Source_Index >= Buffer_Length
+           or else Source_Index > Source_Data'Last - 3
+           or else Src_X >= Max_X
+         then
+            Dest_Data (Dest_Index .. Dest_Index + 3) := (others => 128);
          else
             declare
-               Red   : constant Ubyte := Source_Data (Source_Index + 2);
-               Green : constant Ubyte := Source_Data (Source_Index + 1);
-               Blue  : constant Ubyte := Source_Data (Source_Index + 0);
-               Alpha : constant Ubyte := Source_Data (Source_Index + 3);
+               Red   : constant Storage_Element :=
+                         Source_Data (Source_Index + 2);
+               Green : constant Storage_Element :=
+                         Source_Data (Source_Index + 1);
+               Blue  : constant Storage_Element :=
+                         Source_Data (Source_Index + 0);
+               Alpha : constant Storage_Element :=
+                         Source_Data (Source_Index + 3);
             begin
-               Dest_Data (Dest_Index) := Red;
-               Dest_Data (Dest_Index + 1) := Green;
-               Dest_Data (Dest_Index + 2) := Blue;
-               Dest_Data (Dest_Index + 3) := Alpha;
+               Dest_Data (Dest_Index) := Ubyte (Red);
+               Dest_Data (Dest_Index + 1) := Ubyte (Green);
+               Dest_Data (Dest_Index + 2) := Ubyte (Blue);
+               Dest_Data (Dest_Index + 3) := Ubyte (Alpha);
             end;
          end if;
       end Set_Dest;
 
    begin
-      Cairo.Surface.Flush (From_Surface);
 
       if Height = 0 or else Width = 0 then
          return null;
       end if;
 
-      Dest_Data := new Aliased_Ubyte_Array (0 .. 4 * Width * Height - 1);
+      Dest_Data := new Aliased_Ubyte_Array
+        (0 .. 4 * Int (Width * Height) - 1);
 
-      for Y in 0 .. Height - 1 loop
-         for X in 0 .. Width - 1 loop
-            declare
-               Src_X        : constant Gint := Gint (X) + Start_X;
-               Src_Y        : constant Gint := Gint (Y) + Start_Y;
-               Source_Index : constant Gint :=
-                                (if Src_X < Src_Width
-                                 and then Src_Y < Src_Height
-                                 then 4 * Src_X + Src_Y * Stride
-                                 else -1);
-            begin
-               Set_Dest (Source_Index, X, Y);
-            end;
+      Rho.Logging.Log
+        ("To_Color_Array: offset" & Offset'Image
+         & "; stride" & Stride'Image
+         & "; width" & Width'Image
+         & "; height" & Height'Image
+         & "; max" & Max'Image);
+
+      declare
+         Source_Index : Storage_Offset := Offset;
+      begin
+         for Y in 0 .. Int (Height) - 1 loop
+            --  Rho.Logging.Log ("source index" & Source_Index'Image);
+            for X in 0 .. Int (Width) - 1 loop
+               Set_Dest (Source_Index, Storage_Count (X), X, Y);
+            end loop;
+            Source_Index := Source_Index + Stride;
          end loop;
-      end loop;
+      end;
+
       return Dest_Data;
    end To_Color_Array;
 

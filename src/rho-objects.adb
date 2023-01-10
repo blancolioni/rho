@@ -51,6 +51,14 @@ package body Rho.Objects is
 
    end Names;
 
+   procedure Reference
+     (This : not null access Root_Object_Type)
+   is null;
+
+   procedure Unreference
+     (This : not null access Root_Object_Type)
+   is null;
+
    ----------------
    -- Initialize --
    ----------------

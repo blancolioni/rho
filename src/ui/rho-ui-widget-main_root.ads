@@ -1,5 +1,3 @@
-with Rho.Scenes;
-
 package Rho.UI.Widget.Main_Root is
 
    subtype Parent is Widget.Instance;
@@ -11,27 +9,25 @@ package Rho.UI.Widget.Main_Root is
    function Create
      return Reference;
 
-   function Root_Node
-     (This : Instance)
-      return Rho.Nodes.Node_Type;
-
 private
 
    subtype Dispatch is Parent'Class;
 
    type Instance is new Parent with
       record
-         Scene : Rho.Scenes.Scene_Type;
+         null;
       end record;
+
+   overriding procedure Configure
+     (This : not null access Instance);
 
    overriding procedure Map
      (This : not null access Instance;
-      Surface : not null access constant
-        Rho.Rectangles.Rectangle_Interface'Class);
+      Surface : not null access
+        Rho.UI.Surface.Instance'Class);
 
-   function Root_Node
-     (This : Instance)
-      return Rho.Nodes.Node_Type
-   is (Rho.Nodes.Node_Type (This.Scene));
+   overriding procedure Show
+     (This   : not null access Instance;
+      Target : not null access Rho.Render.Render_Target'Class);
 
 end Rho.UI.Widget.Main_Root;

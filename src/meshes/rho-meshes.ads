@@ -11,6 +11,8 @@ package Rho.Meshes is
    type Root_Mesh_Type is
      new Rho.Nodes.Root_Node_Type with private;
 
+   type Mesh_Type is access all Root_Mesh_Type'Class;
+
    overriding procedure Load
      (Mesh       : in out Root_Mesh_Type;
       Target     : not null access Rho.Render.Render_Target'Class);
@@ -35,7 +37,14 @@ package Rho.Meshes is
      (Mesh     : in out Root_Mesh_Type;
       Material : Rho.Material.Reference);
 
-   type Mesh_Type is access all Root_Mesh_Type'Class;
+   procedure Set_Geometry
+     (Mesh     : in out Root_Mesh_Type;
+      Geometry : Rho.Geometry.Geometry_Type);
+
+   procedure Initialize
+     (This     : in out Root_Mesh_Type;
+      Geometry : Rho.Geometry.Geometry_Type;
+      Material : Rho.Material.Reference);
 
    function Create_Mesh
      (Geometry : Rho.Geometry.Geometry_Type)

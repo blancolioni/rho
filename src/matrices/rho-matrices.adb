@@ -1,4 +1,6 @@
 with Ada.Text_IO;
+
+with Rho.Images;
 with Rho.Matrices.Logs;
 
 package body Rho.Matrices is
@@ -213,13 +215,17 @@ package body Rho.Matrices is
    -----------
 
    function Image (Vector : Vector_4) return String is
+      use Rho.Images;
       X : constant Real := Vector.Vector (1);
       Y : constant Real := Vector.Vector (2);
       Z : constant Real := Vector.Vector (3);
       W : constant Real := Vector.Vector (4);
    begin
-      return "(" & X'Image & "," & Y'Image & "," & Z'Image
-        & "," & W'Image & ")";
+      return "(" & Image (X)
+        & "," & Image (Y)
+        & "," & Image (Z)
+        & "," & Image (W)
+        & ")";
    end Image;
 
    -----------
@@ -227,11 +233,12 @@ package body Rho.Matrices is
    -----------
 
    function Image (Vector : Vector_3) return String is
+      use Rho.Images;
       X : constant Real := Vector.Vector (1);
       Y : constant Real := Vector.Vector (2);
       Z : constant Real := Vector.Vector (3);
    begin
-      return "(" & X'Image & "," & Y'Image & "," & Z'Image & ")";
+      return "(" & Image (X) & "," & Image (Y) & "," & Image (Z) & ")";
    end Image;
 
    --------------------

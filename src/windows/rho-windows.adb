@@ -1,5 +1,5 @@
 with Rho.Handles;
-with Rho.UI.Widget.Main_Root;
+with Rho.UI.Surface;
 
 package body Rho.Windows is
 
@@ -14,7 +14,18 @@ package body Rho.Windows is
    begin
       Window.UIs.Append (Top);
       Top.Configure;
-      Top.Map (Window);
+
+      declare
+         Surface : constant Rho.UI.Surface.Reference :=
+                     Rho.UI.Surface.Create
+                       (Real (Top.Get_Layout_Position.X),
+                        Real (Top.Get_Layout_Position.Y),
+                        Real (Top.Get_Layout_Size.Width),
+                        Real (Top.Get_Layout_Size.Height));
+      begin
+         Top.Map (Surface);
+      end;
+
    end Add_UI;
 
    -----------------------
@@ -78,14 +89,13 @@ package body Rho.Windows is
             if W.UI_Camera = null then
                W.UI_Camera :=
                  Rho.Cameras.Orthographic_Camera
-                   (0.0, 0.0, W.Width, W.Height);
+                   (0.0, W.Height, W.Width, -W.Height);
             end if;
          end;
 
          W.UI_Camera.Render (Target);
          for UI of W.UIs loop
-            Rho.UI.Widget.Main_Root.Any_Instance (UI.all)
-              .Root_Node.Render (Target);
+            UI.Show (Target);
          end loop;
       end if;
 

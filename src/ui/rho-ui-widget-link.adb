@@ -19,8 +19,8 @@ package body Rho.UI.Widget.Link is
 
       return new Instance'
         (Parent with
-           Relation => +Relation,
-         Href     => +Href);
+           Relation => Rho.Strings."+" (Relation),
+         Href     => Rho.Strings."+" (Href));
    end Create;
 
 end Rho.UI.Widget.Link;

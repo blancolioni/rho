@@ -21,7 +21,7 @@ package body Rho.Cameras is
 
    function Orthographic_Camera
      (Left, Bottom  : Real;
-      Width, Height : Non_Negative_Real)
+      Width, Height : Real)
       return Camera_Type
    is
    begin

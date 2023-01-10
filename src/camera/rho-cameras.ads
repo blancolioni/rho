@@ -22,7 +22,7 @@ package Rho.Cameras is
 
    function Orthographic_Camera
      (Left, Bottom  : Real;
-      Width, Height : Non_Negative_Real)
+      Width, Height : Real)
       return Camera_Type;
 
 private
@@ -37,7 +37,7 @@ private
          Inverse_Projection_Matrix : Rho.Matrices.Matrix_4;
          case Mode is
             when Orthographic =>
-               Width, Height             : Non_Negative_Real;
+               Width, Height             : Real;
                Left, Bottom              : Real;
             when Perspective =>
                Field_Of_View             : Non_Negative_Real;

@@ -6,6 +6,7 @@ source_dir = src/controls
 source_dir = src/controls/orbit
 source_dir = src/demos
 source_dir = src/driver
+source_dir = src/fonts
 source_dir = src/geometry
 source_dir = src/handles
 source_dir = src/handles/opengl
@@ -30,6 +31,7 @@ depend = { project = gcs version = any }
 depend = { project = agama version = any }
 depend = { project = partoe version = any }
 depend = { project = gtkada external = yes }
+depend = { project = ../FreeTypeAda/freetype.gpr external = yes }
 main_unit = rho-driver
 exec_name = rho
 config_dir = config
@@ -40,3 +42,4 @@ path_unit = { unit = Rho.Paths
 linker_option = "-Llib"
 linker_option = "-lopengl32"
 linker_option = "-lfreeglut"
+linker_option = "lib/freetype.lib"

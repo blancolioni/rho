@@ -1,5 +1,7 @@
 with Ada.Containers.Doubly_Linked_Lists;
 
+with Rho.Assets;
+
 with Rho.Shaders.Builder;
 with Rho.Shaders.Stages;
 with Rho.Shaders.Variables;

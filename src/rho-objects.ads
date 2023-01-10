@@ -41,6 +41,12 @@ package Rho.Objects is
       Right : not null access Root_Object_Type'Class)
       return Boolean;
 
+   procedure Reference
+     (This : not null access Root_Object_Type);
+
+   procedure Unreference
+     (This : not null access Root_Object_Type);
+
 private
 
    subtype Object_Name is Ada.Strings.Unbounded.Unbounded_String;
@@ -49,9 +55,10 @@ private
      abstract new Ada.Finalization.Limited_Controlled
      and Rho.Signals.Signal_Object_Interface with
       record
-         Guid   : WL.Guids.Guid := WL.Guids.New_Guid;
-         Name   : Object_Name;
-         Loaded : Boolean       := False;
+         Guid       : WL.Guids.Guid := WL.Guids.New_Guid;
+         Name       : Object_Name;
+         Loaded     : Boolean       := False;
+         References : Natural := 0;
       end record;
 
    overriding procedure Initialize (Object : in out Root_Object_Type);

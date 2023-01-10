@@ -9,7 +9,7 @@ package body Rho.Assets is
    -- Find_File --
    ---------------
 
-   function Find_File
+   overriding function Find_File
      (Container : Root_Asset_Container_Type;
       Name      : String;
       Extension : String)
