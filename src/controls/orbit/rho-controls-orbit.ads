@@ -4,7 +4,6 @@ private with Rho.Signals;
 private with Rho.Spherical;
 
 with Rho.Cameras;
-with Rho.Handles;
 with Rho.Nodes;
 with Rho.Trigonometry;
 
@@ -17,8 +16,7 @@ package Rho.Controls.Orbit is
    type Reference is access all Instance'Class;
 
    function Create
-     (Handle    : Rho.Handles.Handle;
-      Root      : not null access Rho.Nodes.Root_Node_Type'Class;
+     (Root      : not null access Rho.Nodes.Root_Node_Type'Class;
       Camera    : Rho.Cameras.Camera_Type)
       return Reference;
 

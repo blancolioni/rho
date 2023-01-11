@@ -41,6 +41,8 @@ package Rho.UI.Events is
 
    type Event_User_Data is interface;
 
+   function Null_Event_User_Data return Event_User_Data'Class;
+
    type Handler_Id is private;
    Null_Handler_Id : constant Handler_Id;
 

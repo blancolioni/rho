@@ -126,7 +126,7 @@ package Rho.Nodes is
    function Create_Node return Node_Type;
 
    procedure Initialize
-     (Node      : in out Root_Node_Type'Class;
+     (Node      : not null access Root_Node_Type'Class;
       Is_Camera : Boolean := False;
       Is_Light  : Boolean := False);
 

@@ -30,4 +30,9 @@ private
      (This   : not null access Instance;
       Target : not null access Rho.Render.Render_Target'Class);
 
+   overriding function Class_Name
+     (This : Instance)
+      return String
+   is ("Rho.UI.Widget.Main_Root");
+
 end Rho.UI.Widget.Main_Root;

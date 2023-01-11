@@ -16,7 +16,7 @@ package Rho.Lights is
    type Light_Type is access all Root_Light_Type'Class;
 
    procedure Initialize
-     (Light     : in out Root_Light_Type'Class;
+     (Light     : not null access Root_Light_Type'Class;
       Color     : Rho.Color.Color_Type;
       Intensity : Unit_Real := 1.0);
 

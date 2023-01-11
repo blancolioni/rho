@@ -203,6 +203,11 @@ package body Rho.Handles.Simulation is
          null;
       end record;
 
+   overriding function Class_Name
+     (This : Simulation_Window)
+      return String
+   is ("simulation_window");
+
    overriding procedure Before_Render
      (Window : in out Simulation_Window);
 

@@ -48,9 +48,8 @@ package body Rho.Demos.Rotating_Cube is
         Rho.Meshes.Create_Mesh (Geometry);
 
       Handler_Id : constant Rho.Signals.Handler_Id :=
-        Handle.Current_Renderer.Add_Handler
-          (Object  => Mesh,
-           Signal  => Rho.Handles.Signal_Before_Render,
+        Mesh.Add_Handler
+          (Signal  => Rho.Handles.Signal_Before_Render,
            Handler => On_Before_Scene_Render'Access,
            Data    => Rho.Signals.No_Signal_Data)
         with Unreferenced;

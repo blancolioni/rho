@@ -1,5 +1,4 @@
 private with Ada.Containers.Indefinite_Holders;
-private with WL.Guids;
 private with Rho.Geometry;
 private with Rho.Color;
 private with Rho.Properties.Bags;
@@ -7,6 +6,8 @@ private with Rho.Properties.Maps;
 private with Rho.Strings;
 
 with Ada.Containers.Doubly_Linked_Lists;
+
+with WL.Guids;
 
 with Partoe.DOM;
 
@@ -16,6 +17,7 @@ with Css;
 with Rho.Fonts;
 with Rho.Properties;
 with Rho.Render;
+with Rho.Signals;
 
 with Rho.UI.Events;
 with Rho.UI.Surface;
@@ -46,7 +48,7 @@ package Rho.UI.Widget is
      (This : in out Instance;
       Node : not null access constant Partoe.DOM.Root_Partoe_Node'Class);
 
-   procedure Finalize
+   overriding procedure Finalize
      (This : in out Instance);
 
    procedure Configure
@@ -184,6 +186,9 @@ private
          Surface      : Rho.UI.Surface.Reference;
          Context      : Rho.UI.Surface.Context;
          Handlers     : Event_Handler_Array;
+         Enter_Id     : Rho.UI.Events.Handler_Id;
+         Leave_Id     : Rho.UI.Events.Handler_Id;
+         Draw_Id      : Rho.Signals.Handler_Id;
          Meta_Element : Boolean := True;
       end record;
 

@@ -1,3 +1,5 @@
+with Rho.Objects;
+
 package Rho.Rectangles is
 
    type Rectangle_Interface is limited interface;
@@ -26,20 +28,23 @@ package Rho.Rectangles is
      (Rectangle : Rectangle_Interface'Class)
       return Non_Negative_Real;
 
-   type Root_Rectangle_Type is new Rectangle_Interface with private;
+   type Rectangle_Object is
+     abstract new Rho.Objects.Root_Object_Type
+     and Rectangle_Interface
+   with private;
 
-   overriding function X (Rectangle : Root_Rectangle_Type) return Real;
-   overriding function Y (Rectangle : Root_Rectangle_Type) return Real;
+   overriding function X (Rectangle : Rectangle_Object) return Real;
+   overriding function Y (Rectangle : Rectangle_Object) return Real;
    overriding function Width
-     (Rectangle : Root_Rectangle_Type)
+     (Rectangle : Rectangle_Object)
       return Non_Negative_Real;
 
    overriding function Height
-     (Rectangle : Root_Rectangle_Type)
+     (Rectangle : Rectangle_Object)
       return Non_Negative_Real;
 
    procedure Initialize_Rectangle
-     (Rectangle     : in out Root_Rectangle_Type'Class;
+     (Rectangle     : in out Rectangle_Object'Class;
       X, Y          : Real;
       Width, Height : Non_Negative_Real);
 
@@ -50,25 +55,27 @@ private
       return Non_Negative_Real
    is (Rectangle.Width / Rectangle.Height);
 
-   type Root_Rectangle_Type is new Rectangle_Interface with
+   type Rectangle_Object is
+     abstract new Rho.Objects.Root_Object_Type
+     and Rectangle_Interface with
       record
          X, Y : Real := 0.0;
          Width, Height : Non_Negative_Real := 1.0;
       end record;
 
-   overriding function X (Rectangle : Root_Rectangle_Type) return Real
+   overriding function X (Rectangle : Rectangle_Object) return Real
    is (Rectangle.X);
 
-   overriding function Y (Rectangle : Root_Rectangle_Type) return Real
+   overriding function Y (Rectangle : Rectangle_Object) return Real
    is (Rectangle.Y);
 
    overriding function Width
-     (Rectangle : Root_Rectangle_Type)
+     (Rectangle : Rectangle_Object)
       return Non_Negative_Real
    is (Rectangle.Width);
 
    overriding function Height
-     (Rectangle : Root_Rectangle_Type)
+     (Rectangle : Rectangle_Object)
       return Non_Negative_Real
    is (Rectangle.Height);
 

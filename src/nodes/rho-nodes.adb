@@ -89,13 +89,14 @@ package body Rho.Nodes is
    ----------------
 
    procedure Initialize
-     (Node      : in out Root_Node_Type'Class;
+     (Node      : not null access Root_Node_Type'Class;
       Is_Camera : Boolean := False;
       Is_Light  : Boolean := False)
    is
    begin
       Node.Is_Camera := Is_Camera;
       Node.Is_Light := Is_Light;
+      Node.Initialize_Signals;
    end Initialize;
 
    -----------------------------

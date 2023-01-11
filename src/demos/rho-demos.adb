@@ -114,12 +114,11 @@ package body Rho.Demos is
    is
       Orbit_Control : constant Rho.Controls.Orbit.Reference :=
                         Rho.Controls.Orbit.Create
-                          (Handle, Scene, Demo.Camera)
+                          (Scene, Demo.Camera)
                           with Unreferenced;
       Handler_Id : constant Rho.Signals.Handler_Id :=
-        Handle.Current_Renderer.Add_Handler
-          (Object  => Scene,
-           Signal  => Rho.Handles.Signal_Before_Render,
+        Scene.Add_Handler
+          (Signal  => Rho.Handles.Signal_Before_Render,
            Handler => Update_FPS'Access,
            Data    =>
              Demo_Signal_Data'(Demo => Demo_Type (Demo)))

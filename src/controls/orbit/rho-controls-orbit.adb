@@ -23,8 +23,7 @@ package body Rho.Controls.Orbit is
    ------------
 
    function Create
-     (Handle    : Rho.Handles.Handle;
-      Root      : not null access Rho.Nodes.Root_Node_Type'Class;
+     (Root      : not null access Rho.Nodes.Root_Node_Type'Class;
       Camera    : Rho.Cameras.Camera_Type)
       return Reference
    is
@@ -39,24 +38,21 @@ package body Rho.Controls.Orbit is
                     (This => Result);
 
       Button_Press_Id : constant Rho.Signals.Handler_Id :=
-                          Handle.Current_Renderer.Add_Handler
-                            (Object  => Root,
-                             Signal  => Rho.Signals.Buttons.Press_Signal,
+                          Root.Add_Handler
+                            (Signal  => Rho.Signals.Buttons.Press_Signal,
                              Handler => On_Mouse_Button_Press'Access,
                              Data    => User_Data);
 
       Button_Release_Id : constant Rho.Signals.Handler_Id :=
-                            Handle.Current_Renderer.Add_Handler
-                              (Object  => Root,
-                               Signal  =>
+                            Root.Add_Handler
+                              (Signal  =>
                                  Rho.Signals.Buttons.Release_Signal,
                                Handler => On_Mouse_Button_Release'Access,
                                Data    => User_Data);
 
       Pointer_Move_Id : constant Rho.Signals.Handler_Id :=
-                          Handle.Current_Renderer.Add_Handler
-                            (Object  => Root,
-                             Signal  =>
+                          Root.Add_Handler
+                            (Signal  =>
                                Rho.Signals.Pointer.Move_Signal,
                              Handler => On_Pointer_Move'Access,
                              Data    => User_Data);

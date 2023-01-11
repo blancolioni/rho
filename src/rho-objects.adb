@@ -51,13 +51,42 @@ package body Rho.Objects is
 
    end Names;
 
-   procedure Reference
+   procedure Ref
      (This : not null access Root_Object_Type)
    is null;
 
-   procedure Unreference
+   procedure Unref
      (This : not null access Root_Object_Type)
    is null;
+
+   -----------------
+   -- Add_Handler --
+   -----------------
+
+   overriding function Add_Handler
+     (Object   : in out Root_Object_Type;
+      Signal   : Rho.Signals.Signal_Type;
+      Handler  : Rho.Signals.Handler_Type;
+      Data     : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Id
+   is
+   begin
+      return Object.Dispatcher.Add_Handler
+        (Signal, Handler, Data);
+   end Add_Handler;
+
+   -----------------
+   -- Emit_Signal --
+   -----------------
+
+   overriding procedure Emit_Signal
+     (Object   : Root_Object_Type;
+      Signal   : Rho.Signals.Signal_Type;
+      Data     : Rho.Signals.Signal_Data_Interface'Class)
+   is
+   begin
+      Object.Dispatcher.Emit_Signal (Signal, Data);
+   end Emit_Signal;
 
    ----------------
    -- Initialize --
@@ -67,6 +96,30 @@ package body Rho.Objects is
    begin
       Names.Get_Next_Name ("object", Object.Name);
    end Initialize;
+
+   ------------------------
+   -- Initialize_Signals --
+   ------------------------
+
+   procedure Initialize_Signals
+     (This : not null access Root_Object_Type)
+   is
+   begin
+      This.Dispatcher.Initialize (This);
+   end Initialize_Signals;
+
+   --------------------
+   -- Remove_Handler --
+   --------------------
+
+   overriding procedure Remove_Handler
+     (Object   : in out Root_Object_Type;
+      Signal   : Rho.Signals.Signal_Type;
+      Id       : Rho.Signals.Handler_Id)
+   is
+   begin
+      Object.Dispatcher.Remove_Handler (Signal, Id);
+   end Remove_Handler;
 
    ----------------
    -- Set_Loaded --

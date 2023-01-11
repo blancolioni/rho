@@ -47,10 +47,10 @@ package body Rho.Windows is
    is
    begin
       Window.Initialize_Rectangle (X, Y, Width, Height);
+      Window.Initialize_Signals;
       Window.Mouse_Move_Handler :=
-        Window.Render_Target.Add_Handler
-          (Object => Window,
-           Signal  => Rho.Signals.Pointer.Move_Signal,
+        Window.Add_Handler
+          (Signal  => Rho.Signals.Pointer.Move_Signal,
            Handler => On_Mouse_Move'Access,
            Data    => Rho.Signals.No_Signal_Data);
    end Initialize_Window;
@@ -132,8 +132,8 @@ package body Rho.Windows is
 
    begin
 
-      Target.Emit_Signal
-        (null,  Rho.Handles.Signal_Before_Render,
+      W.Emit_Signal
+        (Rho.Handles.Signal_Before_Render,
          Rho.Handles.Render_Signal_Data (W.Before_Render_Time));
 
       W.Before_Render_Time := Ada.Calendar.Clock;
@@ -163,8 +163,8 @@ package body Rho.Windows is
 
       W.After_Render;
 
-      Target.Emit_Signal
-        (null,  Rho.Handles.Signal_After_Render,
+      W.Emit_Signal
+        (Rho.Handles.Signal_After_Render,
          Rho.Handles.Render_Signal_Data (W.After_Render_Time));
       W.After_Render_Time := Ada.Calendar.Clock;
 

@@ -5,7 +5,7 @@ package body Rho.Lights is
    ----------------
 
    procedure Initialize
-     (Light     : in out Root_Light_Type'Class;
+     (Light     : not null access Root_Light_Type'Class;
       Color     : Rho.Color.Color_Type;
       Intensity :        Unit_Real := 1.0)
    is

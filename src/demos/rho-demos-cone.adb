@@ -108,9 +108,8 @@ package body Rho.Demos.Cone is
                    Rho.Meshes.Create_Mesh (Geometry);
 
       Handler_Id : constant Rho.Signals.Handler_Id :=
-                     Handle.Current_Renderer.Add_Handler
-                       (Object  => Mesh,
-                        Signal  => Rho.Handles.Signal_Before_Render,
+                     Mesh.Add_Handler
+                       (Signal  => Rho.Handles.Signal_Before_Render,
                         Handler => On_Before_Scene_Render'Access,
                         Data    => Rho.Signals.No_Signal_Data)
         with Unreferenced;
@@ -118,29 +117,25 @@ package body Rho.Demos.Cone is
       User_Data : constant Event_User_Data :=
                     Event_User_Data'(Demo => Cone_Demo_Access (Demo));
       Button_Press_Id : constant Rho.Signals.Handler_Id :=
-                          Handle.Current_Renderer.Add_Handler
-                            (Object  => Scene,
-                             Signal  => Rho.Signals.Buttons.Press_Signal,
+                          Scene.Add_Handler
+                            (Signal  => Rho.Signals.Buttons.Press_Signal,
                              Handler => On_Mouse_Button_Press'Access,
                              Data    => User_Data)
         with Unreferenced;
 
       Button_Release_Id : constant Rho.Signals.Handler_Id :=
-                            Handle.Current_Renderer.Add_Handler
-                              (Object  => Scene,
-                               Signal  =>
+                            Scene.Add_Handler
+                              (Signal  =>
                                  Rho.Signals.Buttons.Release_Signal,
                                Handler => On_Mouse_Button_Release'Access,
                                Data    => User_Data)
         with Unreferenced;
 
       Pointer_Move_Id : constant Rho.Signals.Handler_Id :=
-                            Handle.Current_Renderer.Add_Handler
-                              (Object  => Scene,
-                               Signal  =>
-                                 Rho.Signals.Pointer.Move_Signal,
-                               Handler => On_Pointer_Move'Access,
-                               Data    => User_Data)
+                          Scene.Add_Handler
+                            (Signal  => Rho.Signals.Pointer.Move_Signal,
+                             Handler => On_Pointer_Move'Access,
+                             Data    => User_Data)
         with Unreferenced;
 
    begin

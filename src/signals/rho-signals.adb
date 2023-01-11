@@ -9,27 +9,25 @@ package body Rho.Signals is
    -- Add_Handler --
    -----------------
 
-   overriding function Add_Handler
-     (Dispatch : in out Signal_Dispatcher;
-      Object   : not null access Rho.Signals.Signal_Object_Interface'Class;
-      Signal   : Rho.Signals.Signal_Type;
-      Handler  : Rho.Signals.Handler_Type;
-      Data     : Rho.Signals.Signal_Data_Interface'Class)
-      return Rho.Signals.Handler_Id
+   function Add_Handler
+     (This     : in out Signal_Dispatcher'Class;
+      Signal   : Signal_Type;
+      Handler  : Handler_Type;
+      Data     : Signal_Data_Interface'Class)
+      return Handler_Id
    is
       S : constant String := Signal_Name (Signal);
    begin
-      if not Dispatch.Map.Contains (S) then
-         Dispatch.Map.Insert (S, Handler_Lists.Empty_List);
+      if not This.Map.Contains (S) then
+         This.Map.Insert (S, Handler_Lists.Empty_List);
       end if;
 
-      return Id : constant Handler_Id := Dispatch.Next_Id do
-         Dispatch.Next_Id := Dispatch.Next_Id + 1;
-         Dispatch.Map (S).Append
+      return Id : constant Handler_Id := This.Next_Id do
+         This.Next_Id := This.Next_Id + 1;
+         This.Map (S).Append
            (Handler_Record'
               (Id      => Id,
                Handler => Handler,
-               Object  => Signal_Object_Access (Object),
                Data    => Data_Holder.To_Holder (Data)));
       end return;
    end Add_Handler;
@@ -38,28 +36,21 @@ package body Rho.Signals is
    -- Emit_Signal --
    -----------------
 
-   overriding procedure Emit_Signal
-     (Dispatch : in out Signal_Dispatcher;
-      Object   : access Rho.Signals.Signal_Object_Interface'Class;
-      Signal   : Rho.Signals.Signal_Type;
-      Data     : Rho.Signals.Signal_Data_Interface'Class)
+   procedure Emit_Signal
+     (This     : Signal_Dispatcher'Class;
+      Signal   : Signal_Type;
+      Data     : Signal_Data_Interface'Class)
    is
       S : constant String := Signal_Name (Signal);
    begin
-      if Dispatch.Map.Contains (S) then
+      if This.Map.Contains (S) then
          declare
-            List : Handler_Lists.List renames Dispatch.Map (S);
+            List : Handler_Lists.List renames This.Map (S);
          begin
-            for Handler of List loop
-               declare
-                  use type WL.Guids.Guid;
+            for Handler of reverse List loop
                begin
-                  if Object = null
-                    or else Handler.Object.Guid = Object.Guid
-                  then
-                     Handler.Handler
-                       (Handler.Object, Data, Handler.Data.Element);
-                  end if;
+                  Handler.Handler
+                    (This.Object, Data, Handler.Data.Element);
                exception
                   when E : others =>
                      Ada.Text_IO.Put_Line
@@ -76,6 +67,18 @@ package body Rho.Signals is
       end if;
    end Emit_Signal;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (This   : in out Signal_Dispatcher'Class;
+      Object : not null access Signal_Object_Interface'Class)
+   is
+   begin
+      This.Object := Signal_Object_Access (Object);
+   end Initialize;
+
    --------------------
    -- No_Signal_Data --
    --------------------
@@ -89,13 +92,13 @@ package body Rho.Signals is
    -- Remove_Handler --
    --------------------
 
-   overriding procedure Remove_Handler
-     (Dispatch : in out Signal_Dispatcher;
-      Signal   : Rho.Signals.Signal_Type;
-      Id       : Rho.Signals.Handler_Id)
+   procedure Remove_Handler
+     (This     : in out Signal_Dispatcher'Class;
+      Signal   : Signal_Type;
+      Id       : Handler_Id)
    is
       S    : constant String := Signal_Name (Signal);
-      List : Handler_Lists.List renames Dispatch.Map (S);
+      List : Handler_Lists.List renames This.Map (S);
       Pos  : Handler_Lists.Cursor := Handler_Lists.No_Element;
    begin
       for Position in List.Iterate loop

@@ -4,8 +4,6 @@ private with Ada.Strings.Unbounded;
 
 private with WL.String_Maps;
 
-with WL.Guids;
-
 package Rho.Signals is
 
    type Signal_Type is private;
@@ -14,26 +12,18 @@ package Rho.Signals is
 
    function New_Signal (Name : String) return Signal_Type;
 
-   type Signal_Object_Interface is limited interface;
-
-   function Guid
-     (Object : Signal_Object_Interface)
-      return WL.Guids.Guid
-      is abstract;
+   type Handler_Id is private;
+   Null_Handler_Id : constant Handler_Id;
 
    type Signal_Data_Interface is interface;
 
    function No_Signal_Data return Signal_Data_Interface'Class;
 
-   type Handler_Id is private;
-   Null_Handler_Id : constant Handler_Id;
-
-   type Signal_Dispatch_Interface is limited interface;
+   type Signal_Object_Interface is limited interface;
 
    procedure Emit_Signal
-     (Dispatch : in out Signal_Dispatch_Interface;
-      Object   : access Signal_Object_Interface'Class;
-      Signal   : Rho.Signals.Signal_Type;
+     (Object   : Signal_Object_Interface;
+      Signal   : Signal_Type;
       Data     : Signal_Data_Interface'Class)
    is abstract;
 
@@ -43,8 +33,7 @@ package Rho.Signals is
                 User_Data   : Signal_Data_Interface'Class);
 
    function Add_Handler
-     (Dispatch : in out Signal_Dispatch_Interface;
-      Object   : not null access Signal_Object_Interface'Class;
+     (Object   : in out Signal_Object_Interface;
       Signal   : Signal_Type;
       Handler  : Handler_Type;
       Data     : Signal_Data_Interface'Class)
@@ -52,13 +41,33 @@ package Rho.Signals is
       is abstract;
 
    procedure Remove_Handler
-     (Dispatch : in out Signal_Dispatch_Interface;
+     (Object   : in out Signal_Object_Interface;
       Signal   : Signal_Type;
       Id       : Handler_Id)
    is abstract;
 
-   type Signal_Dispatcher is
-     new Signal_Dispatch_Interface with private;
+   type Signal_Dispatcher is tagged private;
+
+   procedure Initialize
+     (This   : in out Signal_Dispatcher'Class;
+      Object : not null access Signal_Object_Interface'Class);
+
+   procedure Emit_Signal
+     (This     : Signal_Dispatcher'Class;
+      Signal   : Signal_Type;
+      Data     : Signal_Data_Interface'Class);
+
+   function Add_Handler
+     (This     : in out Signal_Dispatcher'Class;
+      Signal   : Signal_Type;
+      Handler  : Handler_Type;
+      Data     : Signal_Data_Interface'Class)
+      return Handler_Id;
+
+   procedure Remove_Handler
+     (This     : in out Signal_Dispatcher'Class;
+      Signal   : Signal_Type;
+      Id       : Handler_Id);
 
 private
 
@@ -81,7 +90,6 @@ private
       record
          Id      : Handler_Id;
          Handler : Handler_Type;
-         Object  : Signal_Object_Access;
          Data    : Data_Holder.Holder;
       end record;
 
@@ -91,30 +99,12 @@ private
    package Signal_Maps is
      new WL.String_Maps (Handler_Lists.List, Handler_Lists."=");
 
-   type Signal_Dispatcher is new Signal_Dispatch_Interface with
+   type Signal_Dispatcher is tagged
       record
          Next_Id : Handler_Id := 1;
          Map     : Signal_Maps.Map;
+         Object  : Signal_Object_Access;
       end record;
-
-   overriding procedure Emit_Signal
-     (Dispatch : in out Signal_Dispatcher;
-      Object   : access Rho.Signals.Signal_Object_Interface'Class;
-      Signal   : Rho.Signals.Signal_Type;
-      Data     : Rho.Signals.Signal_Data_Interface'Class);
-
-   overriding function Add_Handler
-     (Dispatch : in out Signal_Dispatcher;
-      Object   : not null access Rho.Signals.Signal_Object_Interface'Class;
-      Signal   : Rho.Signals.Signal_Type;
-      Handler  : Rho.Signals.Handler_Type;
-      Data     : Rho.Signals.Signal_Data_Interface'Class)
-      return Rho.Signals.Handler_Id;
-
-   overriding procedure Remove_Handler
-     (Dispatch : in out Signal_Dispatcher;
-      Signal   : Rho.Signals.Signal_Type;
-      Id       : Rho.Signals.Handler_Id);
 
    function Signal_Name (Signal : Signal_Type) return String
    is (Ada.Strings.Unbounded.To_String (Signal.Name));

@@ -64,8 +64,7 @@ package body Rho.UI.Surface is
    begin
       return Surface : constant Reference :=
         new Instance'
-          (Rho.Rectangles.Root_Rectangle_Type with
-             Guid  => WL.Guids.New_Guid,
+          (Rho.Rectangles.Rectangle_Object with
              Scene => Rho.Scenes.Create_Scene,
              Top   => Rho.Nodes.Create_Node,
              Tiles => <>,
@@ -175,7 +174,7 @@ package body Rho.UI.Surface is
    procedure Destroy (This : in out Reference) is
    begin
       Cairo.Surface_Destroy (This.Surface);
-      This.Scene.Unreference;
+      This.Scene.Unref;
       This := null;
    end Destroy;
 

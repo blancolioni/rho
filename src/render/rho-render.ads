@@ -4,27 +4,12 @@ with Rho.Matrices;
 with Rho.Shaders.Programs;
 with Rho.Shaders.Stages;
 with Rho.Shaders.Variables;
-with Rho.Signals;
 with Rho.Values;
-
---  with Tau.Generators;
---  with Tau.Shaders;
 
 package Rho.Render is
 
    type Render_Target is interface
-     and Rho.Buffers.Buffer_Handler_Interface
-     and Rho.Signals.Signal_Dispatch_Interface;
-
-   --  function Active_Shader_Slices
-   --    (Target : Render_Target)
-   --     return Rho.Shaders.Slices.Slice_Array
-   --     is abstract;
-
-   --  procedure Add_Shader_Fragment
-   --    (Target   : in out Render_Target;
-   --     Slice : Rho.Shaders.Slices.Slice_Type)
-   --  is abstract;
+     and Rho.Buffers.Buffer_Handler_Interface;
 
    procedure Add_Shader
      (Target : in out Render_Target;

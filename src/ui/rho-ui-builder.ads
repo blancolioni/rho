@@ -40,6 +40,11 @@ private
          Top : Rho.UI.Widget.Reference;
       end record;
 
+   overriding function Class_Name
+     (This : Instance)
+      return String
+   is ("Rho.UI.Builder");
+
    function Top
      (This : Instance'Class)
       return Rho.UI.Widget.Reference

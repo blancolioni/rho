@@ -5,7 +5,7 @@ package body Rho.Rectangles is
    --------------------------
 
    procedure Initialize_Rectangle
-     (Rectangle     : in out Root_Rectangle_Type'Class;
+     (Rectangle     : in out Rectangle_Object'Class;
       X, Y          : Real;
       Width, Height : Non_Negative_Real)
    is

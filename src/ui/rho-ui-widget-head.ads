@@ -18,6 +18,11 @@ private
          null;
       end record;
 
+   overriding function Class_Name
+     (This : Instance)
+      return String
+   is ("Rho.UI.Widget.Head");
+
    function Create
      return Reference
    is (new Instance);

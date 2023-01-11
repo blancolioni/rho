@@ -305,6 +305,11 @@ package body Rho.Handles.OpenGL is
          Id : Integer;
       end record;
 
+   overriding function Class_Name
+     (This : OpenGL_Window)
+      return String
+   is ("opengl_window");
+
    overriding procedure Before_Render
      (Window : in out OpenGL_Window);
 
@@ -1102,9 +1107,8 @@ package body Rho.Handles.OpenGL is
       Signal  : constant Rho.Signals.Signal_Type :=
                   Rho.Signals.Keyboard.Press_Signal;
    begin
-      Local_Handle.Current_Renderer.Emit_Signal
-        (Object => Local_Handle.Active_Window,
-         Signal => Signal,
+      Local_Handle.Active_Window.Emit_Signal
+        (Signal => Signal,
          Data   => Rho.Signals.Keyboard.Signal_Data'
            (Rho_Key, X, Y));
    end Key_Down_Handler;
@@ -1122,9 +1126,8 @@ package body Rho.Handles.OpenGL is
       Signal  : constant Rho.Signals.Signal_Type :=
                   Rho.Signals.Keyboard.Release_Signal;
    begin
-      Local_Handle.Current_Renderer.Emit_Signal
-        (Object => Local_Handle.Active_Window,
-         Signal => Signal,
+      Local_Handle.Active_Window.Emit_Signal
+        (Signal => Signal,
          Data   => Rho.Signals.Keyboard.Signal_Data'
            (Rho_Key, X, Y));
    end Key_Up_Handler;
@@ -1387,9 +1390,8 @@ package body Rho.Handles.OpenGL is
                            then Rho.Signals.Buttons.Press_Signal
                            else Rho.Signals.Buttons.Release_Signal);
             begin
-               Local_Handle.Current_Renderer.Emit_Signal
-                 (Object => Local_Handle.Active_Window,
-                  Signal => Signal,
+               Local_Handle.Active_Window.Emit_Signal
+                 (Signal => Signal,
                   Data   =>
                     Rho.Signals.Buttons.Signal_Data'
                       (Button, X, Y));
@@ -1408,9 +1410,8 @@ package body Rho.Handles.OpenGL is
       Y      : Integer)
    is
    begin
-      Local_Handle.Current_Renderer.Emit_Signal
-        (Object => Local_Handle.Active_Window,
-         Signal => Rho.Signals.Pointer.Move_Signal,
+      Local_Handle.Active_Window.Emit_Signal
+        (Signal => Rho.Signals.Pointer.Move_Signal,
          Data   =>
            Rho.Signals.Pointer.Signal_Data'(X, Y));
    end Mouse_Move_Handler;
@@ -1480,9 +1481,8 @@ package body Rho.Handles.OpenGL is
    is
    begin
       Local_Handle.Current_Renderer.Set_Size (Width, Height);
-      Local_Handle.Current_Renderer.Emit_Signal
-        (Object => Local_Handle.Active_Window.Scene,
-         Signal => Rho.Signals.Configure.Configure_Signal,
+      Local_Handle.Active_Window.Emit_Signal
+        (Signal => Rho.Signals.Configure.Configure_Signal,
          Data   =>
            Rho.Signals.Configure.Configure_Data'(Width, Height));
    end Reshape_Handler;
@@ -1577,13 +1577,11 @@ package body Rho.Handles.OpenGL is
       Data    : constant Rho.Signals.Keyboard.Signal_Data :=
                   (Rho_Key, X, Y);
    begin
-      Local_Handle.Current_Renderer.Emit_Signal
-        (Object => Local_Handle.Active_Window.Scene,
-         Signal => Rho.Signals.Keyboard.Press_Signal,
+      Local_Handle.Active_Window.Emit_Signal
+        (Signal => Rho.Signals.Keyboard.Press_Signal,
          Data   => Data);
-      Local_Handle.Current_Renderer.Emit_Signal
-        (Object => Local_Handle.Active_Window.Scene,
-         Signal => Rho.Signals.Keyboard.Release_Signal,
+      Local_Handle.Active_Window.Emit_Signal
+        (Signal => Rho.Signals.Keyboard.Release_Signal,
          Data   => Data);
    end Special_Key_Handler;
 

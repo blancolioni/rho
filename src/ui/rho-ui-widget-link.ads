@@ -22,4 +22,9 @@ private
          Href     : Rho.Strings.Rho_String;
       end record;
 
+   overriding function Class_Name
+     (This : Instance)
+      return String
+   is ("Rho.UI.Widget.Link");
+
 end Rho.UI.Widget.Link;

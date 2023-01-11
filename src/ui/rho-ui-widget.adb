@@ -46,6 +46,18 @@ package body Rho.UI.Widget is
    overriding function Tag (This : Instance) return String
    is (-This.Tag);
 
+   function On_Enter_Notify
+     (Widget    : not null access Instance'Class;
+      Event     : Rho.UI.Events.Event;
+      User_Data : Rho.UI.Events.Event_User_Data'Class)
+      return Rho.UI.Events.Handler_Result;
+
+   function On_Leave_Notify
+     (Widget    : not null access Instance'Class;
+      Event     : Rho.UI.Events.Event;
+      User_Data : Rho.UI.Events.Event_User_Data'Class)
+      return Rho.UI.Events.Handler_Result;
+
    ---------------
    -- Add_Child --
    ---------------
@@ -135,6 +147,7 @@ package body Rho.UI.Widget is
    is
    begin
       This.Log ("configure");
+      This.Initialize_Signals;
       Css.Current_Style_Sheet.Load_Style_Rules (This.all);
       for Child of This.Children loop
          Child.Configure;
@@ -174,7 +187,7 @@ package body Rho.UI.Widget is
    -- Finalize --
    --------------
 
-   procedure Finalize
+   overriding procedure Finalize
      (This : in out Instance)
    is
       procedure Free is
@@ -484,7 +497,7 @@ package body Rho.UI.Widget is
       if This.Parent = null then
          This.Context :=
            Rho.UI.Surface.Create
-             (This.Surface, 0.0, 0.0, Surface.Width, Surface.Height);
+             (This.Surface, 0.0, 0.0, Width, Height);
       else
          This.Context :=
            This.Parent.Context.Create
@@ -502,6 +515,18 @@ package body Rho.UI.Widget is
                    & " "
                    & Rho.Images.Image (Height));
       end if;
+
+      This.Enter_Id :=
+        This.Add_Handler
+          (For_Event => Rho.UI.Events.Enter_Notify,
+           User_Data => Rho.UI.Events.Null_Event_User_Data,
+           Handler   => On_Enter_Notify'Access);
+
+      This.Leave_Id :=
+        This.Add_Handler
+          (For_Event => Rho.UI.Events.Leave_Notify,
+           User_Data => Rho.UI.Events.Null_Event_User_Data,
+           Handler   => On_Leave_Notify'Access);
 
       for Child of Dispatch (This.all).Children loop
          Child.Map (Surface);
@@ -542,6 +567,40 @@ package body Rho.UI.Widget is
         (This : not null access Instance'Class; Cr : Cairo.Cairo_Context)
          return Boolean)
    is null;
+
+   ---------------------
+   -- On_Enter_Notify --
+   ---------------------
+
+   function On_Enter_Notify
+     (Widget    : not null access Instance'Class;
+      Event     : Rho.UI.Events.Event;
+      User_Data : Rho.UI.Events.Event_User_Data'Class)
+      return Rho.UI.Events.Handler_Result
+   is
+      pragma Unreferenced (Event, User_Data);
+   begin
+      Ada.Text_IO.Put_Line
+        (Widget.Short_Description & ": enter");
+      return Rho.UI.Events.Propagate;
+   end On_Enter_Notify;
+
+   ---------------------
+   -- On_Leave_Notify --
+   ---------------------
+
+   function On_Leave_Notify
+     (Widget    : not null access Instance'Class;
+      Event     : Rho.UI.Events.Event;
+      User_Data : Rho.UI.Events.Event_User_Data'Class)
+      return Rho.UI.Events.Handler_Result
+   is
+      pragma Unreferenced (Event, User_Data);
+   begin
+      Ada.Text_IO.Put_Line
+        (Widget.Short_Description & ": leave");
+      return Rho.UI.Events.Propagate;
+   end On_Leave_Notify;
 
    -------------------------------
    -- On_Property_Change_Redraw --
@@ -620,10 +679,7 @@ package body Rho.UI.Widget is
       Event : Rho.UI.Events.Event)
    is
    begin
-      Ada.Text_IO.Put_Line
-        (This.Short_Description & ": send " & Event.Class'Image);
-
-      for Rec of This.Handlers (Event.Class) loop
+      for Rec of reverse This.Handlers (Event.Class) loop
          declare
             use Rho.UI.Events;
             Result : constant Handler_Result :=

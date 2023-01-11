@@ -94,9 +94,8 @@ package body Rho.Demos.Cobra_Demo is
       User_Data    : constant Event_User_Data :=
                        Event_User_Data'(Demo => Cobra_Demo_Access (Demo));
       Key_Press_Id : constant Rho.Signals.Handler_Id :=
-                       Handle.Current_Renderer.Add_Handler
-                         (Object  => Scene,
-                          Signal  =>
+                       Scene.Add_Handler
+                         (Signal  =>
                             Rho.Signals.Keyboard.Press_Signal,
                           Handler => On_Key_Press'Access,
                           Data    => User_Data)

@@ -2,7 +2,8 @@ private with WL.String_Maps;
 private with Rho.Strings;
 
 generic
-   type Container_Type is abstract new Property_Value_List with private;
+   type Container_Type is
+     abstract limited new Property_Value_List with private;
 package Rho.Properties.Maps is
 
    type Property_Changed_Procedure is access

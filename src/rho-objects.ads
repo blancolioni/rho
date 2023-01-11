@@ -13,8 +13,28 @@ package Rho.Objects is
      and Rho.Signals.Signal_Object_Interface
    with private;
 
-   overriding function Guid
-     (Object : Root_Object_Type)
+   overriding procedure Emit_Signal
+     (Object   : Root_Object_Type;
+      Signal   : Rho.Signals.Signal_Type;
+      Data     : Rho.Signals.Signal_Data_Interface'Class);
+
+   overriding function Add_Handler
+     (Object   : in out Root_Object_Type;
+      Signal   : Rho.Signals.Signal_Type;
+      Handler  : Rho.Signals.Handler_Type;
+      Data     : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Id;
+
+   overriding procedure Remove_Handler
+     (Object   : in out Root_Object_Type;
+      Signal   : Rho.Signals.Signal_Type;
+      Id       : Rho.Signals.Handler_Id);
+
+   procedure Initialize_Signals
+     (This : not null access Root_Object_Type);
+
+   function Guid
+     (Object : Root_Object_Type'Class)
       return WL.Guids.Guid;
 
    function Name
@@ -41,10 +61,10 @@ package Rho.Objects is
       Right : not null access Root_Object_Type'Class)
       return Boolean;
 
-   procedure Reference
+   procedure Ref
      (This : not null access Root_Object_Type);
 
-   procedure Unreference
+   procedure Unref
      (This : not null access Root_Object_Type);
 
 private
@@ -59,12 +79,13 @@ private
          Name       : Object_Name;
          Loaded     : Boolean       := False;
          References : Natural := 0;
+         Dispatcher : Rho.Signals.Signal_Dispatcher;
       end record;
 
    overriding procedure Initialize (Object : in out Root_Object_Type);
 
-   overriding function Guid
-     (Object : Root_Object_Type)
+   function Guid
+     (Object : Root_Object_Type'Class)
       return WL.Guids.Guid
    is (Object.Guid);
 

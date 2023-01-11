@@ -48,6 +48,11 @@ private
          Glyphs : Glyph_Lists.List;
       end record;
 
+   overriding function Class_Name
+     (This : Instance)
+      return String
+   is ("Rho.UI.Widget.Label");
+
    overriding function Minimum_Size
      (This       : Instance;
       Constraint : Css.Layout_Size)

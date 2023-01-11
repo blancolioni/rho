@@ -1,8 +1,6 @@
 private with Ada.Calendar;
 private with Ada.Containers.Doubly_Linked_Lists;
 
-with WL.Guids;
-
 with Rho.Cameras;
 with Rho.Color;
 with Rho.Rectangles;
@@ -15,11 +13,8 @@ with Rho.UI.Widget;
 package Rho.Windows is
 
    type Root_Window_Type is
-     abstract new Rho.Rectangles.Root_Rectangle_Type
-     and Rho.Signals.Signal_Object_Interface
+     abstract new Rho.Rectangles.Rectangle_Object
    with private;
-
-   overriding function Guid (This : Root_Window_Type) return WL.Guids.Guid;
 
    function Render_Target
      (Window : Root_Window_Type)
@@ -87,10 +82,8 @@ private
        (Rho.UI.Widget.Reference, Rho.UI.Widget."=");
 
    type Root_Window_Type is
-     abstract new Rho.Rectangles.Root_Rectangle_Type
-     and Rho.Signals.Signal_Object_Interface with
+     abstract new Rho.Rectangles.Rectangle_Object with
       record
-         Guid                 : WL.Guids.Guid := WL.Guids.New_Guid;
          Clear_Color          : Rho.Color.Color_Type :=
                                   (0.0, 0.0, 0.0, 1.0);
          Camera               : Rho.Cameras.Camera_Type;
@@ -106,9 +99,6 @@ private
          Current_Focus        : Rho.UI.Widget.Reference;
          Pointer_X, Pointer_Y : Real := 0.0;
       end record;
-
-   overriding function Guid (This : Root_Window_Type) return WL.Guids.Guid
-   is (This.Guid);
 
    function Clear_Color
      (Window : Root_Window_Type'Class)
