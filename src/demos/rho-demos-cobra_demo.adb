@@ -53,10 +53,11 @@ package body Rho.Demos.Cobra_Demo is
          Demo : Cobra_Demo_Access;
       end record;
 
-   procedure On_Key_Press
+   function On_Key_Press
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
    -------------
    -- Execute --
@@ -155,10 +156,11 @@ package body Rho.Demos.Cobra_Demo is
    -- On_Key_Press --
    ------------------
 
-   procedure On_Key_Press
+   function On_Key_Press
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (Object);
       use Rho.Matrices;
@@ -179,6 +181,7 @@ package body Rho.Demos.Cobra_Demo is
          when others =>
             null;
       end case;
+      return Rho.Signals.Propagate;
    end On_Key_Press;
 
 end Rho.Demos.Cobra_Demo;

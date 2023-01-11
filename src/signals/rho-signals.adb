@@ -48,9 +48,12 @@ package body Rho.Signals is
             List : Handler_Lists.List renames This.Map (S);
          begin
             for Handler of reverse List loop
+               declare
+                  Result : constant Handler_Result :=
+                             Handler.Handler
+                               (This.Object, Data, Handler.Data.Element);
                begin
-                  Handler.Handler
-                    (This.Object, Data, Handler.Data.Element);
+                  exit when Result = Stop;
                exception
                   when E : others =>
                      Ada.Text_IO.Put_Line

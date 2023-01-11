@@ -6,10 +6,11 @@ with Rho.Signals.Pointer;
 
 package body Rho.Windows is
 
-   procedure On_Mouse_Move
+   function On_Mouse_Move
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
    ------------
    -- Add_UI --
@@ -59,10 +60,11 @@ package body Rho.Windows is
    -- On_Mouse_Move --
    -------------------
 
-   procedure On_Mouse_Move
+   function On_Mouse_Move
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (User_Data);
       use Rho.UI.Widget;
@@ -102,6 +104,8 @@ package body Rho.Windows is
       end loop;
 
       Window.Scene.Emit_Signal (Rho.Signals.Pointer.Move_Signal, Signal_Data);
+
+      return Rho.Signals.Propagate;
 
    end On_Mouse_Move;
 

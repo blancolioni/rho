@@ -3,20 +3,23 @@ with Rho.Signals.Pointer;
 
 package body Rho.Controls.Orbit is
 
-   procedure On_Mouse_Button_Press
+   function On_Mouse_Button_Press
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
-   procedure On_Mouse_Button_Release
+   function On_Mouse_Button_Release
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
-   procedure On_Pointer_Move
+   function On_Pointer_Move
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
    ------------
    -- Create --
@@ -77,10 +80,11 @@ package body Rho.Controls.Orbit is
    -- On_Mouse_Button_Press --
    ---------------------------
 
-   procedure On_Mouse_Button_Press
+   function On_Mouse_Button_Press
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (Object);
       Data : Rho.Signals.Buttons.Signal_Data renames
@@ -95,16 +99,18 @@ package body Rho.Controls.Orbit is
          when others =>
             null;
       end case;
+      return Rho.Signals.Propagate;
    end On_Mouse_Button_Press;
 
    -----------------------------
    -- On_Mouse_Button_Release --
    -----------------------------
 
-   procedure On_Mouse_Button_Release
+   function On_Mouse_Button_Release
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (Object);
       Data : Rho.Signals.Buttons.Signal_Data renames
@@ -117,16 +123,18 @@ package body Rho.Controls.Orbit is
          when others =>
             null;
       end case;
+      return Rho.Signals.Propagate;
    end On_Mouse_Button_Release;
 
    ---------------------
    -- On_Pointer_Move --
    ---------------------
 
-   procedure On_Pointer_Move
+   function On_Pointer_Move
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (Object);
       Data : Rho.Signals.Pointer.Signal_Data renames
@@ -152,6 +160,7 @@ package body Rho.Controls.Orbit is
          This.Last_X := Data.X;
          This.Last_Y := Data.Y;
       end if;
+      return Rho.Signals.Propagate;
    end On_Pointer_Move;
 
 end Rho.Controls.Orbit;

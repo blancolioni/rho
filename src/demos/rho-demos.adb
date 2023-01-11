@@ -35,10 +35,11 @@ package body Rho.Demos is
          Demo : Demo_Type;
       end record;
 
-   procedure Update_FPS
+   function Update_FPS
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
    ------------
    -- Exists --
@@ -132,10 +133,11 @@ package body Rho.Demos is
    -- Update_FPS --
    ----------------
 
-   procedure Update_FPS
+   function Update_FPS
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (Object);
       Demo : constant Demo_Type :=
@@ -154,6 +156,9 @@ package body Rho.Demos is
          Demo.Elapsed := 0.0;
          Demo.Frame_Count := 0;
       end if;
+
+      return Rho.Signals.Propagate;
+
    end Update_FPS;
 
 end Rho.Demos;

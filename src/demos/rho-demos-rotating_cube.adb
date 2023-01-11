@@ -5,10 +5,11 @@ with Rho.Signals;
 
 package body Rho.Demos.Rotating_Cube is
 
-   procedure On_Before_Scene_Render
+   function On_Before_Scene_Render
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
    ----------------
    -- Initialize --
@@ -83,10 +84,11 @@ package body Rho.Demos.Rotating_Cube is
    -- On_Before_Scene_Render --
    ----------------------------
 
-   procedure On_Before_Scene_Render
+   function On_Before_Scene_Render
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (User_Data);
       Render_Data : Rho.Handles.Render_Signal_Type renames
@@ -96,6 +98,7 @@ package body Rho.Demos.Rotating_Cube is
    begin
       Mesh.Rotate_Z (7.0 * Real (Render_Data.Time_Since_Last_Event));
       Mesh.Rotate_Y (5.3 * Real (Render_Data.Time_Since_Last_Event));
+      return Rho.Signals.Propagate;
    end On_Before_Scene_Render;
 
    -----------

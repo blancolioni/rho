@@ -50,25 +50,29 @@ package body Rho.Demos.Cone is
       Handle : Rho.Handles.Handle;
       Window : Rho.Windows.Window_Type);
 
-   procedure On_Before_Scene_Render
+   function On_Before_Scene_Render
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
-   procedure On_Mouse_Button_Press
+   function On_Mouse_Button_Press
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
-   procedure On_Mouse_Button_Release
+   function On_Mouse_Button_Release
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
-   procedure On_Pointer_Move
+   function On_Pointer_Move
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
-      User_Data   : Rho.Signals.Signal_Data_Interface'Class);
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
    type Event_User_Data is
      new Rho.Signals.Signal_Data_Interface with
@@ -204,10 +208,11 @@ package body Rho.Demos.Cone is
    -- On_Before_Scene_Render --
    ----------------------------
 
-   procedure On_Before_Scene_Render
+   function On_Before_Scene_Render
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (User_Data);
       Render_Data : Rho.Handles.Render_Signal_Type renames
@@ -217,16 +222,18 @@ package body Rho.Demos.Cone is
    begin
       --  Node.Rotate_Z (7.0 * Real (Render_Data.Time_Since_Last_Event));
       Node.Rotate_Y (-5.3 * Real (Render_Data.Time_Since_Last_Event));
+      return Rho.Signals.Propagate;
    end On_Before_Scene_Render;
 
    ---------------------------
    -- On_Mouse_Button_Press --
    ---------------------------
 
-   procedure On_Mouse_Button_Press
+   function On_Mouse_Button_Press
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (Object);
       Data : Rho.Signals.Buttons.Signal_Data renames
@@ -244,16 +251,18 @@ package body Rho.Demos.Cone is
          when others =>
             null;
       end case;
+      return Rho.Signals.Propagate;
    end On_Mouse_Button_Press;
 
    -----------------------------
    -- On_Mouse_Button_Release --
    -----------------------------
 
-   procedure On_Mouse_Button_Release
+   function On_Mouse_Button_Release
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (Object);
       Data : Rho.Signals.Buttons.Signal_Data renames
@@ -269,16 +278,18 @@ package body Rho.Demos.Cone is
          when others =>
             null;
       end case;
+      return Rho.Signals.Propagate;
    end On_Mouse_Button_Release;
 
    ---------------------
    -- On_Pointer_Move --
    ---------------------
 
-   procedure On_Pointer_Move
+   function On_Pointer_Move
      (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
       Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
    is
       pragma Unreferenced (Object);
       Data : Rho.Signals.Pointer.Signal_Data renames
@@ -302,6 +313,7 @@ package body Rho.Demos.Cone is
          Demo.Last_X := Data.X;
          Demo.Last_Y := Data.Y;
       end if;
+      return Rho.Signals.Propagate;
    end On_Pointer_Move;
 
 end Rho.Demos.Cone;

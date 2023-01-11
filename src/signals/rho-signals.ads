@@ -27,10 +27,13 @@ package Rho.Signals is
       Data     : Signal_Data_Interface'Class)
    is abstract;
 
+   type Handler_Result is (Propagate, Stop);
+
    type Handler_Type is access
-     procedure (Object      : not null access Signal_Object_Interface'Class;
-                Signal_Data : Signal_Data_Interface'Class;
-                User_Data   : Signal_Data_Interface'Class);
+     function (Object      : not null access Signal_Object_Interface'Class;
+               Signal_Data : Signal_Data_Interface'Class;
+               User_Data   : Signal_Data_Interface'Class)
+               return Handler_Result;
 
    function Add_Handler
      (Object   : in out Signal_Object_Interface;
