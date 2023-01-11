@@ -45,7 +45,8 @@ private
 
    type Instance is new Parent with
       record
-         Glyphs : Glyph_Lists.List;
+         Glyphs        : Glyph_Lists.List;
+         Label_Draw_Id : Rho.Signals.Handler_Id;
       end record;
 
    overriding function Class_Name

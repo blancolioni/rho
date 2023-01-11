@@ -9,8 +9,8 @@ with Rho.Handles;
 with Rho.Shaders.Stages;
 
 with Rho.UI.Main;
+with Rho.UI.Signals;
 
-with Rho.Images;
 with Rho.Paths;
 
 package body Rho.UI.Widget is
@@ -57,6 +57,12 @@ package body Rho.UI.Widget is
       Event     : Rho.UI.Events.Event;
       User_Data : Rho.UI.Events.Event_User_Data'Class)
       return Rho.UI.Events.Handler_Result;
+
+   function On_Draw
+     (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
+      Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result;
 
    ---------------
    -- Add_Child --
@@ -505,17 +511,6 @@ package body Rho.UI.Widget is
               Real (Size.Width), Real (Size.Height));
       end if;
 
-      if Width > 0.0 and then Height > 0.0 then
-         This.Context.Draw_Color
-           (Get_Color (This.Style ("background-color")));
-         This.Context.Rectangle (Width, Height, null);
-
-         This.Log ("draw rectangle: "
-                   & Rho.Images.Image (Width)
-                   & " "
-                   & Rho.Images.Image (Height));
-      end if;
-
       This.Enter_Id :=
         This.Add_Handler
           (For_Event => Rho.UI.Events.Enter_Notify,
@@ -527,6 +522,12 @@ package body Rho.UI.Widget is
           (For_Event => Rho.UI.Events.Leave_Notify,
            User_Data => Rho.UI.Events.Null_Event_User_Data,
            Handler   => On_Leave_Notify'Access);
+
+      This.Draw_Id :=
+        This.Add_Handler
+          (Signal  => Rho.UI.Signals.Draw_Signal,
+           Handler => On_Draw'Access,
+           Data    => Rho.Signals.No_Signal_Data);
 
       for Child of Dispatch (This.all).Children loop
          Child.Map (Surface);
@@ -567,6 +568,36 @@ package body Rho.UI.Widget is
         (This : not null access Instance'Class; Cr : Cairo.Cairo_Context)
          return Boolean)
    is null;
+
+   -------------
+   -- On_Draw --
+   -------------
+
+   function On_Draw
+     (Object      : not null access Rho.Signals.Signal_Object_Interface'Class;
+      Signal_Data : Rho.Signals.Signal_Data_Interface'Class;
+      User_Data   : Rho.Signals.Signal_Data_Interface'Class)
+      return Rho.Signals.Handler_Result
+   is
+      pragma Unreferenced (Signal_Data, User_Data);
+      This   : constant Reference := Reference (Object);
+      Size   : constant Css.Layout_Size := This.Get_Layout_Size;
+      Width  : constant Real := Real (Size.Width);
+      Height : constant Real := Real (Size.Height);
+   begin
+      if Width > 0.0 and then Height > 0.0 then
+         This.Context.Draw_Color
+           (Get_Color (This.Style ("background-color")));
+         This.Context.Rectangle (Width, Height, null);
+      end if;
+
+      for Child of This.Children loop
+         Child.Emit_Signal (Rho.UI.Signals.Draw_Signal,
+                            Rho.Signals.No_Signal_Data);
+      end loop;
+
+      return Rho.Signals.Propagate;
+   end On_Draw;
 
    ---------------------
    -- On_Enter_Notify --

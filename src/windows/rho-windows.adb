@@ -1,5 +1,6 @@
 with Rho.Handles;
 with Rho.UI.Events;
+with Rho.UI.Signals;
 with Rho.UI.Surface;
 
 with Rho.Signals.Pointer;
@@ -33,6 +34,8 @@ package body Rho.Windows is
                         Real (Top.Get_Layout_Size.Height));
       begin
          Top.Map (Surface);
+         Top.Emit_Signal
+           (Rho.UI.Signals.Draw_Signal, Rho.Signals.No_Signal_Data);
       end;
 
    end Add_UI;
