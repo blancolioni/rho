@@ -47,7 +47,7 @@ package body Rho.Signals is
          declare
             List : Handler_Lists.List renames This.Map (S);
          begin
-            for Handler of reverse List loop
+            for Handler of List loop
                declare
                   Result : constant Handler_Result :=
                              Handler.Handler
