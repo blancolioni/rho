@@ -2,6 +2,13 @@ with Rho.Logging;
 
 package body Rho.Scenes is
 
+   function Create_Scene return Scene_Type is
+   begin
+      return Scene : constant Scene_Type := new Root_Scene_Type do
+         Scene.Initialize_Node;
+      end return;
+   end Create_Scene;
+
    --------------------
    -- Execute_Render --
    --------------------

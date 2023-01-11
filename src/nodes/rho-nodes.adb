@@ -84,11 +84,11 @@ package body Rho.Nodes is
       Target.Set_Model_View_Matrix (Node.World_Matrix);
    end Execute_Render;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   ---------------------
+   -- Initialize_Node --
+   ---------------------
 
-   procedure Initialize
+   procedure Initialize_Node
      (Node      : not null access Root_Node_Type'Class;
       Is_Camera : Boolean := False;
       Is_Light  : Boolean := False)
@@ -97,7 +97,7 @@ package body Rho.Nodes is
       Node.Is_Camera := Is_Camera;
       Node.Is_Light := Is_Light;
       Node.Initialize_Signals;
-   end Initialize;
+   end Initialize_Node;
 
    -----------------------------
    -- Invalidate_World_Matrix --

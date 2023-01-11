@@ -10,7 +10,7 @@ package body Rho.Lights is
       Intensity :        Unit_Real := 1.0)
    is
    begin
-      Light.Initialize (Is_Light => True);
+      Light.Initialize_Node (Is_Light => True);
       Light.Color := Color;
       Light.Intensity := Intensity;
    end Initialize;

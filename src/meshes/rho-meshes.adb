@@ -53,10 +53,14 @@ package body Rho.Meshes is
       return Mesh_Type
    is
    begin
-      return new Root_Mesh_Type'
-        (Rho.Nodes.Root_Node_Type with
-           Material => <>,
-         Geometry => Geometry);
+      return Mesh : constant Mesh_Type :=
+        new Root_Mesh_Type'
+          (Rho.Nodes.Root_Node_Type with
+             Material => <>,
+             Geometry => Geometry)
+      do
+         Mesh.Initialize_Node;
+      end return;
    end Create_Mesh;
 
    -----------------

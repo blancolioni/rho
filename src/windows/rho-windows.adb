@@ -101,6 +101,8 @@ package body Rho.Windows is
          end;
       end loop;
 
+      Window.Scene.Emit_Signal (Rho.Signals.Pointer.Move_Signal, Signal_Data);
+
    end On_Mouse_Move;
 
    ---------------

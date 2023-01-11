@@ -62,7 +62,7 @@ package body Rho.Cameras is
            Projection_Matrix         => <>,
            Inverse_Projection_Matrix => <>)
       do
-         Camera.Initialize (Is_Camera => True);
+         Camera.Initialize_Node (Is_Camera => True);
          Camera.Update_Projection_Matrix;
       end return;
    end Perspective_Camera;
