@@ -12,12 +12,9 @@ package Rho.UI.Widget.Label is
    subtype Any_Instance is Instance'Class;
    type Reference is access all Instance'Class;
 
-   function Create_From_Node
-     (Element : not null access constant
-        Partoe.DOM.Root_Partoe_Node'Class)
-      return Rho.UI.Widget.Reference;
-
    Label_Property : constant Rho.Properties.Property;
+
+   function Create return Reference;
 
    function Get_Label
      (This : Any_Instance)
@@ -54,6 +51,10 @@ private
       return String
    is ("Rho.UI.Widget.Label");
 
+   overriding procedure Initialize
+     (This : in out Instance;
+      Node : not null access constant Partoe.DOM.Root_Partoe_Node'Class);
+
    overriding function Minimum_Size
      (This       : Instance;
       Constraint : Css.Layout_Size)
@@ -72,5 +73,9 @@ private
    Label_Property : constant Rho.Properties.Property :=
                       Label_Properties.Create_Property
                         ("label", On_Property_Change_Resize'Access, "");
+
+   function Create
+     return Reference
+   is (new Instance);
 
 end Rho.UI.Widget.Label;

@@ -54,26 +54,8 @@ package body Rho.UI.Builder is
       Root   : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
       return Rho.UI.Widget.Reference
    is
-      Text : constant String :=
-               Ada.Strings.Fixed.Trim
-                 (Root.Text, Ada.Strings.Both);
-
-      function Has_Ancestor_With_Tag
-        (Element : access constant Partoe.DOM.Root_Partoe_Node'Class;
-         Tag     : String)
-         return Boolean
-      is (Element /= null
-          and then (Element.Has_Name (Tag)
-            or else Has_Ancestor_With_Tag (Element.Parent, Tag)));
-
    begin
       Parent.Initialize (Root);
-      if Text /= ""
-        and then Has_Ancestor_With_Tag (Root, "body")
-      then
-         Parent.Add_Child
-           (Rho.UI.Widget.Label.Create_From_Node (Root));
-      end if;
       for Child_Node of Root.Children loop
          declare
             use type Rho.UI.Widget.Reference;
@@ -96,10 +78,15 @@ package body Rho.UI.Builder is
      (Root : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
       return Rho.UI.Widget.Reference
    is
-      Div : constant Rho.UI.Widget.Div.Reference :=
-               Rho.UI.Widget.Div.Create;
+      Text : constant String :=
+               Ada.Strings.Fixed.Trim
+                 (Root.Text, Ada.Strings.Both);
+      W    : constant Rho.UI.Widget.Reference :=
+               (if Text /= ""
+                then Rho.UI.Widget.Reference (Rho.UI.Widget.Label.Create)
+                else Rho.UI.Widget.Reference (Rho.UI.Widget.Div.Create));
    begin
-      return Create_Children (Div, Root);
+      return Create_Children (W, Root);
    end Create_Div;
 
    -----------------

@@ -11,27 +11,6 @@ package body Rho.UI.Widget.Label is
       User_Data   : Rho.Signals.Signal_Data_Interface'Class)
       return Rho.Signals.Handler_Result;
 
-   ----------------------
-   -- Create_From_Node --
-   ----------------------
-
-   function Create_From_Node
-     (Element : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
-      return Rho.UI.Widget.Reference
-   is
-      Text  : constant String :=
-                Ada.Strings.Fixed.Trim
-                  (Element.Text, Ada.Strings.Both);
-      Label : constant Reference := new Instance;
-   begin
-      Label.Initialize
-        (Id      => "",
-         Tag     => "label",
-         Classes => "");
-      Label.Set_Label (Text);
-      return Widget.Reference (Label);
-   end Create_From_Node;
-
    ---------------
    -- Get_Label --
    ---------------
@@ -43,6 +22,22 @@ package body Rho.UI.Widget.Label is
    begin
       return This.Get_Value (Label_Property);
    end Get_Label;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   overriding procedure Initialize
+     (This : in out Instance;
+      Node : not null access constant Partoe.DOM.Root_Partoe_Node'Class)
+   is
+      Text  : constant String :=
+                Ada.Strings.Fixed.Trim
+                  (Node.Text, Ada.Strings.Both);
+   begin
+      Parent (This).Initialize (Node);
+      This.Set_Label (Text);
+   end Initialize;
 
    ---------
    -- Map --
