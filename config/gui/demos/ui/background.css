@@ -14,13 +14,14 @@
 	background-color: blue;
 }
 
-.cyan {
-	background-color: cyan;
+.textbg {
+	background-color: darkslategray;
 }
 
 .text {
 	font-family: SegoeUI;
 	font-size: 32px;
+	color: lightgoldenrodyellow;
 }
 
 .rectangle {
